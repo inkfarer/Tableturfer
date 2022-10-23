@@ -92,16 +92,23 @@ export const useActiveCardStore = defineStore('activeCard', {
         },
 
         setPosition(newValue: Position) {
+            const origin = this.activeCard?.origin ?? { x: 0, y: 0 };
             this.position = {
-                x: newValue.x,
-                y: newValue.y
+                x: newValue.x - origin.x,
+                y: newValue.y - origin.y
             };
         },
-        setYPosition(newValue: number) {
-            this.setPosition({ y: newValue, x: this.position.x });
+        moveUp() {
+            this.position.y--;
         },
-        setXPosition(newValue: number) {
-            this.setPosition({ x: newValue, y: this.position.y });
+        moveDown() {
+            this.position.y++;
+        },
+        moveLeft() {
+            this.position.x--;
+        },
+        moveRight() {
+            this.position.x++;
         }
     }
 });

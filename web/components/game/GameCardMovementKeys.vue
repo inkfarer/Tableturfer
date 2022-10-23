@@ -1,11 +1,11 @@
 <template>
     <div class="card-movement-keys">
-        <button @click="activeCardStore.setYPosition(activeCardStore.position.y - 1)">Up</button>
+        <button @click="activeCardStore.moveUp()">Up</button>
         <div>
-            <button @click="activeCardStore.setXPosition(activeCardStore.position.x - 1)">Left</button>
-            <button @click="activeCardStore.setXPosition(activeCardStore.position.x + 1)">Right</button>
+            <button @click="activeCardStore.moveLeft()">Left</button>
+            <button @click="activeCardStore.moveRight()">Right</button>
         </div>
-        <button @click="activeCardStore.setYPosition(activeCardStore.position.y + 1)">Down</button>
+        <button @click="activeCardStore.moveDown()">Down</button>
         <div style="margin-top: 10px;">
             <button @click="activeCardStore.previousRotationStep()">Spin Left</button>
             <button @click="activeCardStore.nextRotationStep()">Spin Right</button>
