@@ -2,5 +2,7 @@ export enum MapSquareType {
     DISABLED,
     EMPTY,
     SPECIAL_ALPHA,
-    SPECIAL_BRAVO
+    SPECIAL_BRAVO,
+    FILL_ALPHA,
+    FILL_BRAVO
 }

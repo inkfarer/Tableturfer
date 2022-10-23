@@ -48,5 +48,13 @@ const gameBoardStore = useGameBoardStore();
     &.map-square_3 {
         background-color: #15E3DB;
     }
+
+    &.map-square_4 {
+        background-color: #E9FF0F;
+    }
+
+    &.map-square_5 {
+        background-color: #4B50F3;
+    }
 }
 </style>

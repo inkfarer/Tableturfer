@@ -3,7 +3,7 @@
         <GameBoard />
         <div class="side-section">
             <GameCardSelector />
-            <GameCardMovementKeys class="movement-keys" />
+            <GameCardActionKeys class="action-keys" />
         </div>
         <div class="side-section">
             <GameMapSelector />
@@ -20,7 +20,7 @@
     margin-left: 10px;
 }
 
-.movement-keys {
+.action-keys {
     margin-top: 10px;
 }
 </style>
