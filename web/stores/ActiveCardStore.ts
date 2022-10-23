@@ -40,6 +40,52 @@ export const useActiveCardStore = defineStore('activeCard', {
                     ? state.activeCard.squares[0].length
                     : state.activeCard.squares.length
             });
+        },
+        offsetPosition(): Position {
+            const rotation = this.rotation;
+            if (rotation === 0) {
+                return this.position;
+            } else {
+                const { width, height } = this.cardSize;
+                if (width === height) {
+                    return this.position;
+                }
+
+                const addToPosition = (x: number, y: number): Position => ({
+                    x: this.position.x + x,
+                    y: this.position.y + y
+                });
+
+                switch (rotation) {
+                    case 90: {
+                        let x = Math.ceil((width - height) / 2);
+                        const y = Math.ceil((height - width) / 2);
+
+                        if (height % 2 === 1 && width % 2 === 0) {
+                            x -= 1;
+                        }
+
+                        return addToPosition(x, y);
+                    }
+                    case 180: {
+                        if (height % 2 === 0 && width % 2 === 1) {
+                            return addToPosition(0, (height + width) % 2);
+                        } else {
+                            return addToPosition(((height + width) % 2) * -1, 0);
+                        }
+                    }
+                    case 270: {
+                        const x = Math.floor((width - height) / 2);
+                        let y = x * -1;
+
+                        if (height % 2 === 1 && width % 2 === 0) {
+                            y -= 1;
+                        }
+
+                        return addToPosition(x, y);
+                    }
+                }
+            }
         }
     },
     actions: {

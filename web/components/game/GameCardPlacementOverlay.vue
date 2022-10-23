@@ -2,7 +2,7 @@
     <div
         class="card-placement-overlay"
         :style="{
-            transform: `translate(${Constants.BOARD_SQUARE_SIZE_PX * normalizedPosition.x}px, ${Constants.BOARD_SQUARE_SIZE_PX * normalizedPosition.y}px)`
+            transform: `translate(${Constants.BOARD_SQUARE_SIZE_PX * activeCardStore.offsetPosition.x}px, ${Constants.BOARD_SQUARE_SIZE_PX * activeCardStore.offsetPosition.y}px)`
         }"
     >
         <div
@@ -26,58 +26,9 @@
 
 <script lang="ts" setup>
 import Constants from '~/data/Constants';
-import { Position } from '~/types/Position';
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
-import { computed } from '#imports';
 
 const activeCardStore = useActiveCardStore();
-
-const normalizedPosition = computed(() => {
-    const rotation = activeCardStore.rotation;
-    if (rotation === 0) {
-        return activeCardStore.position;
-    } else {
-        const { width, height } = activeCardStore.cardSize;
-        if (width === height) {
-            return activeCardStore.position;
-        }
-
-        const addToPosition = (x: number, y: number): Position => ({
-            x: activeCardStore.position.x + x,
-            y: activeCardStore.position.y + y
-        });
-
-        switch (rotation) {
-            case 90: {
-                let x = Math.ceil((width - height) / 2);
-                const y = Math.ceil((height - width) / 2);
-
-                if (height % 2 === 1 && width % 2 === 0) {
-                    x -= 1;
-                }
-
-                return addToPosition(x, y);
-            }
-            case 180: {
-                if (height % 2 === 0 && width % 2 === 1) {
-                    return addToPosition(0, (height + width) % 2);
-                } else {
-                    return addToPosition(((height + width) % 2) * -1, 0);
-                }
-            }
-            case 270: {
-                const x = Math.floor((width - height) / 2);
-                let y = x * -1;
-
-                if (height % 2 === 1 && width % 2 === 0) {
-                    y -= 1;
-                }
-
-                return addToPosition(x, y);
-            }
-        }
-    }
-});
 </script>
 
 <style lang="scss">
