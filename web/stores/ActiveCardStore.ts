@@ -24,14 +24,23 @@ export const useActiveCardStore = defineStore('activeCard', {
         rotation: 0
     }),
     getters: {
-        cardSize: state => ({
-            width: state.rotation === 0 || state.rotation === 180
-                ? state.activeCard.squares[0].length
-                : state.activeCard.squares.length,
-            height: state.rotation === 90 || state.rotation === 270
-                ? state.activeCard.squares[0].length
-                : state.activeCard.squares.length
-        })
+        cardSize: state => {
+            if (state.activeCard == null) {
+                return {
+                    width: 0,
+                    height: 0
+                };
+            }
+
+            return ({
+                width: state.rotation === 0 || state.rotation === 180
+                    ? state.activeCard.squares[0].length
+                    : state.activeCard.squares.length,
+                height: state.rotation === 90 || state.rotation === 270
+                    ? state.activeCard.squares[0].length
+                    : state.activeCard.squares.length
+            });
+        }
     },
     actions: {
         setActiveCard(card: Card | null) {
