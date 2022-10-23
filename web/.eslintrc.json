@@ -1,0 +1,72 @@
+{
+    "root": true,
+    "env": {
+        "browser": true,
+        "es2021": true,
+        "node": true
+    },
+    "extends": [
+        "eslint:recommended",
+        "plugin:vue/vue3-recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "vue-eslint-parser",
+    "parserOptions": {
+        "ecmaVersion": 13,
+        "sourceType": "module",
+        "parser": "@typescript-eslint/parser"
+    },
+    "plugins": [
+        "vue",
+        "html",
+        "@typescript-eslint"
+    ],
+    "rules": {
+        "import/no-extraneous-dependencies": "off",
+        "max-len": "off",
+        "indent": ["warn", 4, { "SwitchCase": 1 }],
+        "linebreak-style": "off",
+        "quotes": ["error", "single"],
+        "semi": ["error", "always"],
+        "object-curly-spacing": ["warn", "always", {
+            "objectsInObjects": true,
+            "arraysInObjects": false
+        }],
+        "curly": [1, "multi-line"],
+        "no-eq-null": "off",
+        "eqeqeq": ["error", "smart"],
+        "padding-line-between-statements": [
+            "error",
+            { "blankLine": "never", "prev": "block-like", "next": "case" },
+            { "blankLine": "never", "prev": "block-like", "next": "default" }
+        ],
+        "no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars": ["error"],
+        "no-empty": ["error", { "allowEmptyCatch":  true }],
+        "@typescript-eslint/ban-ts-comment": ["error", {
+            "ts-ignore": "allow-with-description"
+        }],
+        "space-before-blocks": ["error"],
+        "keyword-spacing": ["error"],
+        "@typescript-eslint/type-annotation-spacing": [
+            "error",
+            {
+                "before": false,
+                "after": true,
+                "overrides": {
+                    "arrow": {
+                        "before": true,
+                        "after": true
+                    }
+                }
+            }
+        ],
+        "operator-linebreak": ["error", "before"],
+        "eol-last": 2,
+        "quote-props": [2, "as-needed", {"numbers": true}],
+        "vue/html-indent": ["error", 4],
+        "vue/singleline-html-element-content-newline": "off",
+        "vue/multi-word-component-names": "off",
+        "no-undef": "off"
+    }
+}
