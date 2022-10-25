@@ -1,6 +1,7 @@
 <template>
     <div
         class="card-placement-overlay"
+        :class="{ placeable }"
         :style="{
             transform: `translate(${Constants.BOARD_SQUARE_SIZE_PX * activeCardStore.offsetPosition.x}px, ${Constants.BOARD_SQUARE_SIZE_PX * activeCardStore.offsetPosition.y}px)`
         }"
@@ -27,13 +28,23 @@
 <script lang="ts" setup>
 import Constants from '~/data/Constants';
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { useGameBoardStore } from '~/stores/GameBoardStore';
+import { computed } from '#imports';
 
 const activeCardStore = useActiveCardStore();
+const gameBoardStore = useGameBoardStore();
+const placeable = computed(() =>
+    gameBoardStore.isPlaceable(activeCardStore.offsetPosition, activeCardStore.activeCard?.squares));
+
 </script>
 
 <style lang="scss">
 .card-placement-overlay {
     position: absolute;
+
+    &:not(.placeable) {
+        filter: grayscale(100%);
+    }
 }
 
 .square {

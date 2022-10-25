@@ -27,6 +27,19 @@ export const useGameBoardStore = defineStore('gameBoard', {
                 width: state.board[0].length,
                 height: state.board.length
             };
+        },
+        isPlaceable() {
+            return (position: Position, squares: CardSquareType[][]) => {
+                if (squares == null) {
+                    return false;
+                }
+
+                const cardWidth = squares[0].length;
+                const cardHeight = squares.length;
+                return position.x >= 0 && position.y >= 0
+                    && position.x + cardWidth <= this.boardSize.width
+                    && position.y + cardHeight <= this.boardSize.height;
+            };
         }
     },
     actions: {
@@ -41,11 +54,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
             }
         },
         placeCard(position: Position, squares: CardSquareType[][]) {
-            const cardWidth = squares[0].length;
-            const cardHeight = squares.length;
-            if (position.x < 0 || position.y < 0
-                || position.x + cardWidth > this.boardSize.width
-                || position.y + cardHeight > this.boardSize.height) {
+            if (!this.isPlaceable(position, squares)) {
                 console.warn('Skipping card placement as card is out of bounds');
                 return;
             }
