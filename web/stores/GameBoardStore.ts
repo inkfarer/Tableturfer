@@ -42,8 +42,10 @@ export const useGameBoardStore = defineStore('gameBoard', {
         },
         placeCard(position: Position, squares: CardSquareType[][]) {
             const cardWidth = squares[0].length;
-            const cardHeight = squares[0].length;
-            if (position.x + cardWidth > this.boardSize.width || position.y + cardHeight > this.boardSize.height) {
+            const cardHeight = squares.length;
+            if (position.x < 0 || position.y < 0
+                || position.x + cardWidth > this.boardSize.width
+                || position.y + cardHeight > this.boardSize.height) {
                 console.warn('Skipping card placement as card is out of bounds');
                 return;
             }
