@@ -1,7 +1,7 @@
 import { MapSquareType } from '~/types/MapSquareType';
 import { defineStore } from 'pinia';
 import { GameMap } from '~/types/GameMap';
-import { findIndex2D } from '~/helpers/ArrayHelper';
+import { findIndex2D, slice2D } from '~/helpers/ArrayHelper';
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
 import { Position } from '~/types/Position';
 import { CardSquareType } from '~/types/CardSquareType';
@@ -30,15 +30,43 @@ export const useGameBoardStore = defineStore('gameBoard', {
         },
         isPlaceable() {
             return (position: Position, squares: CardSquareType[][]) => {
-                if (squares == null) {
+                if (squares == null || this.board == null) {
                     return false;
                 }
 
                 const cardWidth = squares[0].length;
                 const cardHeight = squares.length;
-                return position.x >= 0 && position.y >= 0
-                    && position.x + cardWidth <= this.boardSize.width
-                    && position.y + cardHeight <= this.boardSize.height;
+
+                const boardSquaresAtPlacementLocation = slice2D(
+                    this.board,
+                    position,
+                    { x: position.x + cardWidth, y: position.y + cardHeight });
+
+                // If the resulting slice of the board's tiles is not the same size as the card, the card must be outside the board
+                if (boardSquaresAtPlacementLocation.length !== cardHeight
+                    || boardSquaresAtPlacementLocation[0].length !== cardWidth) {
+                    return false;
+                }
+
+                // Check if any of the card's squares overlap with existing tiles
+                for (let i = 0; i < boardSquaresAtPlacementLocation.length; i++) {
+                    const boardRow = boardSquaresAtPlacementLocation[i];
+                    const cardRow = squares[i];
+
+                    for (let j = 0; j < boardRow.length; j++) {
+                        const cardSquare = cardRow[j];
+                        if (cardSquare === CardSquareType.EMPTY) {
+                            continue;
+                        }
+
+                        const boardSquare = boardRow[j];
+                        if (boardSquare !== MapSquareType.EMPTY) {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
             };
         }
     },
@@ -55,7 +83,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
         },
         placeCard(position: Position, squares: CardSquareType[][]) {
             if (!this.isPlaceable(position, squares)) {
-                console.warn('Skipping card placement as card is out of bounds');
+                console.warn('Skipping card placement as card is in an invalid position');
                 return;
             }
 

@@ -19,3 +19,7 @@ export function findIndex2D<T>(array: Array<Array<T>>, predicate: (item: T) => b
 
     return null;
 }
+
+export function slice2D<T>(array: Array<Array<T>>, start: Position, end: Position): Array<Array<T>> {
+    return array.slice(start.y, end.y).map(row => row.slice(start.x, end.x));
+}
