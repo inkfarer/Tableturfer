@@ -4,6 +4,7 @@ export { ChargerLight00 } from './ChargerLight00';
 export { ChargerNormal00 } from './ChargerNormal00';
 export { Judgekun } from './Judgekun';
 export { Nabebuta } from './Nabebuta';
+export { Paruko } from './Paruko';
 export { SaberLight00 } from './SaberLight00';
 export { SaberNormal00 } from './SaberNormal00';
 export { ShooterPrecision00 } from './ShooterPrecision00';
