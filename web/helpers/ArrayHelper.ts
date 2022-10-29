@@ -24,14 +24,15 @@ export function slice2D<T>(array: Array<Array<T>>, start: Position, end: Positio
     const slicedArray = array.slice(Math.max(start.y, 0), Math.max(end.y + 1, 0))
         .map(row => row.slice(Math.max(start.x, 0), Math.max(end.x + 1, 0)));
 
-    if (placeholder !== undefined) {
+    const expectedHeight = Math.abs(start.y - end.y) + 1;
+    const expectedWidth = Math.abs(start.x - end.x) + 1;
+    if (placeholder !== undefined && (expectedWidth !== slicedArray[0]?.length || expectedHeight !== slicedArray.length)) {
         const resultWidth = slicedArray[0]?.length ?? 0;
 
         // Add missing rows to the top and bottom
         if (start.y < 0) {
             slicedArray.unshift(...Array.from({ length: start.y * -1 }, () => new Array(resultWidth).fill(placeholder)));
         }
-        const expectedHeight = Math.abs(start.y - end.y) + 1;
         const currentHeight = slicedArray.length;
         if (expectedHeight > currentHeight) {
             slicedArray.push(...Array.from({ length: expectedHeight - currentHeight }, () => new Array(resultWidth).fill(placeholder)));
@@ -41,7 +42,6 @@ export function slice2D<T>(array: Array<Array<T>>, start: Position, end: Positio
         if (start.x < 0) {
             slicedArray.forEach(row => row.unshift(...new Array(start.x * -1).fill(placeholder)));
         }
-        const expectedWidth = Math.abs(start.x - end.x) + 1;
         const currentWidth = slicedArray[0]?.length;
         if (expectedWidth > currentWidth) {
             slicedArray.forEach(row => {
