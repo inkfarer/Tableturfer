@@ -1,4 +1,11 @@
 {
   // https://v3.nuxtjs.org/concepts/typescript
-  "extends": "./.nuxt/tsconfig.json"
+  "extends": "./.nuxt/tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      "jest"
+    ],
+    // required or else tests break
+    "esModuleInterop": true
+  }
 }

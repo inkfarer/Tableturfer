@@ -1,7 +1,7 @@
 import { MapSquareType } from '~/types/MapSquareType';
 import { defineStore } from 'pinia';
 import { GameMap } from '~/types/GameMap';
-import { findIndex2D, slice2D } from '~/helpers/ArrayHelper';
+import { every2D, findIndex2D, slice2D, some2D } from '~/helpers/ArrayHelper';
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
 import { Position } from '~/types/Position';
 import { CardSquareType } from '~/types/CardSquareType';
@@ -29,44 +29,43 @@ export const useGameBoardStore = defineStore('gameBoard', {
             };
         },
         isPlaceable() {
-            return (position: Position, squares: CardSquareType[][]) => {
-                if (squares == null || this.board == null) {
+            return (position: Position, cardSquares: CardSquareType[][]) => {
+                if (cardSquares == null || this.board == null) {
                     return false;
                 }
 
-                const cardWidth = squares[0].length;
-                const cardHeight = squares.length;
-
-                const boardSquaresAtPlacementLocation = slice2D(
+                const cardWidth = cardSquares[0].length;
+                const cardHeight = cardSquares.length;
+                const placementCheckSquares = slice2D(
                     this.board,
                     position,
-                    { x: position.x + cardWidth, y: position.y + cardHeight });
+                    { x: position.x + cardWidth - 1, y: position.y + cardHeight - 1 });
 
                 // If the resulting slice of the board's tiles is not the same size as the card, the card must be outside the board
-                if (boardSquaresAtPlacementLocation.length !== cardHeight
-                    || boardSquaresAtPlacementLocation[0].length !== cardWidth) {
+                if (placementCheckSquares.length !== cardHeight
+                    || placementCheckSquares[0].length !== cardWidth) {
                     return false;
                 }
 
-                // Check if any of the card's squares overlap with existing tiles
-                for (let i = 0; i < boardSquaresAtPlacementLocation.length; i++) {
-                    const boardRow = boardSquaresAtPlacementLocation[i];
-                    const cardRow = squares[i];
+                const acceptedNearbyBoardSquares = [MapSquareType.FILL_ALPHA, MapSquareType.SPECIAL_ALPHA];
 
-                    for (let j = 0; j < boardRow.length; j++) {
-                        const cardSquare = cardRow[j];
-                        if (cardSquare === CardSquareType.EMPTY) {
-                            continue;
-                        }
-
-                        const boardSquare = boardRow[j];
-                        if (boardSquare !== MapSquareType.EMPTY) {
-                            return false;
-                        }
+                return every2D(cardSquares, (cardSquare, position) => {
+                    // Are any squares outside the map or covering existing squares?
+                    const boardSquare = placementCheckSquares[position.y][position.x];
+                    return cardSquare === CardSquareType.EMPTY || boardSquare === MapSquareType.EMPTY;
+                }) && some2D(cardSquares, (cardSquare, { x, y }) => {
+                    // Are there some squares that have existing squares present next to them?
+                    if (cardSquare === CardSquareType.EMPTY) {
+                        return false;
                     }
-                }
 
-                return true;
+                    const boardSquaresAroundCardSquare = slice2D<MapSquareType>(
+                        this.board,
+                        { x: position.x - 1 + x, y: position.y - 1 + y },
+                        { x: position.x + 1 + x, y: position.y + 1 + y });
+
+                    return some2D(boardSquaresAroundCardSquare, square => acceptedNearbyBoardSquares.includes(square));
+                });
             };
         }
     },

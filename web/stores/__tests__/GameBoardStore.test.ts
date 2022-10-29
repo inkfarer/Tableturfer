@@ -1,0 +1,209 @@
+import { setActivePinia } from 'pinia';
+import { MapSquareType as MST } from '~/types/MapSquareType';
+import { CardSquareType as CST } from '~/types/CardSquareType';
+import { useGameBoardStore } from '~/stores/GameBoardStore';
+import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { createTestingPinia } from '@pinia/testing';
+
+describe('GameBoardStore', () => {
+    beforeEach(() => {
+        setActivePinia(createTestingPinia({
+            stubActions: false
+        }));
+    });
+
+    describe('getters', () => {
+        describe('boardSize', () => {
+            it('returns 0 as the width and height if the board is unset', () => {
+                const store = useGameBoardStore();
+                store.board = null;
+
+                expect(store.boardSize).toEqual({ width: 0, height: 0 });
+            });
+
+            it('returns the width and height of the board', () => {
+                const store = useGameBoardStore();
+                store.board = [
+                    [MST.EMPTY, MST.FILL_BRAVO],
+                    [MST.FILL_ALPHA, MST.FILL_BRAVO],
+                    [MST.SPECIAL_BRAVO, MST.FILL_BRAVO]
+                ];
+
+                expect(store.boardSize).toEqual({ width: 2, height: 3 });
+            });
+        });
+
+        describe('isPlaceable', () => {
+            const board = [
+                [MST.DISABLED, MST.DISABLED, MST.DISABLED, MST.DISABLED, MST.DISABLED, MST.DISABLED, MST.DISABLED],
+                [MST.DISABLED, MST.SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.FILL_ALPHA, MST.DISABLED],
+                [MST.DISABLED, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.DISABLED],
+                [MST.DISABLED, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.DISABLED],
+                [MST.DISABLED, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.DISABLED],
+                [MST.DISABLED, MST.SPECIAL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.FILL_BRAVO, MST.DISABLED],
+                [MST.DISABLED, MST.DISABLED, MST.DISABLED, MST.DISABLED, MST.DISABLED, MST.DISABLED, MST.DISABLED]
+            ];
+            const card = [
+                [CST.EMPTY, CST.FILL],
+                [CST.EMPTY, CST.SPECIAL],
+                [CST.FILL, CST.FILL]
+            ];
+            const card2 = [
+                [CST.FILL, CST.FILL],
+                [CST.EMPTY, CST.SPECIAL],
+                [CST.EMPTY, CST.FILL]
+            ];
+            const card3 = [
+                [CST.FILL]
+            ];
+
+            beforeEach(() => {
+                useGameBoardStore().board = board;
+            });
+
+            it.each([
+                { x: 2, y: -3 },
+                { x: 2, y: 15 },
+                { x: -2, y: 2 },
+                { x: 12, y: 2 }
+            ])('returns false if the card is out of bounds ($x, $y)', ({ x, y }) => {
+                expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+            });
+
+            it.each([
+                { x: 1, y: 0 },
+                { x: 0, y: 2 },
+                { x: 5, y: 2 },
+                { x: 2, y: 4 }
+            ])('returns false if the card is on top of disabled tiles ($x, $y)', ({ x, y }) => {
+                expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+            });
+
+            it.each([
+                { x: 2, y: 3 },
+                { x: 3, y: 3 }
+            ])('returns false if the card is next to the opposing side\'s tiles ($x, $y)', ({ x, y }) => {
+                expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+            });
+
+            it.each([
+                { x: 1, y: 3 },
+                { x: 5, y: 3 },
+                { x: 3, y: 1 },
+                { x: 3, y: 5 },
+                { x: 3, y: 3 }
+            ])('returns false if the card is not adjacent to any tiles, only on top of empty tiles ($x, $y)', ({ x, y }) => {
+                expect(useGameBoardStore().isPlaceable({ x, y }, card3)).toBe(false);
+            });
+
+            it.each([
+                { x: 1, y: 1, card: card2 },
+                { x: 4, y: 1, card },
+                { x: 1, y: 3, card },
+                { x: 4, y: 3, card }
+            ])('returns false if the card is on top of fill or special tiles ($x, $y)', ({ x, y, card }) => {
+                expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+            });
+
+            it.each([
+                { x: 1, y: 1 },
+                { x: 3, y: 1 }
+            ])('returns true if the card is next to the player\'s tiles ($x, $y)', ({ x, y }) => {
+                expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(true);
+            });
+        });
+    });
+
+    describe('actions', () => {
+        describe('setBoard', () => {
+            it('updates the board', () => {
+                const store = useGameBoardStore();
+                const squares = [
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY]
+                ];
+
+                store.setBoard({
+                    name: 'cool-map',
+                    squares
+                });
+
+                expect(store.name).toEqual('cool-map');
+                expect(store.board).toEqual(squares);
+            });
+
+            it('updates the position of the active card to the location of the starting square', () => {
+                const activeCardStore = useActiveCardStore();
+                jest.spyOn(activeCardStore, 'setPosition');
+                const gameBoardStore = useGameBoardStore();
+                const squares = [
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.SPECIAL_ALPHA, MST.EMPTY]
+                ];
+
+                gameBoardStore.setBoard({
+                    name: 'cool-map',
+                    squares
+                });
+
+                expect(activeCardStore.setPosition).toHaveBeenCalledWith({ x: 1, y: 2 });
+            });
+        });
+
+        describe('placeCard', () => {
+            it('does nothing if the card cannot be placed', () => {
+                const store = useGameBoardStore();
+                const isPlaceable = jest.fn().mockReturnValue(false);
+                // @ts-ignore
+                store.isPlaceable = isPlaceable;
+                store.board = [
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY]
+                ];
+
+                store.placeCard({ x: 0, y: 0 }, [
+                    [CST.FILL, CST.FILL]
+                ]);
+
+                expect(store.board).toEqual([
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY]
+                ]);
+                expect(isPlaceable).toHaveBeenCalledWith({ x: 0, y: 0 }, [
+                    [CST.FILL, CST.FILL]
+                ]);
+            });
+
+            it('places the card on the board', () => {
+                const store = useGameBoardStore();
+                const isPlaceable = jest.fn().mockReturnValue(true);
+                // @ts-ignore
+                store.isPlaceable = isPlaceable;
+                store.board = [
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY]
+                ];
+
+                store.placeCard({ x: 1, y: 0 }, [
+                    [CST.FILL, CST.SPECIAL],
+                    [CST.EMPTY, CST.FILL]
+                ]);
+
+                expect(store.board).toEqual([
+                    [MST.EMPTY, MST.FILL_ALPHA, MST.SPECIAL_ALPHA],
+                    [MST.EMPTY, MST.EMPTY, MST.FILL_ALPHA],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY]
+                ]);
+                expect(isPlaceable).toHaveBeenCalledWith({ x: 1, y: 0 }, [
+                    [CST.FILL, CST.SPECIAL],
+                    [CST.EMPTY, CST.FILL]
+                ]);
+            });
+        });
+    });
+});

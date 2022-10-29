@@ -68,5 +68,16 @@
         "vue/singleline-html-element-content-newline": "off",
         "vue/multi-word-component-names": "off",
         "no-undef": "off"
-    }
+    },
+    "overrides": [
+        {
+            "files": ["*.test.ts", "__mocks__/*.ts"],
+            "rules": {
+                "@typescript-eslint/no-var-requires": 0,
+                "@typescript-eslint/no-this-alias": 0,
+                "@typescript-eslint/ban-ts-comment": "off",
+                "@typescript-eslint/no-explicit-any": "off"
+            }
+        }
+    ]
 }

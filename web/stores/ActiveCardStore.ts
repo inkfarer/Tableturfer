@@ -14,6 +14,13 @@ interface ActiveCardStore {
     rotation: CardRotation
 }
 
+function getCardOrigin(width: number, height: number): Position {
+    return {
+        x: Math.ceil(width / 2 - 1),
+        y: Math.floor(height / 2)
+    };
+}
+
 export const useActiveCardStore = defineStore('activeCard', {
     state: (): ActiveCardStore => ({
         activeCard: null,
@@ -41,6 +48,7 @@ export const useActiveCardStore = defineStore('activeCard', {
                     : state.activeCard.squares.length
             });
         },
+        // Strictly matches the way the card moves as it is rotated in-game. Can probably be cleaned up.
         offsetPosition(): Position {
             const rotation = this.rotation;
             if (rotation === 0) {
@@ -121,12 +129,7 @@ export const useActiveCardStore = defineStore('activeCard', {
                     .map(row => row.filter((square, index) => !emptyColumns.has(index)))
                     .reverse();
 
-                const width = normalizedSquares[0].length;
-                const height = normalizedSquares.length;
-                const origin = {
-                    x: Math.ceil(width / 2 - 1),
-                    y: Math.floor(height / 2)
-                };
+                const origin = getCardOrigin(normalizedSquares[0].length, normalizedSquares.length);
                 setOrigin(origin);
 
                 this.activeCard = {
@@ -138,12 +141,16 @@ export const useActiveCardStore = defineStore('activeCard', {
         },
 
         nextRotationStep() {
-            this.activeCard.squares = rotateClockwise(this.activeCard.squares);
-            this.rotation = this.rotation === 270 ? 0 : this.rotation + 90;
+            if (this.activeCard != null) {
+                this.activeCard.squares = rotateClockwise(this.activeCard.squares);
+                this.rotation = this.rotation === 270 ? 0 : this.rotation + 90;
+            }
         },
         previousRotationStep() {
-            this.activeCard.squares = rotateCounterclockwise(this.activeCard.squares);
-            this.rotation = this.rotation === 0 ? 270 : this.rotation - 90;
+            if (this.activeCard != null) {
+                this.activeCard.squares = rotateCounterclockwise(this.activeCard.squares);
+                this.rotation = this.rotation === 0 ? 270 : this.rotation - 90;
+            }
         },
 
         setPosition(newValue: Position) {

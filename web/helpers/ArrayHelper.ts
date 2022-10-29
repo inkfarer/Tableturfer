@@ -21,5 +21,30 @@ export function findIndex2D<T>(array: Array<Array<T>>, predicate: (item: T) => b
 }
 
 export function slice2D<T>(array: Array<Array<T>>, start: Position, end: Position): Array<Array<T>> {
-    return array.slice(start.y, end.y).map(row => row.slice(start.x, end.x));
+    return array.slice(Math.max(start.y, 0), Math.max(end.y + 1, 0))
+        .map(row => row.slice(Math.max(start.x, 0), Math.max(end.x + 1, 0)));
+}
+
+export function some2D<T>(array: Array<Array<T>>, predicate: (item: T, position: Position) => boolean): boolean {
+    for (let y = 0; y < array.length; y++) {
+        for (let x = 0; x < array[y].length; x++) {
+            if (predicate(array[y][x], { x, y })) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+export function every2D<T>(array: Array<Array<T>>, predicate: (item: T, position: Position) => boolean): boolean {
+    for (let y = 0; y < array.length; y++) {
+        for (let x = 0; x < array[y].length; x++) {
+            if (!predicate(array[y][x], { x, y })) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
