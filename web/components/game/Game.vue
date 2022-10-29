@@ -3,7 +3,7 @@
         <div class="side-section">
             <GameMapSelector />
         </div>
-        <GameBoard />
+        <GameBoard class="game-board" />
         <div class="side-section">
             <GameCardSelector />
             <GameCardActionKeys class="action-keys" />
@@ -17,6 +17,14 @@
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     gap: 10px;
+}
+
+.game-board {
+    z-index: -1;
+}
+
+.side-section {
+    z-index: 2;
 }
 
 .action-keys {
