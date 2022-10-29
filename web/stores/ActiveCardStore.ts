@@ -5,8 +5,10 @@ import Constants from '~/data/Constants';
 import { CardSquareType } from '~/types/CardSquareType';
 import chunk from 'lodash/chunk';
 import { CardRotation } from '~/types/CardRotation';
-import { rotateClockwise, rotateCounterclockwise } from '~/helpers/ArrayHelper';
+import { rotateClockwise, rotateCounterclockwise, slice2D } from '~/helpers/ArrayHelper';
 import { defineStore } from 'pinia';
+import { useGameBoardStore } from '~/stores/GameBoardStore';
+import { MapSquareType } from '~/types/MapSquareType';
 
 interface ActiveCardStore {
     activeCard: ActiveCard | null
@@ -160,17 +162,53 @@ export const useActiveCardStore = defineStore('activeCard', {
                 y: newValue.y - origin.y
             };
         },
+        applyDeltaIfPossible(positionDelta: Position) {
+            const newPosition = {
+                x: this.position.x + positionDelta.x,
+                y: this.position.y + positionDelta.y
+            };
+
+            const gameBoardStore = useGameBoardStore();
+            if (newPosition.x < 0 || newPosition.y < 0
+                || newPosition.x + this.cardSize.width > gameBoardStore.boardSize.width
+                || newPosition.y + this.cardSize.height > gameBoardStore.boardSize.height) {
+                const getBoardSquaresUnderCard = (position: Position) => slice2D(
+                    gameBoardStore.board,
+                    position,
+                    { x: position.x + this.cardSize.width - 1, y: position.y + this.cardSize.height - 1 },
+                    MapSquareType.OUT_OF_BOUNDS);
+
+                const squaresUnderCurrentPosition = getBoardSquaresUnderCard(this.position);
+                const squaresUnderNewPosition = getBoardSquaresUnderCard(newPosition);
+
+                for (let y = 0; y < this.activeCard.squares.length; y++) {
+                    for (let x = 0; x < this.activeCard.squares[0].length; x++) {
+                        const cardSquare = this.activeCard.squares[y][x];
+                        if (cardSquare === CardSquareType.EMPTY) continue;
+
+                        const oldBoardSquare = squaresUnderCurrentPosition[y][x];
+                        const newBoardSquare = squaresUnderNewPosition[y][x];
+
+                        if (oldBoardSquare !== MapSquareType.OUT_OF_BOUNDS && newBoardSquare === MapSquareType.OUT_OF_BOUNDS) {
+                            return;
+                        }
+                    }
+                }
+            }
+
+            this.position = newPosition;
+        },
         moveUp() {
-            this.position.y--;
+            this.applyDeltaIfPossible({ x: 0, y: -1 });
         },
         moveDown() {
-            this.position.y++;
+            this.applyDeltaIfPossible({ x: 0, y: 1 });
         },
         moveLeft() {
-            this.position.x--;
+            this.applyDeltaIfPossible({ x: -1, y: 0 });
         },
         moveRight() {
-            this.position.x++;
+            this.applyDeltaIfPossible({ x: 1, y: 0 });
         }
     }
 });

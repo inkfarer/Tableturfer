@@ -1,9 +1,11 @@
 import { setActivePinia } from 'pinia';
 import { createTestingPinia } from '@pinia/testing';
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { MapSquareType as MST } from '~/types/MapSquareType';
 import { CardRotation } from '~/types/CardRotation';
 import { CardSquareType as CST } from '~/types/CardSquareType';
 import { CardRarity } from '~/types/CardRarity';
+import { useGameBoardStore } from '~/stores/GameBoardStore';
 
 describe('ActiveCardStore', () => {
     beforeEach(() => {
@@ -435,47 +437,129 @@ describe('ActiveCardStore', () => {
             });
         });
 
+        describe('applyDeltaIfPossible', () => {
+            it('changes the position if no squares of the active card are moved on top of disabled squares', () => {
+                const gameBoardStore = useGameBoardStore();
+                gameBoardStore.board = [
+                    [MST.DISABLED, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY]
+                ];
+                const activeCardStore = useActiveCardStore();
+                // @ts-ignore
+                activeCardStore.activeCard = {
+                    squares: [
+                        [CST.FILL, CST.FILL],
+                        [CST.SPECIAL, CST.FILL]
+                    ]
+                };
+                activeCardStore.position = { x: 1, y: 0 };
+
+                activeCardStore.applyDeltaIfPossible({ x: -1, y: 0 });
+
+                expect(activeCardStore.position).toEqual({ x: 0, y: 0 });
+            });
+
+            it('does not change the position when trying to move the card out of bounds', () => {
+                const gameBoardStore = useGameBoardStore();
+                gameBoardStore.board = [
+                    [MST.DISABLED, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY]
+                ];
+                const activeCardStore = useActiveCardStore();
+                // @ts-ignore
+                activeCardStore.activeCard = {
+                    squares: [
+                        [CST.FILL, CST.FILL],
+                        [CST.SPECIAL, CST.EMPTY]
+                    ]
+                };
+                activeCardStore.position = { x: 0, y: 0 };
+
+                activeCardStore.applyDeltaIfPossible({ x: -1, y: 0 });
+
+                expect(activeCardStore.position).toEqual({ x: 0, y: 0 });
+            });
+
+            it('allows moving cards outside bounds as long as no new squares are moved outside the play area', () => {
+                const gameBoardStore = useGameBoardStore();
+                gameBoardStore.board = [
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY]
+                ];
+                const activeCardStore = useActiveCardStore();
+                // @ts-ignore
+                activeCardStore.activeCard = {
+                    squares: [
+                        [CST.FILL, CST.FILL, CST.FILL],
+                        [CST.EMPTY, CST.EMPTY, CST.FILL],
+                        [CST.EMPTY, CST.EMPTY, CST.FILL],
+                        [CST.FILL, CST.FILL, CST.FILL]
+                    ]
+                };
+                activeCardStore.position = { x: -2, y: 0 };
+
+                activeCardStore.applyDeltaIfPossible({ x: 0, y: 1 });
+                expect(activeCardStore.position).toEqual({ x: -2, y: 1 });
+
+                activeCardStore.applyDeltaIfPossible({ x: 0, y: 1 });
+                expect(activeCardStore.position).toEqual({ x: -2, y: 2 });
+
+                activeCardStore.applyDeltaIfPossible({ x: 0, y: 1 });
+                expect(activeCardStore.position).toEqual({ x: -2, y: 2 });
+
+                activeCardStore.applyDeltaIfPossible({ x: -1, y: 0 });
+                expect(activeCardStore.position).toEqual({ x: -2, y: 2 });
+
+                activeCardStore.applyDeltaIfPossible({ x: 1, y: 0 });
+                expect(activeCardStore.position).toEqual({ x: -1, y: 2 });
+            });
+        });
+
         describe('moveUp', () => {
             it('moves the card upward', () => {
                 const store = useActiveCardStore();
-                store.position = { x: 4, y: 3 };
+                jest.spyOn(store, 'applyDeltaIfPossible').mockReturnValue();
 
                 store.moveUp();
 
-                expect(store.position).toEqual({ x: 4, y: 2 });
+                expect(store.applyDeltaIfPossible).toHaveBeenCalledWith({ x: 0, y: -1 });
             });
         });
 
         describe('moveDown', () => {
             it('moves the card downward', () => {
                 const store = useActiveCardStore();
-                store.position = { x: 4, y: 6 };
+                jest.spyOn(store, 'applyDeltaIfPossible').mockReturnValue();
 
                 store.moveDown();
 
-                expect(store.position).toEqual({ x: 4, y: 7 });
+                expect(store.applyDeltaIfPossible).toHaveBeenCalledWith({ x: 0, y: 1 });
             });
         });
 
         describe('moveLeft', () => {
             it('moves the card to the left', () => {
                 const store = useActiveCardStore();
-                store.position = { x: 4, y: 6 };
+                jest.spyOn(store, 'applyDeltaIfPossible').mockReturnValue();
 
                 store.moveLeft();
 
-                expect(store.position).toEqual({ x: 3, y: 6 });
+                expect(store.applyDeltaIfPossible).toHaveBeenCalledWith({ x: -1, y: 0 });
             });
         });
 
         describe('moveRight', () => {
             it('moves the card to the right', () => {
                 const store = useActiveCardStore();
-                store.position = { x: 8, y: 1 };
+                jest.spyOn(store, 'applyDeltaIfPossible').mockReturnValue();
 
                 store.moveRight();
 
-                expect(store.position).toEqual({ x: 9, y: 1 });
+                expect(store.applyDeltaIfPossible).toHaveBeenCalledWith({ x: 1, y: 0 });
             });
         });
     });
