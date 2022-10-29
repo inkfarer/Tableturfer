@@ -22,8 +22,11 @@ const gameBoardStore = useGameBoardStore();
 
 <style lang="scss">
 .stage-selector {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+
     button {
-        display: block;
 
         &:not(:first-child) {
             margin-top: 4px;
