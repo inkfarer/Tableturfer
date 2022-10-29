@@ -75,6 +75,73 @@ describe('ArrayHelper', () => {
         });
 
         it.each([
+            {
+                x1: 2, y1: 2, x2: 4, y2: 5,
+                result: [
+                    [11, 12, -1],
+                    [15, 16, -1],
+                    [-1, -1, -1],
+                    [-1, -1, -1]
+                ]
+            },
+            {
+                x1: -2, y1: 2, x2: 1, y2: 5,
+                result: [
+                    [-1, -1, 9, 10],
+                    [-1, -1, 13, 14],
+                    [-1, -1, -1, -1],
+                    [-1, -1, -1, -1]
+                ]
+            },
+            {
+                x1: -2, y1: -1, x2: 1, y2: 1,
+                result: [
+                    [-1, -1, -1, -1],
+                    [-1, -1, 1, 2],
+                    [-1, -1, 5, 6]
+                ]
+            },
+            {
+                x1: 2, y1: -2, x2: 5, y2: 1,
+                result: [
+                    [-1, -1, -1, -1],
+                    [-1, -1, -1, -1],
+                    [3, 4, -1, -1],
+                    [7, 8, -1, -1]
+                ]
+            },
+            {
+                x1: -1, y1: -1, x2: 4, y2: 4,
+                result: [
+                    [-1, -1, -1, -1, -1, -1],
+                    [-1, 1, 2, 3, 4, -1],
+                    [-1, 5, 6, 7, 8, -1],
+                    [-1, 9, 10, 11, 12, -1],
+                    [-1, 13, 14, 15, 16, -1],
+                    [-1, -1, -1, -1, -1, -1]
+                ]
+            },
+            {
+                x1: 20, y1: 10, x2: 21, y2: 12,
+                result: [
+                    [-1, -1],
+                    [-1, -1],
+                    [-1, -1]
+                ]
+            }
+        ])('returns the expected result when the input coordinates exceed the size of the input array and a placeholder item is given [start: ($x1, $y1), end: ($x2, $y2)]', ({ x1, y1, x2, y2, result }) => {
+            expect(slice2D(input, { x: x1, y: y1 }, { x: x2, y: y2 }, -1)).toEqual(result);
+        });
+
+        it('handles the placeholder value being null', () => {
+            expect(slice2D(input, { x: 2, y: 2 }, { x: 4, y: 4 }, null)).toEqual([
+                [11, 12, null],
+                [15, 16, null],
+                [null, null, null]
+            ]);
+        });
+
+        it.each([
             { x1: 10, y1: 11, x2: 1, y2: 1 },
             { x1: 2, y1: 1, x2: 1, y2: 0 }
         ])('returns the expected result if the start position is larger than the end position [start: ($x1, $y1), end: ($x2, $y2)]', ({ x1, y1, x2, y2 }) => {
