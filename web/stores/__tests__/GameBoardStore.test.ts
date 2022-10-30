@@ -112,6 +112,77 @@ describe('GameBoardStore', () => {
                 expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(true);
             });
         });
+
+        describe('boardSquaresUnderCard', () => {
+            it('returns board squares under the active card\'s at the given position', () => {
+                const activeCardStore = useActiveCardStore();
+                // @ts-ignore
+                activeCardStore.cardSize = { width: 1, height: 2 };
+                const gameBoardStore = useGameBoardStore();
+                gameBoardStore.board = [
+                    [MST.FILL_ALPHA, MST.FILL_BRAVO],
+                    [MST.EMPTY, MST.FILL_BRAVO],
+                    [MST.FILL_ALPHA, MST.EMPTY],
+                    [MST.FILL_BRAVO, MST.FILL_ALPHA]
+                ];
+
+                const result = gameBoardStore.boardSquaresUnderCard({ x: 1, y: 3 });
+
+                expect(result).toEqual([
+                    [MST.FILL_ALPHA],
+                    [MST.OUT_OF_BOUNDS]
+                ]);
+            });
+
+            it('allows a custom card size to be defined', () => {
+                const gameBoardStore = useGameBoardStore();
+                gameBoardStore.board = [
+                    [MST.FILL_ALPHA, MST.FILL_BRAVO],
+                    [MST.EMPTY, MST.FILL_BRAVO],
+                    [MST.FILL_ALPHA, MST.EMPTY],
+                    [MST.FILL_BRAVO, MST.FILL_ALPHA]
+                ];
+
+                const result = gameBoardStore.boardSquaresUnderCard({ x: 0, y: 3 }, { width: 3, height: 2 });
+
+                expect(result).toEqual([
+                    [MST.FILL_BRAVO, MST.FILL_ALPHA, MST.OUT_OF_BOUNDS],
+                    [MST.OUT_OF_BOUNDS, MST.OUT_OF_BOUNDS, MST.OUT_OF_BOUNDS]
+                ]);
+            });
+        });
+
+        describe('cardIsOutOfBounds', () => {
+            const cardSize = { height: 3, width: 4 };
+
+            beforeEach(() => {
+                // @ts-ignore
+                useGameBoardStore().boardSize = { width: 10, height: 5 };
+            });
+
+            it.each([
+                [true, -1, 0],
+                [false, 0, 0],
+                [true, 0, -1],
+                [false, 6, 0],
+                [true, 7, 0],
+                [false, 0, 2],
+                [true, 0, 3],
+                [false, 6, 2],
+                [true, 6, 3]
+            ])('is %s if the position is (%d, %d)', (expectedResult, x, y) => {
+                expect(useGameBoardStore().cardIsOutOfBounds({ x, y }, cardSize)).toEqual(expectedResult);
+            });
+
+            it('uses the active card\'s size if none is provided', () => {
+                // @ts-ignore
+                useActiveCardStore().cardSize = { height: 2, width: 2 };
+                const gameBoardStore = useGameBoardStore();
+
+                expect(gameBoardStore.cardIsOutOfBounds({ x: 8, y: 0 })).toEqual(false);
+                expect(gameBoardStore.cardIsOutOfBounds({ x: 9, y: 0 })).toEqual(true);
+            });
+        });
     });
 
     describe('actions', () => {

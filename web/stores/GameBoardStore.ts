@@ -2,7 +2,7 @@ import { MapSquareType } from '~/types/MapSquareType';
 import { defineStore } from 'pinia';
 import { GameMap } from '~/types/GameMap';
 import { every2D, findIndex2D, slice2D, some2D } from '~/helpers/ArrayHelper';
-import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { CardSize, useActiveCardStore } from '~/stores/ActiveCardStore';
 import { Position } from '~/types/Position';
 import { CardSquareType } from '~/types/CardSquareType';
 import cloneDeep from 'lodash/cloneDeep';
@@ -66,6 +66,32 @@ export const useGameBoardStore = defineStore('gameBoard', {
 
                     return some2D(boardSquaresAroundCardSquare, square => acceptedNearbyBoardSquares.includes(square));
                 });
+            };
+        },
+        boardSquaresUnderCard() {
+            return (position: Position, cardSize?: CardSize) => {
+                if (cardSize == null) {
+                    const activeCardStore = useActiveCardStore();
+                    cardSize = activeCardStore.cardSize;
+                }
+
+                return slice2D(
+                    this.board,
+                    position,
+                    { x: position.x + cardSize.width - 1, y: position.y + cardSize.height - 1 },
+                    MapSquareType.OUT_OF_BOUNDS);
+            };
+        },
+        cardIsOutOfBounds() {
+            return (position: Position, cardSize?: CardSize) => {
+                if (cardSize == null) {
+                    const activeCardStore = useActiveCardStore();
+                    cardSize = activeCardStore.cardSize;
+                }
+
+                return position.x < 0 || position.y < 0
+                    || position.x + cardSize.width > this.boardSize.width
+                    || position.y + cardSize.height > this.boardSize.height;
             };
         }
     },

@@ -5,7 +5,7 @@ import Constants from '~/data/Constants';
 import { CardSquareType } from '~/types/CardSquareType';
 import chunk from 'lodash/chunk';
 import { CardRotation } from '~/types/CardRotation';
-import { rotateClockwise, rotateCounterclockwise, slice2D } from '~/helpers/ArrayHelper';
+import { every2D, rotateClockwise, rotateCounterclockwise } from '~/helpers/ArrayHelper';
 import { defineStore } from 'pinia';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { MapSquareType } from '~/types/MapSquareType';
@@ -14,6 +14,11 @@ interface ActiveCardStore {
     activeCard: ActiveCard | null
     position: Position
     rotation: CardRotation
+}
+
+export interface CardSize {
+    height: number
+    width: number
 }
 
 function getCardOrigin(width: number, height: number): Position {
@@ -33,7 +38,7 @@ export const useActiveCardStore = defineStore('activeCard', {
         rotation: 0
     }),
     getters: {
-        cardSize: state => {
+        cardSize: (state): CardSize => {
             if (state.activeCard == null) {
                 return {
                     width: 0,
@@ -102,6 +107,7 @@ export const useActiveCardStore = defineStore('activeCard', {
         setActiveCard(card: Card | null) {
             const setOrigin = (newOrigin = { x: 0, y: 0 }) => {
                 const oldOrigin = this.activeCard?.origin ?? { x: 0, y: 0 };
+                // todo: when switching cards, the game does not let a card be entirely out of bounds
                 this.position = {
                     x: this.position.x + oldOrigin.x - newOrigin.x,
                     y: this.position.y + oldOrigin.y - newOrigin.y
@@ -169,17 +175,9 @@ export const useActiveCardStore = defineStore('activeCard', {
             };
 
             const gameBoardStore = useGameBoardStore();
-            if (newPosition.x < 0 || newPosition.y < 0
-                || newPosition.x + this.cardSize.width > gameBoardStore.boardSize.width
-                || newPosition.y + this.cardSize.height > gameBoardStore.boardSize.height) {
-                const getBoardSquaresUnderCard = (position: Position) => slice2D(
-                    gameBoardStore.board,
-                    position,
-                    { x: position.x + this.cardSize.width - 1, y: position.y + this.cardSize.height - 1 },
-                    MapSquareType.OUT_OF_BOUNDS);
-
-                const squaresUnderCurrentPosition = getBoardSquaresUnderCard(this.position);
-                const squaresUnderNewPosition = getBoardSquaresUnderCard(newPosition);
+            if (gameBoardStore.cardIsOutOfBounds(newPosition)) {
+                const squaresUnderCurrentPosition = gameBoardStore.boardSquaresUnderCard(this.position);
+                const squaresUnderNewPosition = gameBoardStore.boardSquaresUnderCard(newPosition);
 
                 for (let y = 0; y < this.activeCard.squares.length; y++) {
                     for (let x = 0; x < this.activeCard.squares[0].length; x++) {
