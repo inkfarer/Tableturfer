@@ -2,10 +2,11 @@
     <div class="game-stage-layout">
         <div class="side-section">
             <GameMapSelector />
+            <GameCardSelector style="margin-top: 10px;" />
         </div>
         <GameBoard class="game-board" />
         <div class="side-section">
-            <GameCardSelector />
+            <GameDebugInfo />
             <GameCardActionKeys class="action-keys" />
         </div>
     </div>

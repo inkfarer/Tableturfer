@@ -1,14 +1,5 @@
 <template>
     <div class="game-card-selector">
-        <div>
-            active card: {{ activeCardStore.activeCard?.name ?? 'None' }}
-        </div>
-        <div>
-            pos: {{ activeCardStore.position }}
-        </div>
-        <div>
-            rot: {{ activeCardStore.rotation }}
-        </div>
         <button
             v-for="card in Cards"
             :key="`card_${card.rowId}`"
@@ -36,6 +27,10 @@ const setActiveCard = (card: Card | null) => {
 
 <style lang="scss">
 .game-card-selector {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+
     button {
         display: block;
 
