@@ -6,6 +6,7 @@ import { CardRotation } from '~/types/CardRotation';
 import { CardSquareType as CST } from '~/types/CardSquareType';
 import { CardRarity } from '~/types/CardRarity';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
+import { Nabebuta, Judgekun, BombQuick } from '~/data/cards';
 
 describe('ActiveCardStore', () => {
     beforeEach(() => {
@@ -82,6 +83,11 @@ describe('ActiveCardStore', () => {
 
     describe('actions', () => {
         describe('setActiveCard', () => {
+            beforeEach(() => {
+                const gameBoardStore = useGameBoardStore();
+                gameBoardStore.board = Array.from({ length: 10 }, () => new Array(10).fill(MST.EMPTY));
+            });
+
             it('handles switching from no card being selected', () => {
                 const store = useActiveCardStore();
                 store.rotation = 90;
@@ -96,72 +102,7 @@ describe('ActiveCardStore', () => {
                     rarity: CardRarity.COMMON,
                     season: 999,
                     specialCost: 10,
-                    squares: [
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.FILL,
-                        CST.FILL,
-                        CST.FILL,
-                        CST.FILL,
-                        CST.FILL,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.SPECIAL,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY
-                    ]
+                    squares: Nabebuta.squares
                 });
 
                 expect(store.rotation).toBe(0);
@@ -185,6 +126,36 @@ describe('ActiveCardStore', () => {
                 expect(store.position).toEqual({ x: 1, y: 1 });
             });
 
+            it.each([
+                [13, 14, 9, 9, 10, 10, BombQuick.name, BombQuick.squares],
+                [-13, 14, 0, 9, 10, 10, BombQuick.name, BombQuick.squares],
+                [-13, -14, 0, 0, 10, 10, BombQuick.name, BombQuick.squares],
+                [13, -14, 9, 0, 10, 10, BombQuick.name, BombQuick.squares],
+                [15, 18, 5, 7, 6, 8, BombQuick.name, BombQuick.squares],
+                [13, 14, 7, 9, 10, 10, Nabebuta.name, Nabebuta.squares]
+            ])(
+                'ensures the card is at least partially within the bounds of the board [(%d, %d) turns into (%d, %d) with a %dx%d board and card %s]',
+                (xStart, yStart, expectedX, expectedY, boardWidth, boardHeight, cardName, squares) => {
+                    const gameBoardStore = useGameBoardStore();
+                    gameBoardStore.board = Array.from({ length: boardHeight }, () => new Array(boardWidth).fill(MST.EMPTY));
+                    const store = useActiveCardStore();
+                    store.activeCard = null;
+                    store.position = { x: xStart, y: yStart };
+
+                    store.setActiveCard({
+                        rowId: 'testCard',
+                        category: 'Test',
+                        name: 'test card',
+                        number: 0,
+                        rarity: CardRarity.COMMON,
+                        season: 999,
+                        specialCost: 10,
+                        squares
+                    });
+
+                    expect(store.position).toEqual({ x: expectedX, y: expectedY });
+                });
+
             it('handles switching between cards', () => {
                 const store = useActiveCardStore();
                 // @ts-ignore
@@ -202,72 +173,7 @@ describe('ActiveCardStore', () => {
                     rarity: CardRarity.FRESH,
                     season: 998,
                     specialCost: 11,
-                    squares: [
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.FILL,
-                        CST.FILL,
-                        CST.EMPTY,
-                        CST.SPECIAL,
-                        CST.FILL,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.FILL,
-                        CST.EMPTY,
-                        CST.FILL,
-                        CST.EMPTY,
-                        CST.FILL,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.FILL,
-                        CST.FILL,
-                        CST.FILL,
-                        CST.FILL,
-                        CST.FILL,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.FILL,
-                        CST.EMPTY,
-                        CST.FILL,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY,
-                        CST.EMPTY
-                    ]
+                    squares: Judgekun.squares
                 });
 
                 expect(store.rotation).toBe(0);

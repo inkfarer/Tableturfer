@@ -5,7 +5,7 @@ import Constants from '~/data/Constants';
 import { CardSquareType } from '~/types/CardSquareType';
 import chunk from 'lodash/chunk';
 import { CardRotation } from '~/types/CardRotation';
-import { every2D, rotateClockwise, rotateCounterclockwise } from '~/helpers/ArrayHelper';
+import { rotateClockwise, rotateCounterclockwise, some2D } from '~/helpers/ArrayHelper';
 import { defineStore } from 'pinia';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { MapSquareType } from '~/types/MapSquareType';
@@ -19,13 +19,6 @@ interface ActiveCardStore {
 export interface CardSize {
     height: number
     width: number
-}
-
-function getCardOrigin(width: number, height: number): Position {
-    return {
-        x: Math.ceil(width / 2 - 1),
-        y: Math.floor(height / 2)
-    };
 }
 
 export const useActiveCardStore = defineStore('activeCard', {
@@ -105,18 +98,70 @@ export const useActiveCardStore = defineStore('activeCard', {
     },
     actions: {
         setActiveCard(card: Card | null) {
-            const setOrigin = (newOrigin = { x: 0, y: 0 }) => {
+            const someSquaresWithinBounds = (position: Position, squares: CardSquareType[][]): boolean => {
+                const width = squares[0]?.length ?? 0;
+                const height = squares.length;
+
+                if (height === 0 && width === 0) {
+                    return true;
+                }
+
+                const gameBoardStore = useGameBoardStore();
+
+                if (gameBoardStore.cardIsOutOfBounds(position, { width, height })) {
+                    const squaresUnderPosition = gameBoardStore.boardSquaresUnderCard(position, { width, height });
+                    return some2D(squaresUnderPosition, (boardSquare, position) => {
+                        const cardSquare = squares[position.y][position.x];
+
+                        return cardSquare !== CardSquareType.EMPTY && boardSquare !== MapSquareType.OUT_OF_BOUNDS;
+                    });
+                }
+
+                return true;
+            };
+
+            // Returns the new origin - Could be avoided later when cards are normalized before they are sent into this function
+            const updatePosition = (squares: CardSquareType[][]): Position => {
                 const oldOrigin = this.activeCard?.origin ?? { x: 0, y: 0 };
-                // todo: when switching cards, the game does not let a card be entirely out of bounds
-                this.position = {
+
+                const cardWidth = squares[0]?.length ?? 0;
+                const cardHeight = squares.length;
+                const newOrigin = card == null
+                    ? { x: 0, y: 0 }
+                    : {
+                        x: Math.ceil(cardWidth / 2 - 1),
+                        y: Math.floor(cardHeight / 2)
+                    };
+
+                const proposedPosition = {
                     x: this.position.x + oldOrigin.x - newOrigin.x,
                     y: this.position.y + oldOrigin.y - newOrigin.y
                 };
+
+                // Attempt to nudge the card back into bounds if required
+                // Likely quite inefficient but acceptable for now
+                const boardSize = useGameBoardStore().boardSize;
+                while (!someSquaresWithinBounds(proposedPosition, squares)) {
+                    if (proposedPosition.y < 0) {
+                        proposedPosition.y++;
+                    } else if (proposedPosition.y + cardHeight - 1 >= boardSize.height) {
+                        proposedPosition.y--;
+                    }
+
+                    if (proposedPosition.x < 0) {
+                        proposedPosition.x++;
+                    } else if (proposedPosition.x + cardWidth - 1 >= boardSize.width) {
+                        proposedPosition.x--;
+                    }
+                }
+
+                this.position = proposedPosition;
+                return newOrigin;
             };
 
             this.rotation = 0;
             if (card == null) {
-                setOrigin();
+                updatePosition([]);
                 this.activeCard = card;
             } else {
                 const squares = card.squares;
@@ -137,8 +182,7 @@ export const useActiveCardStore = defineStore('activeCard', {
                     .map(row => row.filter((square, index) => !emptyColumns.has(index)))
                     .reverse();
 
-                const origin = getCardOrigin(normalizedSquares[0].length, normalizedSquares.length);
-                setOrigin(origin);
+                const origin = updatePosition(normalizedSquares);
 
                 this.activeCard = {
                     ...card,
@@ -174,6 +218,7 @@ export const useActiveCardStore = defineStore('activeCard', {
                 y: this.position.y + positionDelta.y
             };
 
+            // Prevent any new tiles from moving out of bounds. Tiles already out of bounds moving around is ok.
             const gameBoardStore = useGameBoardStore();
             if (gameBoardStore.cardIsOutOfBounds(newPosition)) {
                 const squaresUnderCurrentPosition = gameBoardStore.boardSquaresUnderCard(this.position);
