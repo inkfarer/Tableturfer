@@ -1,5 +1,7 @@
 import { Position } from '~/types/Position';
 
+// todo: consider creating a "Matrix" class containing all these functions
+
 export function rotateClockwise<T>(array: Array<Array<T>>): Array<Array<T>> {
     return array[0].map((val, index) => array.map(row => row[index]).reverse());
 }
@@ -31,7 +33,9 @@ export function slice2D<T>(array: Array<Array<T>>, start: Position, end: Positio
 
         // Add missing rows to the top and bottom
         if (start.y < 0) {
-            slicedArray.unshift(...Array.from({ length: start.y * -1 }, () => new Array(resultWidth).fill(placeholder)));
+            const rowsToAddToTop = Math.abs(start.y - Math.min(0, end.y));
+
+            slicedArray.unshift(...Array.from({ length: rowsToAddToTop }, () => new Array(resultWidth).fill(placeholder)));
         }
         const currentHeight = slicedArray.length;
         if (expectedHeight > currentHeight) {
@@ -40,7 +44,9 @@ export function slice2D<T>(array: Array<Array<T>>, start: Position, end: Positio
 
         // Add missing rows to the left and right
         if (start.x < 0) {
-            slicedArray.forEach(row => row.unshift(...new Array(start.x * -1).fill(placeholder)));
+            const columnsToAddToLeft = Math.abs(start.x - Math.min(0, end.x));
+
+            slicedArray.forEach(row => row.unshift(...new Array(columnsToAddToLeft).fill(placeholder)));
         }
         const currentWidth = slicedArray[0]?.length;
         if (expectedWidth > currentWidth) {

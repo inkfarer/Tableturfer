@@ -128,6 +128,14 @@ describe('ArrayHelper', () => {
                     [-1, -1],
                     [-1, -1]
                 ]
+            },
+            {
+                x1: -20, y1: -10, x2: -21, y2: -12,
+                result: [
+                    [-1, -1],
+                    [-1, -1],
+                    [-1, -1]
+                ]
             }
         ])('returns the expected result when the input coordinates exceed the size of the input array and a placeholder item is given [start: ($x1, $y1), end: ($x2, $y2)]', ({ x1, y1, x2, y2, result }) => {
             expect(slice2D(input, { x: x1, y: y1 }, { x: x2, y: y2 }, -1)).toEqual(result);
