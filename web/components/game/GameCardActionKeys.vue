@@ -1,5 +1,17 @@
 <template>
     <div class="card-movement-keys">
+        <div style="margin-bottom: 10px;">
+            <input
+                v-model="overrideX"
+                type="number"
+            >
+            <input
+                v-model="overrideY"
+                type="number"
+            >
+            <button @click="activeCardStore.position = { x: overrideX, y: overrideY }">Override Position</button>
+        </div>
+
         <button @click="activeCardStore.moveUp()">Up</button>
         <div>
             <button @click="activeCardStore.moveLeft()">Left</button>
@@ -19,6 +31,7 @@
 <script lang="ts" setup>
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
+import { ref } from '#imports';
 
 const activeCardStore = useActiveCardStore();
 const gameBoardStore = useGameBoardStore();
@@ -30,6 +43,9 @@ function placeCard() {
 
     gameBoardStore.placeCard(activeCardStore.offsetPosition, activeCardStore.activeCard.squares);
 }
+
+const overrideX = ref(0);
+const overrideY = ref(0);
 </script>
 
 <style lang="scss">
