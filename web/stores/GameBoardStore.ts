@@ -69,12 +69,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
             };
         },
         boardSquaresUnderCard() {
-            return (position: Position, cardSize?: CardSize) => {
-                if (cardSize == null) {
-                    const activeCardStore = useActiveCardStore();
-                    cardSize = activeCardStore.cardSize;
-                }
-
+            return (position: Position, cardSize: CardSize) => {
                 return slice2D(
                     this.board,
                     position,
@@ -83,12 +78,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
             };
         },
         cardIsOutOfBounds() {
-            return (position: Position, cardSize?: CardSize) => {
-                if (cardSize == null) {
-                    const activeCardStore = useActiveCardStore();
-                    cardSize = activeCardStore.cardSize;
-                }
-
+            return (position: Position, cardSize: CardSize) => {
                 return position.x < 0 || position.y < 0
                     || position.x + cardSize.width > this.boardSize.width
                     || position.y + cardSize.height > this.boardSize.height;

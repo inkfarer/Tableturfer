@@ -114,27 +114,7 @@ describe('GameBoardStore', () => {
         });
 
         describe('boardSquaresUnderCard', () => {
-            it('returns board squares under the active card\'s at the given position', () => {
-                const activeCardStore = useActiveCardStore();
-                // @ts-ignore
-                activeCardStore.cardSize = { width: 1, height: 2 };
-                const gameBoardStore = useGameBoardStore();
-                gameBoardStore.board = [
-                    [MST.FILL_ALPHA, MST.FILL_BRAVO],
-                    [MST.EMPTY, MST.FILL_BRAVO],
-                    [MST.FILL_ALPHA, MST.EMPTY],
-                    [MST.FILL_BRAVO, MST.FILL_ALPHA]
-                ];
-
-                const result = gameBoardStore.boardSquaresUnderCard({ x: 1, y: 3 });
-
-                expect(result).toEqual([
-                    [MST.FILL_ALPHA],
-                    [MST.OUT_OF_BOUNDS]
-                ]);
-            });
-
-            it('allows a custom card size to be defined', () => {
+            it('returns board squares under the given position for a card of the given size', () => {
                 const gameBoardStore = useGameBoardStore();
                 gameBoardStore.board = [
                     [MST.FILL_ALPHA, MST.FILL_BRAVO],
@@ -172,15 +152,6 @@ describe('GameBoardStore', () => {
                 [true, 6, 3]
             ])('is %s if the position is (%d, %d)', (expectedResult, x, y) => {
                 expect(useGameBoardStore().cardIsOutOfBounds({ x, y }, cardSize)).toEqual(expectedResult);
-            });
-
-            it('uses the active card\'s size if none is provided', () => {
-                // @ts-ignore
-                useActiveCardStore().cardSize = { height: 2, width: 2 };
-                const gameBoardStore = useGameBoardStore();
-
-                expect(gameBoardStore.cardIsOutOfBounds({ x: 8, y: 0 })).toEqual(false);
-                expect(gameBoardStore.cardIsOutOfBounds({ x: 9, y: 0 })).toEqual(true);
             });
         });
     });

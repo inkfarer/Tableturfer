@@ -233,9 +233,9 @@ export const useActiveCardStore = defineStore('activeCard', {
 
             // Prevent any new tiles from moving out of bounds. Tiles already out of bounds moving around is ok.
             const gameBoardStore = useGameBoardStore();
-            if (gameBoardStore.cardIsOutOfBounds(newPosition)) {
-                const activeCardSquares = this.activeCard.squares;
-                const cardSize = { width: activeCardSquares[0].length, height: activeCardSquares.length };
+            const activeCardSquares = this.activeCard.squares;
+            const cardSize = { width: activeCardSquares[0].length, height: activeCardSquares.length };
+            if (gameBoardStore.cardIsOutOfBounds(newPosition, cardSize)) {
                 const squaresUnderCurrentPosition = gameBoardStore.boardSquaresUnderCard(this.position, cardSize);
                 const squaresUnderNewPosition = gameBoardStore.boardSquaresUnderCard(this.withRotationOffset(newPosition), cardSize);
 
