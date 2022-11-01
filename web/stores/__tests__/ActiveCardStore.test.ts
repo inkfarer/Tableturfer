@@ -39,7 +39,7 @@ describe('ActiveCardStore', () => {
             });
         });
 
-        describe('offsetPosition', () => {
+        describe('position', () => {
             it.each([
                 [0,   3, 2, 2, 3],
                 [90,  3, 2, 1, 4],
@@ -71,12 +71,12 @@ describe('ActiveCardStore', () => {
                 [270, 3, 3, 2, 3]
             ])('returns the expected position [rotation = %d, height = %d, width = %d]', (rotation, height, width, x, y) => {
                 const store = useActiveCardStore();
-                store.position = { x: 2, y: 3 };
+                store.internalPosition = { x: 2, y: 3 };
                 store.rotation = rotation as CardRotation;
                 // @ts-ignore
                 store.cardSize = { width, height };
 
-                expect(store.offsetPosition).toEqual({ x, y });
+                expect(store.position).toEqual({ x, y });
             });
         });
     });
@@ -92,7 +92,7 @@ describe('ActiveCardStore', () => {
                 const store = useActiveCardStore();
                 store.rotation = 90;
                 store.activeCard = null;
-                store.position = { x: 3, y: 2 };
+                store.internalPosition = { x: 3, y: 2 };
 
                 store.setActiveCard({
                     rowId: 'testCard',
@@ -123,7 +123,7 @@ describe('ActiveCardStore', () => {
                         [CST.FILL, CST.FILL, CST.FILL, CST.FILL, CST.FILL]
                     ]
                 });
-                expect(store.position).toEqual({ x: 1, y: 1 });
+                expect(store.internalPosition).toEqual({ x: 1, y: 1 });
             });
 
             it.each([
@@ -140,7 +140,7 @@ describe('ActiveCardStore', () => {
                     gameBoardStore.board = Array.from({ length: boardHeight }, () => new Array(boardWidth).fill(MST.EMPTY));
                     const store = useActiveCardStore();
                     store.activeCard = null;
-                    store.position = { x: xStart, y: yStart };
+                    store.internalPosition = { x: xStart, y: yStart };
 
                     store.setActiveCard({
                         rowId: 'testCard',
@@ -153,7 +153,7 @@ describe('ActiveCardStore', () => {
                         squares
                     });
 
-                    expect(store.position).toEqual({ x: expectedX, y: expectedY });
+                    expect(store.internalPosition).toEqual({ x: expectedX, y: expectedY });
                 });
 
             it('handles switching between cards', () => {
@@ -162,7 +162,7 @@ describe('ActiveCardStore', () => {
                 store.activeCard = {
                     origin: { x: 1, y: 3 }
                 };
-                store.position = { x: 4, y: 2 };
+                store.internalPosition = { x: 4, y: 2 };
                 store.rotation = 180;
 
                 store.setActiveCard({
@@ -196,7 +196,7 @@ describe('ActiveCardStore', () => {
                         [CST.FILL, CST.FILL, CST.EMPTY, CST.SPECIAL, CST.FILL]
                     ]
                 });
-                expect(store.position).toEqual({ x: 3, y: 3 });
+                expect(store.internalPosition).toEqual({ x: 3, y: 3 });
             });
 
             it('handles clearing the currently selected card', () => {
@@ -205,14 +205,14 @@ describe('ActiveCardStore', () => {
                 store.activeCard = {
                     origin: { x: 2, y: 1 }
                 };
-                store.position = { x: 4, y: 2 };
+                store.internalPosition = { x: 4, y: 2 };
                 store.rotation = 180;
 
                 store.setActiveCard(null);
 
                 expect(store.activeCard).toBeNull();
                 expect(store.rotation).toBe(0);
-                expect(store.position).toEqual({ x: 6, y: 3 });
+                expect(store.internalPosition).toEqual({ x: 6, y: 3 });
             });
         });
 
@@ -306,7 +306,7 @@ describe('ActiveCardStore', () => {
                         y: 2
                     }
                 };
-                store.position = {
+                store.internalPosition = {
                     x: 0,
                     y: 0
                 };
@@ -316,7 +316,7 @@ describe('ActiveCardStore', () => {
                     y: 3
                 });
 
-                expect(store.position).toEqual({
+                expect(store.internalPosition).toEqual({
                     x: 2,
                     y: 1
                 });
@@ -326,7 +326,7 @@ describe('ActiveCardStore', () => {
                 const store = useActiveCardStore();
                 // @ts-ignore
                 store.activeCard = null;
-                store.position = {
+                store.internalPosition = {
                     x: 0,
                     y: 0
                 };
@@ -336,7 +336,7 @@ describe('ActiveCardStore', () => {
                     y: 3
                 });
 
-                expect(store.position).toEqual({
+                expect(store.internalPosition).toEqual({
                     x: 5,
                     y: 3
                 });
@@ -358,11 +358,11 @@ describe('ActiveCardStore', () => {
                         [CST.SPECIAL, CST.FILL]
                     ]
                 };
-                activeCardStore.position = { x: 1, y: 0 };
+                activeCardStore.internalPosition = { x: 1, y: 0 };
 
                 activeCardStore.applyDeltaIfPossible({ x: -1, y: 0 });
 
-                expect(activeCardStore.position).toEqual({ x: 0, y: 0 });
+                expect(activeCardStore.internalPosition).toEqual({ x: 0, y: 0 });
             });
 
             it('does not change the position when trying to move the card out of bounds', () => {
@@ -379,11 +379,11 @@ describe('ActiveCardStore', () => {
                         [CST.SPECIAL, CST.EMPTY]
                     ]
                 };
-                activeCardStore.position = { x: 0, y: 0 };
+                activeCardStore.internalPosition = { x: 0, y: 0 };
 
                 activeCardStore.applyDeltaIfPossible({ x: -1, y: 0 });
 
-                expect(activeCardStore.position).toEqual({ x: 0, y: 0 });
+                expect(activeCardStore.internalPosition).toEqual({ x: 0, y: 0 });
             });
 
             it('allows moving cards outside bounds as long as no new squares are moved outside the play area', () => {
@@ -406,22 +406,22 @@ describe('ActiveCardStore', () => {
                         [CST.FILL, CST.FILL, CST.FILL]
                     ]
                 };
-                activeCardStore.position = { x: -2, y: 0 };
+                activeCardStore.internalPosition = { x: -2, y: 0 };
 
                 activeCardStore.applyDeltaIfPossible({ x: 0, y: 1 });
-                expect(activeCardStore.position).toEqual({ x: -2, y: 1 });
+                expect(activeCardStore.internalPosition).toEqual({ x: -2, y: 1 });
 
                 activeCardStore.applyDeltaIfPossible({ x: 0, y: 1 });
-                expect(activeCardStore.position).toEqual({ x: -2, y: 2 });
+                expect(activeCardStore.internalPosition).toEqual({ x: -2, y: 2 });
 
                 activeCardStore.applyDeltaIfPossible({ x: 0, y: 1 });
-                expect(activeCardStore.position).toEqual({ x: -2, y: 2 });
+                expect(activeCardStore.internalPosition).toEqual({ x: -2, y: 2 });
 
                 activeCardStore.applyDeltaIfPossible({ x: -1, y: 0 });
-                expect(activeCardStore.position).toEqual({ x: -2, y: 2 });
+                expect(activeCardStore.internalPosition).toEqual({ x: -2, y: 2 });
 
                 activeCardStore.applyDeltaIfPossible({ x: 1, y: 0 });
-                expect(activeCardStore.position).toEqual({ x: -1, y: 2 });
+                expect(activeCardStore.internalPosition).toEqual({ x: -1, y: 2 });
             });
         });
 

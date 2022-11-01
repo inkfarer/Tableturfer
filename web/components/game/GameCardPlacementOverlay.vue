@@ -3,7 +3,7 @@
         class="card-placement-overlay"
         :class="{ placeable }"
         :style="{
-            transform: `translate(${Constants.BOARD_SQUARE_SIZE_PX * activeCardStore.offsetPosition.x}px, ${Constants.BOARD_SQUARE_SIZE_PX * activeCardStore.offsetPosition.y}px)`
+            transform: `translate(${Constants.BOARD_SQUARE_SIZE_PX * activeCardStore.position.x}px, ${Constants.BOARD_SQUARE_SIZE_PX * activeCardStore.position.y}px)`
         }"
     >
         <div
@@ -34,7 +34,7 @@ import { computed } from '#imports';
 const activeCardStore = useActiveCardStore();
 const gameBoardStore = useGameBoardStore();
 const placeable = computed(() =>
-    gameBoardStore.isPlaceable(activeCardStore.offsetPosition, activeCardStore.activeCard?.squares));
+    gameBoardStore.isPlaceable(activeCardStore.position, activeCardStore.activeCard?.squares));
 
 </script>
 

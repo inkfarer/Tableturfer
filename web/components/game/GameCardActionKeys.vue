@@ -9,7 +9,7 @@
                 v-model="overrideY"
                 type="number"
             >
-            <button @click="activeCardStore.position = { x: overrideX, y: overrideY }">Override Position</button>
+            <button @click="activeCardStore.internalPosition = { x: overrideX, y: overrideY }">Override Position</button>
         </div>
 
         <button @click="activeCardStore.moveUp()">Up</button>
@@ -41,7 +41,7 @@ function placeCard() {
         return;
     }
 
-    gameBoardStore.placeCard(activeCardStore.offsetPosition, activeCardStore.activeCard.squares);
+    gameBoardStore.placeCard(activeCardStore.position, activeCardStore.activeCard.squares);
 }
 
 const overrideX = ref(0);
