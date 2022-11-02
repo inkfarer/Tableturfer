@@ -6,6 +6,8 @@ import { CardSize, useActiveCardStore } from '~/stores/ActiveCardStore';
 import { Position } from '~/types/Position';
 import { CardSquareType } from '~/types/CardSquareType';
 import cloneDeep from 'lodash/cloneDeep';
+import { useGameStateStore } from '~/stores/GameStateStore';
+import { PlayerTeam } from '~/types/PlayerTeam';
 
 interface GameBoardStore {
     name: string
@@ -30,7 +32,8 @@ export const useGameBoardStore = defineStore('gameBoard', {
         },
         isPlaceable() {
             return (position: Position, cardSquares: CardSquareType[][]) => {
-                if (cardSquares == null || this.board == null) {
+                const gameStateStore = useGameStateStore();
+                if (cardSquares == null || this.board == null || gameStateStore.playerTeam == null) {
                     return false;
                 }
 
@@ -47,7 +50,9 @@ export const useGameBoardStore = defineStore('gameBoard', {
                     return false;
                 }
 
-                const acceptedNearbyBoardSquares = [MapSquareType.FILL_ALPHA, MapSquareType.SPECIAL_ALPHA];
+                const acceptedNearbyBoardSquares = gameStateStore.playerTeam === PlayerTeam.ALPHA
+                    ? [MapSquareType.FILL_ALPHA, MapSquareType.SPECIAL_ALPHA]
+                    : [MapSquareType.FILL_BRAVO, MapSquareType.SPECIAL_BRAVO];
 
                 return every2D(cardSquares, (cardSquare, position) => {
                     // Are any squares outside the map or covering existing squares?
@@ -90,13 +95,19 @@ export const useGameBoardStore = defineStore('gameBoard', {
             this.name = map.name;
             this.board = map.squares;
 
-            const startSquarePosition = findIndex2D(map.squares, square => square === MapSquareType.SPECIAL_ALPHA);
-            if (startSquarePosition != null) {
-                const activeCardStore = useActiveCardStore();
-                activeCardStore.setPositionFromCardOrigin(startSquarePosition);
+            const playerTeam = useGameStateStore().playerTeam;
+            if (playerTeam != null) {
+                const startSquarePosition = findIndex2D(map.squares, square =>
+                    square === (playerTeam === PlayerTeam.ALPHA
+                        ? MapSquareType.SPECIAL_ALPHA
+                        : MapSquareType.SPECIAL_BRAVO));
+                if (startSquarePosition != null) {
+                    const activeCardStore = useActiveCardStore();
+                    activeCardStore.setPositionFromCardOrigin(startSquarePosition);
+                }
             }
         },
-        placeCard(position: Position, squares: CardSquareType[][]) {
+        placeCard(position: Position, squares: CardSquareType[][], team: PlayerTeam) {
             if (!this.isPlaceable(position, squares)) {
                 console.warn('Skipping card placement as card is in an invalid position');
                 return;
@@ -109,10 +120,14 @@ export const useGameBoardStore = defineStore('gameBoard', {
                         case CardSquareType.EMPTY:
                             break;
                         case CardSquareType.FILL:
-                            newBoard[position.y + rowIndex][position.x + colIndex] = MapSquareType.FILL_ALPHA;
+                            newBoard[position.y + rowIndex][position.x + colIndex] = team === PlayerTeam.ALPHA
+                                ? MapSquareType.FILL_ALPHA
+                                : MapSquareType.FILL_BRAVO;
                             break;
                         case CardSquareType.SPECIAL:
-                            newBoard[position.y + rowIndex][position.x + colIndex] = MapSquareType.SPECIAL_ALPHA;
+                            newBoard[position.y + rowIndex][position.x + colIndex] = team === PlayerTeam.ALPHA
+                                ? MapSquareType.SPECIAL_ALPHA
+                                : MapSquareType.SPECIAL_BRAVO;
                             break;
                     }
                 });

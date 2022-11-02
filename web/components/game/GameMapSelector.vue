@@ -1,8 +1,5 @@
 <template>
     <div class="stage-selector">
-        <div>
-            active stage: {{ gameBoardStore.name }}
-        </div>
         <button
             v-for="map in Maps"
             :key="`map_${map.name}`"

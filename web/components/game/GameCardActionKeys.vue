@@ -32,16 +32,18 @@
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { ref } from '#imports';
+import { useGameStateStore } from '~/stores/GameStateStore';
 
 const activeCardStore = useActiveCardStore();
 const gameBoardStore = useGameBoardStore();
+const gameStateStore = useGameStateStore();
 
 function placeCard() {
-    if (activeCardStore.activeCard == null) {
+    if (activeCardStore.activeCard == null || gameStateStore.playerTeam == null) {
         return;
     }
 
-    gameBoardStore.placeCard(activeCardStore.position, activeCardStore.activeCard.squares);
+    gameBoardStore.placeCard(activeCardStore.position, activeCardStore.activeCard.squares, gameStateStore.playerTeam);
 }
 
 const overrideX = ref(0);

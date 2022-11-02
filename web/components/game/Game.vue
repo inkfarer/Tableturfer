@@ -2,12 +2,13 @@
     <div class="game-stage-layout">
         <div class="side-section">
             <GameMapSelector />
-            <GameCardSelector style="margin-top: 10px;" />
+            <GameCardSelector class="top-margin" />
         </div>
         <GameBoard class="game-board" />
         <div class="side-section">
             <GameDebugInfo />
-            <GameCardActionKeys class="action-keys" />
+            <GameCardActionKeys class="top-margin" />
+            <GameTeamSelector class="top-margin" />
         </div>
     </div>
 </template>
@@ -28,7 +29,7 @@
     z-index: 2;
 }
 
-.action-keys {
+.top-margin {
     margin-top: 10px;
 }
 </style>

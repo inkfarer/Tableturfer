@@ -4,6 +4,8 @@ import { CardSquareType as CST } from '~/types/CardSquareType';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
 import { createTestingPinia } from '@pinia/testing';
+import { useGameStateStore } from '~/stores/GameStateStore';
+import { PlayerTeam } from '~/types/PlayerTeam';
 
 describe('GameBoardStore', () => {
     beforeEach(() => {
@@ -61,55 +63,107 @@ describe('GameBoardStore', () => {
                 useGameBoardStore().board = board;
             });
 
-            it.each([
-                { x: 2, y: -3 },
-                { x: 2, y: 15 },
-                { x: -2, y: 2 },
-                { x: 12, y: 2 }
-            ])('returns false if the card is out of bounds ($x, $y)', ({ x, y }) => {
-                expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+            it('returns false if the board has not been initialized', () => {
+                useGameStateStore().playerTeam = PlayerTeam.ALPHA;
+                const store = useGameBoardStore();
+                store.board = null;
+
+                expect(store.isPlaceable({ x: 2, y: 1 }, card)).toBe(false);
             });
 
-            it.each([
-                { x: 1, y: 0 },
-                { x: 0, y: 2 },
-                { x: 5, y: 2 },
-                { x: 2, y: 4 }
-            ])('returns false if the card is on top of disabled tiles ($x, $y)', ({ x, y }) => {
-                expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+            it('returns false if no card is passed in', () => {
+                useGameStateStore().playerTeam = PlayerTeam.ALPHA;
+
+                expect(useGameBoardStore().isPlaceable({ x: 2, y: 1 }, null)).toBe(false);
             });
 
-            it.each([
-                { x: 2, y: 3 },
-                { x: 3, y: 3 }
-            ])('returns false if the card is next to the opposing side\'s tiles ($x, $y)', ({ x, y }) => {
-                expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+            it('returns false if the player has no team set', () => {
+                useGameStateStore().playerTeam = null;
+
+                expect(useGameBoardStore().isPlaceable({ x: 2, y: 1 }, card3)).toBe(false);
             });
 
-            it.each([
-                { x: 1, y: 3 },
-                { x: 5, y: 3 },
-                { x: 3, y: 1 },
-                { x: 3, y: 5 },
-                { x: 3, y: 3 }
-            ])('returns false if the card is not adjacent to any tiles, only on top of empty tiles ($x, $y)', ({ x, y }) => {
-                expect(useGameBoardStore().isPlaceable({ x, y }, card3)).toBe(false);
+            describe.each([PlayerTeam.ALPHA, PlayerTeam.BRAVO])('common for both teams [%s]', team => {
+                beforeEach(() => {
+                    useGameStateStore().playerTeam = team;
+                });
+
+                it.each([
+                    { x: 2, y: -3 },
+                    { x: 2, y: 15 },
+                    { x: -2, y: 2 },
+                    { x: 12, y: 2 }
+                ])('returns false if the card is out of bounds ($x, $y)', ({ x, y }) => {
+                    expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+                });
+
+                it.each([
+                    { x: 1, y: 0 },
+                    { x: 0, y: 2 },
+                    { x: 5, y: 2 },
+                    { x: 2, y: 4 }
+                ])('returns false if the card is on top of disabled tiles ($x, $y)', ({ x, y }) => {
+                    expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+                });
+
+                it.each([
+                    { x: 1, y: 3 },
+                    { x: 5, y: 3 },
+                    { x: 3, y: 1 },
+                    { x: 3, y: 5 },
+                    { x: 3, y: 3 }
+                ])('returns false if the card is not adjacent to any tiles, only on top of empty tiles ($x, $y)', ({ x, y }) => {
+                    expect(useGameBoardStore().isPlaceable({ x, y }, card3)).toBe(false);
+                });
+
+                it.each([
+                    { x: 1, y: 1, card: card2 },
+                    { x: 4, y: 1, card },
+                    { x: 1, y: 3, card },
+                    { x: 4, y: 3, card }
+                ])('returns false if the card is on top of fill or special tiles ($x, $y)', ({ x, y, card }) => {
+                    expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+                });
             });
 
-            it.each([
-                { x: 1, y: 1, card: card2 },
-                { x: 4, y: 1, card },
-                { x: 1, y: 3, card },
-                { x: 4, y: 3, card }
-            ])('returns false if the card is on top of fill or special tiles ($x, $y)', ({ x, y, card }) => {
-                expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+            describe('alpha team', () => {
+                beforeEach(() => {
+                    useGameStateStore().playerTeam = PlayerTeam.ALPHA;
+                });
+
+                it.each([
+                    { x: 2, y: 3 },
+                    { x: 3, y: 3 }
+                ])('returns false if the card is next to the opposing side\'s tiles ($x, $y)', ({ x, y }) => {
+                    expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+                });
+
+                it.each([
+                    { x: 1, y: 1 },
+                    { x: 3, y: 1 }
+                ])('returns true if the card is next to the player\'s tiles ($x, $y)', ({ x, y }) => {
+                    expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(true);
+                });
             });
 
-            it.each([
-                { x: 1, y: 1 },
-                { x: 3, y: 1 }
-            ])('returns true if the card is next to the player\'s tiles ($x, $y)', ({ x, y }) => {
-                expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(true);
+            describe('bravo team', () => {
+                beforeEach(() => {
+                    useGameStateStore().playerTeam = PlayerTeam.BRAVO;
+                });
+
+                it.each([
+                    { x: 1, y: 1 },
+                    { x: 3, y: 1 }
+                ])('returns false if the card is next to the opposing side\'s tiles ($x, $y)', ({ x, y }) => {
+                    expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+                });
+
+                it.each([
+                    { x: 2, y: 3 },
+                    { x: 3, y: 3 }
+                ])('returns true if the card is next to the player\'s tiles ($x, $y)', ({ x, y }) => {
+                    expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(true);
+                });
             });
         });
 
@@ -175,14 +229,19 @@ describe('GameBoardStore', () => {
                 expect(store.board).toEqual(squares);
             });
 
-            it('updates the position of the active card to the location of the starting square', () => {
+            it.each([
+                [PlayerTeam.ALPHA, 2, 1],
+                [PlayerTeam.BRAVO, 3, 2]
+            ])('updates the position of the active card to the location of the starting square for team %s', (team, expectedX, expectedY) => {
+                useGameStateStore().playerTeam = team;
                 const activeCardStore = useActiveCardStore();
                 jest.spyOn(activeCardStore, 'setPositionFromCardOrigin');
                 const gameBoardStore = useGameBoardStore();
                 const squares = [
-                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.SPECIAL_ALPHA, MST.EMPTY]
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.SPECIAL_BRAVO, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY]
                 ];
 
                 gameBoardStore.setBoard({
@@ -190,7 +249,7 @@ describe('GameBoardStore', () => {
                     squares
                 });
 
-                expect(activeCardStore.setPositionFromCardOrigin).toHaveBeenCalledWith({ x: 1, y: 2 });
+                expect(activeCardStore.setPositionFromCardOrigin).toHaveBeenCalledWith({ x: expectedX, y: expectedY });
             });
         });
 
@@ -208,7 +267,7 @@ describe('GameBoardStore', () => {
 
                 store.placeCard({ x: 0, y: 0 }, [
                     [CST.FILL, CST.FILL]
-                ]);
+                ], PlayerTeam.ALPHA);
 
                 expect(store.board).toEqual([
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY],
@@ -220,7 +279,7 @@ describe('GameBoardStore', () => {
                 ]);
             });
 
-            it('places the card on the board', () => {
+            it('places the card on the board for the alpha team', () => {
                 const store = useGameBoardStore();
                 const isPlaceable = jest.fn().mockReturnValue(true);
                 // @ts-ignore
@@ -234,7 +293,7 @@ describe('GameBoardStore', () => {
                 store.placeCard({ x: 1, y: 0 }, [
                     [CST.FILL, CST.SPECIAL],
                     [CST.EMPTY, CST.FILL]
-                ]);
+                ], PlayerTeam.ALPHA);
 
                 expect(store.board).toEqual([
                     [MST.EMPTY, MST.FILL_ALPHA, MST.SPECIAL_ALPHA],
@@ -244,6 +303,33 @@ describe('GameBoardStore', () => {
                 expect(isPlaceable).toHaveBeenCalledWith({ x: 1, y: 0 }, [
                     [CST.FILL, CST.SPECIAL],
                     [CST.EMPTY, CST.FILL]
+                ]);
+            });
+
+            it('places the card on the board for the bravo team', () => {
+                const store = useGameBoardStore();
+                const isPlaceable = jest.fn().mockReturnValue(true);
+                // @ts-ignore
+                store.isPlaceable = isPlaceable;
+                store.board = [
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY]
+                ];
+
+                store.placeCard({ x: 1, y: 1 }, [
+                    [CST.SPECIAL, CST.FILL],
+                    [CST.FILL, CST.EMPTY]
+                ], PlayerTeam.BRAVO);
+
+                expect(store.board).toEqual([
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.SPECIAL_BRAVO, MST.FILL_BRAVO],
+                    [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY]
+                ]);
+                expect(isPlaceable).toHaveBeenCalledWith({ x: 1, y: 1 }, [
+                    [CST.SPECIAL, CST.FILL],
+                    [CST.FILL, CST.EMPTY]
                 ]);
             });
         });
