@@ -6,7 +6,11 @@ import { CardRotation } from '~/types/CardRotation';
 import { CardSquareType as CST } from '~/types/CardSquareType';
 import { CardRarity } from '~/types/CardRarity';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
-import { Nabebuta, Judgekun, BombQuick } from '~/data/cards';
+import { Nabebuta, Judgekun } from '~/data/cards';
+import { getRotationOffset, withinBoardBounds } from '~/helpers/ActiveCardHelper';
+import Mock = jest.Mock;
+
+jest.mock('~/helpers/ActiveCardHelper');
 
 describe('ActiveCardStore', () => {
     beforeEach(() => {
@@ -16,7 +20,7 @@ describe('ActiveCardStore', () => {
     });
 
     describe('getters', () => {
-        describe('cardSize', () => {
+        describe('cardSizeWithoutRotation', () => {
             it.each([
                 [0, 4, 3],
                 [90, 3, 4],
@@ -35,48 +39,7 @@ describe('ActiveCardStore', () => {
                 };
                 store.rotation = rotation as CardRotation;
 
-                expect(store.cardSize).toEqual({ height, width });
-            });
-        });
-
-        describe('position', () => {
-            it.each([
-                [0,   3, 2, 2, 3],
-                [90,  3, 2, 1, 4],
-                [180, 3, 2, 1, 3],
-                [270, 3, 2, 1, 3],
-                [0,   7, 5, 2, 3],
-                [90,  7, 5, 1, 4],
-                [180, 7, 5, 2, 3],
-                [270, 7, 5, 1, 4],
-                [0,   2, 7, 2, 3],
-                [90,  2, 7, 5, 1],
-                [180, 2, 7, 2, 4],
-                [270, 2, 7, 4, 1],
-                [0,   6, 1, 2, 3],
-                [90,  6, 1, 0, 6],
-                [180, 6, 1, 2, 4],
-                [270, 6, 1, -1, 6],
-                [0,   5, 1, 2, 3],
-                [90,  5, 1, 0, 5],
-                [180, 5, 1, 2, 3],
-                [270, 5, 1, 0, 5],
-                [0,   6, 2, 2, 3],
-                [90,  6, 2, 0, 5],
-                [180, 6, 2, 2, 3],
-                [270, 6, 2, 0, 5],
-                [0,   3, 3, 2, 3],
-                [90,  3, 3, 2, 3],
-                [180, 3, 3, 2, 3],
-                [270, 3, 3, 2, 3]
-            ])('returns the expected position [rotation = %d, height = %d, width = %d]', (rotation, height, width, x, y) => {
-                const store = useActiveCardStore();
-                store.internalPosition = { x: 2, y: 3 };
-                store.rotation = rotation as CardRotation;
-                // @ts-ignore
-                store.cardSize = { width, height };
-
-                expect(store.position).toEqual({ x, y });
+                expect(store.cardSizeWithoutRotation).toEqual({ height, width });
             });
         });
     });
@@ -92,7 +55,13 @@ describe('ActiveCardStore', () => {
                 const store = useActiveCardStore();
                 store.rotation = 90;
                 store.activeCard = null;
-                store.internalPosition = { x: 3, y: 2 };
+                store.position = { x: 3, y: 2 };
+                // @ts-ignore
+                store.cardSizeWithoutRotation = { width: 0, height: 0 };
+                (getRotationOffset as Mock)
+                    .mockReturnValueOnce({ x: -1, y: 1 })
+                    .mockReturnValueOnce({ x: 1, y: 0 });
+                (withinBoardBounds as Mock).mockReturnValue({ x: 3, y: 2 });
 
                 store.setActiveCard({
                     rowId: 'testCard',
@@ -105,6 +74,10 @@ describe('ActiveCardStore', () => {
                     squares: Nabebuta.squares
                 });
 
+                const expectedSquares = [
+                    [CST.EMPTY, CST.EMPTY, CST.SPECIAL, CST.EMPTY, CST.EMPTY],
+                    [CST.FILL, CST.FILL, CST.FILL, CST.FILL, CST.FILL]
+                ];
                 expect(store.rotation).toBe(0);
                 expect(store.activeCard).toEqual({
                     rowId: 'testCard',
@@ -118,43 +91,13 @@ describe('ActiveCardStore', () => {
                         x: 2,
                         y: 1
                     },
-                    squares: [
-                        [CST.EMPTY, CST.EMPTY, CST.SPECIAL, CST.EMPTY, CST.EMPTY],
-                        [CST.FILL, CST.FILL, CST.FILL, CST.FILL, CST.FILL]
-                    ]
+                    squares: expectedSquares
                 });
-                expect(store.internalPosition).toEqual({ x: 1, y: 1 });
+                expect(store.position).toEqual({ x: 3, y: 2 });
+                expect(getRotationOffset).toHaveBeenCalledWith(90, { width: 0, height: 0 });
+                expect(getRotationOffset).toHaveBeenCalledWith(0, { width: 5, height: 2 });
+                expect(withinBoardBounds).toHaveBeenCalledWith({ x: 3, y: 0 }, expectedSquares);
             });
-
-            it.each([
-                [13, 14, 9, 9, 10, 10, BombQuick.name, BombQuick.squares],
-                [-13, 14, 0, 9, 10, 10, BombQuick.name, BombQuick.squares],
-                [-13, -14, 0, 0, 10, 10, BombQuick.name, BombQuick.squares],
-                [13, -14, 9, 0, 10, 10, BombQuick.name, BombQuick.squares],
-                [15, 18, 5, 7, 6, 8, BombQuick.name, BombQuick.squares],
-                [13, 14, 7, 9, 10, 10, Nabebuta.name, Nabebuta.squares]
-            ])(
-                'ensures the card is at least partially within the bounds of the board [(%d, %d) turns into (%d, %d) with a %dx%d board and card %s]',
-                (xStart, yStart, expectedX, expectedY, boardWidth, boardHeight, cardName, squares) => {
-                    const gameBoardStore = useGameBoardStore();
-                    gameBoardStore.board = Array.from({ length: boardHeight }, () => new Array(boardWidth).fill(MST.EMPTY));
-                    const store = useActiveCardStore();
-                    store.activeCard = null;
-                    store.internalPosition = { x: xStart, y: yStart };
-
-                    store.setActiveCard({
-                        rowId: 'testCard',
-                        category: 'Test',
-                        name: 'test card',
-                        number: 0,
-                        rarity: CardRarity.COMMON,
-                        season: 999,
-                        specialCost: 10,
-                        squares
-                    });
-
-                    expect(store.internalPosition).toEqual({ x: expectedX, y: expectedY });
-                });
 
             it('handles switching between cards', () => {
                 const store = useActiveCardStore();
@@ -162,8 +105,14 @@ describe('ActiveCardStore', () => {
                 store.activeCard = {
                     origin: { x: 1, y: 3 }
                 };
-                store.internalPosition = { x: 4, y: 2 };
+                store.position = { x: 4, y: 2 };
                 store.rotation = 180;
+                // @ts-ignore
+                store.cardSizeWithoutRotation = { width: 3, height: 5 };
+                (getRotationOffset as Mock)
+                    .mockReturnValueOnce({ x: -1, y: 1 })
+                    .mockReturnValueOnce({ x: 1, y: 0 });
+                (withinBoardBounds as Mock).mockReturnValue({ x: 3, y: 2 });
 
                 store.setActiveCard({
                     rowId: 'testCard2',
@@ -176,6 +125,12 @@ describe('ActiveCardStore', () => {
                     squares: Judgekun.squares
                 });
 
+                const expectedSquares = [
+                    [CST.EMPTY, CST.FILL, CST.EMPTY, CST.FILL, CST.EMPTY],
+                    [CST.FILL, CST.FILL, CST.FILL, CST.FILL, CST.FILL],
+                    [CST.FILL, CST.EMPTY, CST.FILL, CST.EMPTY, CST.FILL],
+                    [CST.FILL, CST.FILL, CST.EMPTY, CST.SPECIAL, CST.FILL]
+                ];
                 expect(store.rotation).toBe(0);
                 expect(store.activeCard).toEqual({
                     rowId: 'testCard2',
@@ -189,14 +144,12 @@ describe('ActiveCardStore', () => {
                         x: 2,
                         y: 2
                     },
-                    squares: [
-                        [CST.EMPTY, CST.FILL, CST.EMPTY, CST.FILL, CST.EMPTY],
-                        [CST.FILL, CST.FILL, CST.FILL, CST.FILL, CST.FILL],
-                        [CST.FILL, CST.EMPTY, CST.FILL, CST.EMPTY, CST.FILL],
-                        [CST.FILL, CST.FILL, CST.EMPTY, CST.SPECIAL, CST.FILL]
-                    ]
+                    squares: expectedSquares
                 });
-                expect(store.internalPosition).toEqual({ x: 3, y: 3 });
+                expect(store.position).toEqual({ x: 3, y: 2 });
+                expect(getRotationOffset).toHaveBeenCalledWith(180, { width: 3, height: 5 });
+                expect(getRotationOffset).toHaveBeenCalledWith(0, { width: 5, height: 4 });
+                expect(withinBoardBounds).toHaveBeenCalledWith({ x: 5, y: 2 }, expectedSquares);
             });
 
             it('handles clearing the currently selected card', () => {
@@ -205,14 +158,23 @@ describe('ActiveCardStore', () => {
                 store.activeCard = {
                     origin: { x: 2, y: 1 }
                 };
-                store.internalPosition = { x: 4, y: 2 };
+                store.position = { x: 4, y: 2 };
                 store.rotation = 180;
+                // @ts-ignore
+                store.cardSizeWithoutRotation = { width: 3, height: 5 };
+                (getRotationOffset as Mock)
+                    .mockReturnValueOnce({ x: -1, y: 1 })
+                    .mockReturnValueOnce({ x: 1, y: 0 });
+                (withinBoardBounds as Mock).mockReturnValue({ x: 3, y: 2 });
 
                 store.setActiveCard(null);
 
-                expect(store.activeCard).toBeNull();
                 expect(store.rotation).toBe(0);
-                expect(store.internalPosition).toEqual({ x: 6, y: 3 });
+                expect(store.activeCard).toBeNull();
+                expect(store.position).toEqual({ x: 3, y: 2 });
+                expect(getRotationOffset).toHaveBeenCalledWith(180, { width: 3, height: 5 });
+                expect(getRotationOffset).toHaveBeenCalledWith(0, { width: 0, height: 0 });
+                expect(withinBoardBounds).toHaveBeenCalledWith({ x: 8, y: 2 }, []);
             });
         });
 
@@ -232,9 +194,18 @@ describe('ActiveCardStore', () => {
                     ]
                 };
                 store.rotation = originalRotation as CardRotation;
+                store.position = { x: 2, y: 3 };
+                // @ts-ignore
+                store.cardSizeWithoutRotation = { width: 3, height: 4 };
+                (getRotationOffset as Mock)
+                    .mockReturnValueOnce({ x: -1, y: 1 })
+                    .mockReturnValueOnce({ x: 1, y: 0 });
 
                 store.nextRotationStep();
 
+                expect(getRotationOffset).toHaveBeenCalledWith(originalRotation, { width: 3, height: 4 });
+                expect(getRotationOffset).toHaveBeenCalledWith(expectedRotation, { width: 3, height: 4 });
+                expect(store.position).toEqual({ x: 4, y: 2 });
                 expect(store.rotation).toBe(expectedRotation);
                 expect(store.activeCard).toEqual({
                     squares: [
@@ -248,11 +219,14 @@ describe('ActiveCardStore', () => {
                 const store = useActiveCardStore();
                 store.activeCard = null;
                 store.rotation = 0;
+                store.position = { x: 0, y: 0 };
 
                 store.nextRotationStep();
 
+                expect(store.position).toEqual({ x: 0, y: 0 });
                 expect(store.rotation).toBe(0);
                 expect(store.activeCard).toBeNull();
+                expect(getRotationOffset).not.toHaveBeenCalled();
             });
         });
 
@@ -272,9 +246,18 @@ describe('ActiveCardStore', () => {
                     ]
                 };
                 store.rotation = originalRotation as CardRotation;
+                store.position = { x: 2, y: 3 };
+                // @ts-ignore
+                store.cardSizeWithoutRotation = { width: 4, height: 3 };
+                (getRotationOffset as Mock)
+                    .mockReturnValueOnce({ x: -2, y: 2 })
+                    .mockReturnValueOnce({ x: 2, y: 1 });
 
                 store.previousRotationStep();
 
+                expect(getRotationOffset).toHaveBeenCalledWith(originalRotation, { width: 4, height: 3 });
+                expect(getRotationOffset).toHaveBeenCalledWith(expectedRotation, { width: 4, height: 3 });
+                expect(store.position).toEqual({ x: 6, y: 2 });
                 expect(store.rotation).toBe(expectedRotation);
                 expect(store.activeCard).toEqual({
                     squares: [
@@ -288,15 +271,18 @@ describe('ActiveCardStore', () => {
                 const store = useActiveCardStore();
                 store.activeCard = null;
                 store.rotation = 0;
+                store.position = { x: 0, y: 0 };
 
                 store.previousRotationStep();
 
+                expect(store.position).toEqual({ x: 0, y: 0 });
                 expect(store.rotation).toBe(0);
                 expect(store.activeCard).toBeNull();
+                expect(getRotationOffset).not.toHaveBeenCalled();
             });
         });
 
-        describe('setPosition', () => {
+        describe('setPositionFromCardOrigin', () => {
             it('updates the card\'s position, accounting for its origin point', () => {
                 const store = useActiveCardStore();
                 // @ts-ignore
@@ -306,17 +292,17 @@ describe('ActiveCardStore', () => {
                         y: 2
                     }
                 };
-                store.internalPosition = {
+                store.position = {
                     x: 0,
                     y: 0
                 };
 
-                store.setPosition({
+                store.setPositionFromCardOrigin({
                     x: 5,
                     y: 3
                 });
 
-                expect(store.internalPosition).toEqual({
+                expect(store.position).toEqual({
                     x: 2,
                     y: 1
                 });
@@ -326,17 +312,17 @@ describe('ActiveCardStore', () => {
                 const store = useActiveCardStore();
                 // @ts-ignore
                 store.activeCard = null;
-                store.internalPosition = {
+                store.position = {
                     x: 0,
                     y: 0
                 };
 
-                store.setPosition({
+                store.setPositionFromCardOrigin({
                     x: 5,
                     y: 3
                 });
 
-                expect(store.internalPosition).toEqual({
+                expect(store.position).toEqual({
                     x: 5,
                     y: 3
                 });
@@ -358,11 +344,11 @@ describe('ActiveCardStore', () => {
                         [CST.SPECIAL, CST.FILL]
                     ]
                 };
-                activeCardStore.internalPosition = { x: 1, y: 0 };
+                activeCardStore.position = { x: 1, y: 0 };
 
                 activeCardStore.applyDeltaIfPossible({ x: -1, y: 0 });
 
-                expect(activeCardStore.internalPosition).toEqual({ x: 0, y: 0 });
+                expect(activeCardStore.position).toEqual({ x: 0, y: 0 });
             });
 
             it('does not change the position when trying to move the card out of bounds', () => {
@@ -379,11 +365,11 @@ describe('ActiveCardStore', () => {
                         [CST.SPECIAL, CST.EMPTY]
                     ]
                 };
-                activeCardStore.internalPosition = { x: 0, y: 0 };
+                activeCardStore.position = { x: 0, y: 0 };
 
                 activeCardStore.applyDeltaIfPossible({ x: -1, y: 0 });
 
-                expect(activeCardStore.internalPosition).toEqual({ x: 0, y: 0 });
+                expect(activeCardStore.position).toEqual({ x: 0, y: 0 });
             });
 
             it('allows moving cards outside bounds as long as no new squares are moved outside the play area', () => {
@@ -406,22 +392,22 @@ describe('ActiveCardStore', () => {
                         [CST.FILL, CST.FILL, CST.FILL]
                     ]
                 };
-                activeCardStore.internalPosition = { x: -2, y: 0 };
+                activeCardStore.position = { x: -2, y: 0 };
 
                 activeCardStore.applyDeltaIfPossible({ x: 0, y: 1 });
-                expect(activeCardStore.internalPosition).toEqual({ x: -2, y: 1 });
+                expect(activeCardStore.position).toEqual({ x: -2, y: 1 });
 
                 activeCardStore.applyDeltaIfPossible({ x: 0, y: 1 });
-                expect(activeCardStore.internalPosition).toEqual({ x: -2, y: 2 });
+                expect(activeCardStore.position).toEqual({ x: -2, y: 2 });
 
                 activeCardStore.applyDeltaIfPossible({ x: 0, y: 1 });
-                expect(activeCardStore.internalPosition).toEqual({ x: -2, y: 2 });
+                expect(activeCardStore.position).toEqual({ x: -2, y: 2 });
 
                 activeCardStore.applyDeltaIfPossible({ x: -1, y: 0 });
-                expect(activeCardStore.internalPosition).toEqual({ x: -2, y: 2 });
+                expect(activeCardStore.position).toEqual({ x: -2, y: 2 });
 
                 activeCardStore.applyDeltaIfPossible({ x: 1, y: 0 });
-                expect(activeCardStore.internalPosition).toEqual({ x: -1, y: 2 });
+                expect(activeCardStore.position).toEqual({ x: -1, y: 2 });
             });
         });
 

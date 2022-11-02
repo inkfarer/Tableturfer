@@ -5,14 +5,15 @@ import Constants from '~/data/Constants';
 import { CardSquareType } from '~/types/CardSquareType';
 import chunk from 'lodash/chunk';
 import { CardRotation } from '~/types/CardRotation';
-import { rotateClockwise, rotateCounterclockwise, some2D } from '~/helpers/ArrayHelper';
+import { rotateClockwise, rotateCounterclockwise } from '~/helpers/ArrayHelper';
 import { defineStore } from 'pinia';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { MapSquareType } from '~/types/MapSquareType';
+import { getRotationOffset, withinBoardBounds } from '~/helpers/ActiveCardHelper';
 
 interface ActiveCardStore {
     activeCard: ActiveCard | null
-    internalPosition: Position
+    position: Position
     rotation: CardRotation
 }
 
@@ -21,66 +22,17 @@ export interface CardSize {
     width: number
 }
 
-// Attempt to nudge the card back into bounds if required
-// Likely quite inefficient but acceptable for now
-function withinBoardBounds(position: Position, squares: CardSquareType[][]): Position {
-    const cardWidth = squares[0]?.length ?? 0;
-    const cardHeight = squares.length;
-    const newPosition = { ...position };
-    const gameBoardStore = useGameBoardStore();
-    const boardSize = gameBoardStore.boardSize;
-    const activeCardStore = useActiveCardStore();
-
-    if (
-        (cardHeight === 0 && cardWidth === 0)
-        || !gameBoardStore.cardIsOutOfBounds(position, { width: cardWidth, height: cardHeight })
-    ) {
-        return newPosition;
-    }
-
-    const someSquaresWithinBounds = (): boolean => {
-        const squaresUnderPosition = gameBoardStore.boardSquaresUnderCard(
-            activeCardStore.withRotationOffset(newPosition),
-            { width: cardWidth, height: cardHeight });
-        return some2D(squaresUnderPosition, (boardSquare, position) => {
-            const cardSquare = squares[position.y][position.x];
-
-            return cardSquare !== CardSquareType.EMPTY && boardSquare !== MapSquareType.OUT_OF_BOUNDS;
-        });
-    };
-
-    while (!someSquaresWithinBounds()) {
-        if (newPosition.y < 0) {
-            newPosition.y++;
-        } else if (newPosition.y + cardHeight - 1 >= boardSize.height) {
-            newPosition.y--;
-        }
-
-        if (!someSquaresWithinBounds()) {
-            if (newPosition.x < 0) {
-                newPosition.x++;
-            } else if (newPosition.x + cardWidth - 1 >= boardSize.width) {
-                newPosition.x--;
-            }
-        } else {
-            break;
-        }
-    }
-
-    return newPosition;
-}
-
 export const useActiveCardStore = defineStore('activeCard', {
     state: (): ActiveCardStore => ({
         activeCard: null,
-        internalPosition: {
+        position: {
             x: 0,
             y: 0
         },
         rotation: 0
     }),
     getters: {
-        cardSize: (state): CardSize => {
+        cardSizeWithoutRotation: (state): CardSize => {
             if (state.activeCard == null) {
                 return {
                     width: 0,
@@ -96,58 +48,6 @@ export const useActiveCardStore = defineStore('activeCard', {
                     ? state.activeCard.squares[0].length
                     : state.activeCard.squares.length
             });
-        },
-        position() {
-            return this.withRotationOffset(this.internalPosition);
-        },
-        withRotationOffset() {
-            return (position: Position) => {
-                return {
-                    x: position.x + this.rotationOffset.x,
-                    y: position.y + this.rotationOffset.y
-                };
-            };
-        },
-        // Strictly matches the way the card moves as it is rotated in-game. Can probably be cleaned up.
-        rotationOffset() {
-            if (this.rotation === 0) {
-                return { x: 0, y: 0 };
-            } else {
-                const { width, height } = this.cardSize;
-                if (width === height) {
-                    return { x: 0, y: 0 };
-                }
-
-                switch (this.rotation) {
-                    case 90: {
-                        let x = Math.ceil((width - height) / 2);
-                        const y = Math.ceil((height - width) / 2);
-
-                        if (height % 2 === 1 && width % 2 === 0) {
-                            x -= 1;
-                        }
-
-                        return { x, y };
-                    }
-                    case 180: {
-                        if (height % 2 === 0 && width % 2 === 1) {
-                            return { x: 0, y: (height + width) % 2 };
-                        } else {
-                            return { x: ((height + width) % 2) * -1, y: 0 };
-                        }
-                    }
-                    case 270: {
-                        const x = Math.floor((width - height) / 2);
-                        let y = x * -1;
-
-                        if (height % 2 === 1 && width % 2 === 0) {
-                            y -= 1;
-                        }
-
-                        return { x, y };
-                    }
-                }
-            }
         }
     },
     actions: {
@@ -165,14 +65,17 @@ export const useActiveCardStore = defineStore('activeCard', {
                         y: Math.floor(cardHeight / 2)
                     };
 
-                this.internalPosition = withinBoardBounds({
-                    x: this.internalPosition.x + oldOrigin.x - newOrigin.x,
-                    y: this.internalPosition.y + oldOrigin.y - newOrigin.y
+                const oldRotationOffset = getRotationOffset(this.rotation, this.cardSizeWithoutRotation);
+                const newRotationOffset = getRotationOffset(0, { width: cardWidth, height: cardHeight });
+
+                this.position = withinBoardBounds({
+                    x: this.position.x + oldOrigin.x - newOrigin.x - oldRotationOffset.x + newRotationOffset.x,
+                    y: this.position.y + oldOrigin.y - newOrigin.y - oldRotationOffset.y + newRotationOffset.y
                 }, squares);
+                this.rotation = 0;
                 return newOrigin;
             };
 
-            this.rotation = 0;
             if (card == null) {
                 updatePosition([]);
                 this.activeCard = card;
@@ -205,30 +108,41 @@ export const useActiveCardStore = defineStore('activeCard', {
             }
         },
 
+        updateRotationValue(newValue: CardRotation) {
+            const oldValue = this.rotation;
+            this.rotation = newValue;
+            const oldOffset = getRotationOffset(oldValue, this.cardSizeWithoutRotation);
+            const newOffset = getRotationOffset(newValue, this.cardSizeWithoutRotation);
+
+            this.position = {
+                x: this.position.x - oldOffset.x + newOffset.x,
+                y: this.position.y - oldOffset.y + newOffset.y
+            };
+        },
         nextRotationStep() {
             if (this.activeCard != null) {
                 this.activeCard.squares = rotateClockwise(this.activeCard.squares);
-                this.rotation = this.rotation === 270 ? 0 : this.rotation + 90;
+                this.updateRotationValue(this.rotation === 270 ? 0 : this.rotation + 90);
             }
         },
         previousRotationStep() {
             if (this.activeCard != null) {
                 this.activeCard.squares = rotateCounterclockwise(this.activeCard.squares);
-                this.rotation = this.rotation === 0 ? 270 : this.rotation - 90;
+                this.updateRotationValue(this.rotation === 0 ? 270 : this.rotation - 90 as CardRotation);
             }
         },
 
-        setPosition(newValue: Position) {
+        setPositionFromCardOrigin(newValue: Position) {
             const origin = this.activeCard?.origin ?? { x: 0, y: 0 };
-            this.internalPosition = {
+            this.position = {
                 x: newValue.x - origin.x,
                 y: newValue.y - origin.y
             };
         },
         applyDeltaIfPossible(positionDelta: Position) {
             const newPosition = {
-                x: this.internalPosition.x + positionDelta.x,
-                y: this.internalPosition.y + positionDelta.y
+                x: this.position.x + positionDelta.x,
+                y: this.position.y + positionDelta.y
             };
 
             // Prevent any new tiles from moving out of bounds. Tiles already out of bounds moving around is ok.
@@ -237,7 +151,7 @@ export const useActiveCardStore = defineStore('activeCard', {
             const cardSize = { width: activeCardSquares[0].length, height: activeCardSquares.length };
             if (gameBoardStore.cardIsOutOfBounds(newPosition, cardSize)) {
                 const squaresUnderCurrentPosition = gameBoardStore.boardSquaresUnderCard(this.position, cardSize);
-                const squaresUnderNewPosition = gameBoardStore.boardSquaresUnderCard(this.withRotationOffset(newPosition), cardSize);
+                const squaresUnderNewPosition = gameBoardStore.boardSquaresUnderCard(newPosition, cardSize);
 
                 for (let y = 0; y < activeCardSquares.length; y++) {
                     for (let x = 0; x < activeCardSquares[0].length; x++) {
@@ -254,7 +168,7 @@ export const useActiveCardStore = defineStore('activeCard', {
                 }
             }
 
-            this.internalPosition = newPosition;
+            this.position = newPosition;
         },
         moveUp() {
             this.applyDeltaIfPossible({ x: 0, y: -1 });

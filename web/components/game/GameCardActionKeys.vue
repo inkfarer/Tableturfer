@@ -9,7 +9,7 @@
                 v-model="overrideY"
                 type="number"
             >
-            <button @click="activeCardStore.internalPosition = { x: overrideX, y: overrideY }">Override Position</button>
+            <button @click="activeCardStore.position = { x: overrideX, y: overrideY }">Override Position</button>
         </div>
 
         <button @click="activeCardStore.moveUp()">Up</button>

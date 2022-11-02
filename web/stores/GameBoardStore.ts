@@ -93,7 +93,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
             const startSquarePosition = findIndex2D(map.squares, square => square === MapSquareType.SPECIAL_ALPHA);
             if (startSquarePosition != null) {
                 const activeCardStore = useActiveCardStore();
-                activeCardStore.setPosition(startSquarePosition);
+                activeCardStore.setPositionFromCardOrigin(startSquarePosition);
             }
         },
         placeCard(position: Position, squares: CardSquareType[][]) {

@@ -177,7 +177,7 @@ describe('GameBoardStore', () => {
 
             it('updates the position of the active card to the location of the starting square', () => {
                 const activeCardStore = useActiveCardStore();
-                jest.spyOn(activeCardStore, 'setPosition');
+                jest.spyOn(activeCardStore, 'setPositionFromCardOrigin');
                 const gameBoardStore = useGameBoardStore();
                 const squares = [
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY],
@@ -190,7 +190,7 @@ describe('GameBoardStore', () => {
                     squares
                 });
 
-                expect(activeCardStore.setPosition).toHaveBeenCalledWith({ x: 1, y: 2 });
+                expect(activeCardStore.setPositionFromCardOrigin).toHaveBeenCalledWith({ x: 1, y: 2 });
             });
         });
 

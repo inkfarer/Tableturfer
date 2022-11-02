@@ -4,10 +4,7 @@
             active card: {{ activeCardStore.activeCard?.name ?? 'None' }}
         </div>
         <div>
-            pos: {{ activeCardStore.internalPosition }}
-        </div>
-        <div>
-            pos2: {{ activeCardStore.position }}
+            pos: {{ activeCardStore.position }}
         </div>
         <div>
             rot: {{ activeCardStore.rotation }}
