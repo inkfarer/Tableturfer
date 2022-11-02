@@ -200,18 +200,21 @@ describe('ActiveCardStore', () => {
                 (getRotationOffset as Mock)
                     .mockReturnValueOnce({ x: -1, y: 1 })
                     .mockReturnValueOnce({ x: 1, y: 0 });
+                (withinBoardBounds as Mock).mockReturnValue({ x: 3, y: 1 });
 
                 store.nextRotationStep();
 
+                const expectedSquares = [
+                    [CST.FILL, CST.SPECIAL],
+                    [CST.FILL, CST.EMPTY]
+                ];
                 expect(getRotationOffset).toHaveBeenCalledWith(originalRotation, { width: 3, height: 4 });
                 expect(getRotationOffset).toHaveBeenCalledWith(expectedRotation, { width: 3, height: 4 });
-                expect(store.position).toEqual({ x: 4, y: 2 });
+                expect(withinBoardBounds).toHaveBeenCalledWith({ x: 4, y: 2 }, expectedSquares);
+                expect(store.position).toEqual({ x: 3, y: 1 });
                 expect(store.rotation).toBe(expectedRotation);
                 expect(store.activeCard).toEqual({
-                    squares: [
-                        [CST.FILL, CST.SPECIAL],
-                        [CST.FILL, CST.EMPTY]
-                    ]
+                    squares: expectedSquares
                 });
             });
 
@@ -252,18 +255,21 @@ describe('ActiveCardStore', () => {
                 (getRotationOffset as Mock)
                     .mockReturnValueOnce({ x: -2, y: 2 })
                     .mockReturnValueOnce({ x: 2, y: 1 });
+                (withinBoardBounds as Mock).mockReturnValue({ x: 5, y: 1 });
 
                 store.previousRotationStep();
 
+                const expectedSquares = [
+                    [CST.EMPTY, CST.FILL],
+                    [CST.SPECIAL, CST.FILL]
+                ];
                 expect(getRotationOffset).toHaveBeenCalledWith(originalRotation, { width: 4, height: 3 });
                 expect(getRotationOffset).toHaveBeenCalledWith(expectedRotation, { width: 4, height: 3 });
-                expect(store.position).toEqual({ x: 6, y: 2 });
+                expect(withinBoardBounds).toHaveBeenCalledWith({ x: 6, y: 2 }, expectedSquares);
+                expect(store.position).toEqual({ x: 5, y: 1 });
                 expect(store.rotation).toBe(expectedRotation);
                 expect(store.activeCard).toEqual({
-                    squares: [
-                        [CST.EMPTY, CST.FILL],
-                        [CST.SPECIAL, CST.FILL]
-                    ]
+                    squares: expectedSquares
                 });
             });
 

@@ -114,10 +114,10 @@ export const useActiveCardStore = defineStore('activeCard', {
             const oldOffset = getRotationOffset(oldValue, this.cardSizeWithoutRotation);
             const newOffset = getRotationOffset(newValue, this.cardSizeWithoutRotation);
 
-            this.position = {
+            this.position = withinBoardBounds({
                 x: this.position.x - oldOffset.x + newOffset.x,
                 y: this.position.y - oldOffset.y + newOffset.y
-            };
+            }, this.activeCard.squares);
         },
         nextRotationStep() {
             if (this.activeCard != null) {
