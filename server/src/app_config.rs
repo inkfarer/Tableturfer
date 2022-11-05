@@ -13,7 +13,14 @@ pub struct LoggerConfiguration {
 }
 
 #[derive(serde::Deserialize)]
+pub struct ApplicationConfiguration {
+    pub host: String,
+    pub port: u16
+}
+
+#[derive(serde::Deserialize)]
 pub struct Configuration {
+    pub app: ApplicationConfiguration,
     pub redis: RedisConfiguration,
     pub logger: LoggerConfiguration
 }

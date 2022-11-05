@@ -16,12 +16,14 @@ async fn main() -> std::io::Result<()> {
         .parse_write_style(&config.logger.write_style)
         .init();
 
+    log::info!("Starting server at {}:{}", config.app.host, config.app.port);
+
     HttpServer::new(|| {
         App::new()
             .wrap(middleware::Logger::default())
             .service(hello)
     })
-        .bind(("127.0.0.1", 8080))?
+        .bind((config.app.host, config.app.port))?
         .run()
         .await
 }
