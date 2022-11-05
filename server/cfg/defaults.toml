@@ -1,0 +1,3 @@
+[logger]
+filters = "info"
+write_style = "never"

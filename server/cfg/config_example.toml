@@ -1,0 +1,7 @@
+[logger]
+filters = "debug"
+write_style = "auto"
+
+[redis]
+host = "localhost"
+port = 6379
