@@ -4,14 +4,13 @@ use uuid::Uuid;
 #[derive(Deserialize)]
 #[serde(tag = "action", content = "args")]
 pub enum SocketRequest {
-    JoinRoom(String),
-    LeaveRoom,
     Broadcast(String),
 }
 
 #[derive(Serialize, Debug)]
 #[serde(tag = "event", content = "detail")]
 pub enum SocketEvent {
+    Welcome { room_code: String },
     UserJoin(Uuid),
     UserLeave(Uuid),
     Broadcast { from: Uuid, message: String },

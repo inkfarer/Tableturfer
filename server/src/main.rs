@@ -1,6 +1,6 @@
 use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 use axum::Router;
 use axum::routing::get;
 use crate::socket::socket_handler;
@@ -10,7 +10,7 @@ mod app_config;
 mod socket;
 
 pub struct AppState {
-    room_store: Mutex<SocketRoomStore>,
+    room_store: RwLock<SocketRoomStore>,
 }
 
 async fn hello() -> &'static str {
@@ -29,7 +29,7 @@ async fn main() {
     // log::info!("Connecting to Redis at {}:{}", config.redis.host, config.redis.port);
     // let redis = redis::Client::open(format!("redis://{}:{}", config.redis.host, config.redis.port)).unwrap();
 
-    let room_store = Mutex::new(SocketRoomStore::default());
+    let room_store = RwLock::new(SocketRoomStore::default());
     let app_state = Arc::new(AppState { room_store });
 
     let router = Router::with_state(app_state)

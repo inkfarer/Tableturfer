@@ -1,24 +1,48 @@
-pub mod room_listener;
 pub mod room_store;
 pub mod messages;
 
 use std::sync::{Arc};
-use axum::extract::{State, WebSocketUpgrade};
+use axum::extract::{Query, State, WebSocketUpgrade};
 use axum::extract::ws::{Message, WebSocket};
+use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use futures::{SinkExt, StreamExt};
+use serde::Deserialize;
 use tokio::sync::mpsc;
 use uuid::Uuid;
 use messages::SocketRequest;
-use room_listener::RoomListener;
 use crate::AppState;
-use crate::socket::messages::SocketEvent;
+use crate::socket::messages::{RoomEvent, SocketEvent};
+use crate::socket::room_store::Room;
 
-pub async fn socket_handler(ws: WebSocketUpgrade, State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    ws.on_upgrade(|socket| handle(socket, state))
+#[derive(Debug, Deserialize)]
+pub struct SocketRouteParams {
+    room: Option<String>
 }
 
-async fn handle(stream: WebSocket, state: Arc<AppState>) {
+pub async fn socket_handler(ws: WebSocketUpgrade, State(state): State<Arc<AppState>>, Query(params): Query<SocketRouteParams>) -> impl IntoResponse {
+    let (room_code, room) = match params.room {
+        Some(room_code) => {
+            let room_store = state.room_store.read().unwrap();
+            match room_store.get(&room_code) {
+                None => {
+                    return (StatusCode::NOT_FOUND, format!("Could not find room {room_code}")).into_response();
+                },
+                Some(room) => {
+                    (room_code, room)
+                }
+            }
+        },
+        None => {
+            let mut room_store = state.room_store.write().unwrap();
+            room_store.create()
+        }
+    };
+
+    ws.on_upgrade(|socket| handle(socket, room, room_code))
+}
+
+async fn handle(stream: WebSocket, room: Room, room_code: String) {
     let id = Uuid::new_v4();
     // Split the stream so we can create two separate tasks for getting data to and from the socket
     let (mut sender, mut receiver) = stream.split();
@@ -28,36 +52,37 @@ async fn handle(stream: WebSocket, state: Arc<AppState>) {
 
     log::debug!("Starting WS connection {id}");
 
-    let mut receive_from_client_task = tokio::spawn(async move {
-        let mut room_handler = RoomListener::new(id.clone(), state, socket_tx.clone());
+    // Subscribe to events from the room before we send any events in, otherwise we may encounter errors
+    let mut room_rx = room.subscribe();
+    room.send(RoomEvent::UserJoin(id)).unwrap();
+    socket_tx.send(SocketEvent::Welcome { room_code: room_code.to_owned() }).await.unwrap();
 
+    let room_tx = room.clone();
+    let socket_tx_from_client = socket_tx.clone();
+    let mut receive_from_client_task = tokio::spawn(async move {
         // Ignore non-text messages, keep listening until we get an error
         while let Some(Ok(message)) = receiver.next().await {
-            match message {
-                Message::Text(text) => {
-                    match serde_json::from_str(&text) {
-                        Ok(action) => {
-                            match action {
-                                SocketRequest::JoinRoom(room_name) => {
-                                    room_handler.join_room(&room_name).await;
-                                }
-                                SocketRequest::LeaveRoom => {
-                                    room_handler.leave_room();
-                                }
-                                SocketRequest::Broadcast(msg) => {
-                                    room_handler.broadcast(&msg);
-                                }
+            if let Message::Text(text) = message {
+                match serde_json::from_str(&text) {
+                    Ok(action) => {
+                        match action {
+                            SocketRequest::Broadcast(msg) => {
+                                room_tx.send(RoomEvent::Broadcast { from: id, message: msg.to_owned() }).unwrap();
                             }
                         }
-                        Err(err) => {
-                            socket_tx.send(SocketEvent::Error(err.to_string())).await.unwrap();
-                        }
+                    }
+                    Err(_) => {
+                        socket_tx_from_client.send(SocketEvent::Error("Failed to parse incoming message".to_owned())).await.unwrap();
                     }
                 }
-                Message::Close(_) => {
-                    room_handler.leave_room();
-                }
-                _ => {}
+            }
+        }
+    });
+
+    let receive_from_room_task = tokio::spawn(async move {
+        while let Ok(msg) = room_rx.recv().await {
+            if socket_tx.send(SocketEvent::from(msg)).await.is_err() {
+                break;
             }
         }
     });
@@ -78,11 +103,13 @@ async fn handle(stream: WebSocket, state: Arc<AppState>) {
         }
     });
 
-    // One task completing should abort the other
+    // One task completing should abort the others
     tokio::select! {
         _ = (&mut receive_from_client_task) => return_to_client_task.abort(),
         _ = (&mut return_to_client_task) => receive_from_client_task.abort()
     }
+    receive_from_room_task.abort();
+    room.send(RoomEvent::UserLeave(id)).unwrap();
 
     log::debug!("WS connection {id} has shut down");
 }
