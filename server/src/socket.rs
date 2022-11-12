@@ -1,10 +1,10 @@
 pub mod room_store;
 pub mod messages;
 
+use std::borrow::Cow;
 use std::sync::{Arc};
 use axum::extract::{Query, State, WebSocketUpgrade};
-use axum::extract::ws::{Message, WebSocket};
-use axum::http::StatusCode;
+use axum::extract::ws::{CloseFrame, Message, WebSocket};
 use axum::response::IntoResponse;
 use futures::{SinkExt, StreamExt};
 use serde::Deserialize;
@@ -24,28 +24,29 @@ pub async fn socket_handler(ws: WebSocketUpgrade, State(state): State<Arc<AppSta
     let (room_code, room) = match params.room {
         Some(room_code) => {
             let room_store = state.room_store.read().unwrap();
-            match room_store.get(&room_code) {
-                None => {
-                    return (StatusCode::NOT_FOUND, format!("Could not find room {room_code}")).into_response();
-                },
-                Some(room) => {
-                    (room_code, room)
-                }
-            }
+            (room_code.to_owned(), room_store.get(&room_code))
         },
         None => {
             let mut room_store = state.room_store.write().unwrap();
-            room_store.create()
+            let (room_code, room) = room_store.create();
+            (room_code, Some(room))
         }
     };
 
     ws.on_upgrade(|socket| handle(socket, room, room_code))
 }
 
-async fn handle(stream: WebSocket, room: Room, room_code: String) {
-    let id = Uuid::new_v4();
+async fn handle(stream: WebSocket, room: Option<Room>, room_code: String) {
     // Split the stream so we can create two separate tasks for getting data to and from the socket
     let (mut sender, mut receiver) = stream.split();
+
+    if room.is_none() {
+        sender.send(Message::Close(Some(CloseFrame { code: 4000, reason: Cow::from(format!("Could not find room \"{room_code}\"")) }))).await.unwrap();
+        return;
+    }
+
+    let room = room.unwrap();
+    let id = Uuid::new_v4();
     // As the socket's stream requires a mutable reference to send messages, we create a new channel
     // here that as many separate threads can send messages into as needed
     let (socket_tx, mut socket_rx) = mpsc::channel(8);
