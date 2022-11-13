@@ -50,7 +50,11 @@ export function getRotationOffset(rotation: CardRotation, cardSizeWithoutRotatio
 
 // Attempt to nudge the card back into bounds if required
 // Likely quite inefficient but acceptable for now
-export function withinBoardBounds(position: Position, squares: CardSquareType[][]): Position {
+export function withinBoardBounds(position: Position, squares?: CardSquareType[][] | null): Position {
+    if (squares == null) {
+        return position;
+    }
+
     const cardWidth = squares[0]?.length ?? 0;
     const cardHeight = squares.length;
     const gameBoardStore = useGameBoardStore();

@@ -31,7 +31,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
             };
         },
         isPlaceable() {
-            return (position: Position, cardSquares: CardSquareType[][]) => {
+            return (position: Position, cardSquares: CardSquareType[][] | null) => {
                 const gameStateStore = useGameStateStore();
                 if (cardSquares == null || this.board == null || gameStateStore.playerTeam == null) {
                     return false;
@@ -65,7 +65,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
                     }
 
                     const boardSquaresAroundCardSquare = slice2D<MapSquareType>(
-                        this.board,
+                        this.board as MapSquareType[][],
                         { x: position.x - 1 + x, y: position.y - 1 + y },
                         { x: position.x + 1 + x, y: position.y + 1 + y });
 
@@ -76,7 +76,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
         boardSquaresUnderCard() {
             return (position: Position, cardSize: CardSize) => {
                 return slice2D(
-                    this.board,
+                    this.board ?? [],
                     position,
                     { x: position.x + cardSize.width - 1, y: position.y + cardSize.height - 1 },
                     MapSquareType.OUT_OF_BOUNDS);
@@ -113,7 +113,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
                 return;
             }
 
-            const newBoard = cloneDeep(this.board);
+            const newBoard = cloneDeep(this.board) as MapSquareType[][];
             squares.forEach((row, rowIndex) => {
                 row.forEach((square, colIndex) => {
                     switch (square) {

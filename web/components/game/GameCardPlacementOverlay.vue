@@ -35,8 +35,13 @@ import { useGameStateStore } from '~/stores/GameStateStore';
 const activeCardStore = useActiveCardStore();
 const gameBoardStore = useGameBoardStore();
 const gameStateStore = useGameStateStore();
-const placeable = computed(() =>
-    gameBoardStore.isPlaceable(activeCardStore.position, activeCardStore.activeCard?.squares));
+const placeable = computed(() => {
+    if (activeCardStore.activeCard == null) {
+        return false;
+    }
+
+    return gameBoardStore.isPlaceable(activeCardStore.position, activeCardStore.activeCard.squares);
+});
 
 </script>
 

@@ -117,12 +117,12 @@ export const useActiveCardStore = defineStore('activeCard', {
             this.position = withinBoardBounds({
                 x: this.position.x - oldOffset.x + newOffset.x,
                 y: this.position.y - oldOffset.y + newOffset.y
-            }, this.activeCard.squares);
+            }, this.activeCard?.squares);
         },
         nextRotationStep() {
             if (this.activeCard != null) {
                 this.activeCard.squares = rotateClockwise(this.activeCard.squares);
-                this.updateRotationValue(this.rotation === 270 ? 0 : this.rotation + 90);
+                this.updateRotationValue(this.rotation === 270 ? 0 : this.rotation + 90 as CardRotation);
             }
         },
         previousRotationStep() {
@@ -140,6 +140,10 @@ export const useActiveCardStore = defineStore('activeCard', {
             };
         },
         applyDeltaIfPossible(positionDelta: Position) {
+            if (this.activeCard == null) {
+                return;
+            }
+
             const newPosition = {
                 x: this.position.x + positionDelta.x,
                 y: this.position.y + positionDelta.y
