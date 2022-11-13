@@ -10,6 +10,7 @@ pub enum SocketRequest {
 #[derive(Serialize, Debug)]
 #[serde(tag = "event", content = "detail")]
 pub enum SocketEvent {
+    #[serde(rename_all = "camelCase")]
     Welcome { room_code: String },
     UserJoin(Uuid),
     UserLeave(Uuid),
