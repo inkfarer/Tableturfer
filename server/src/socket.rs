@@ -24,6 +24,7 @@ pub struct SocketRouteParams {
 pub async fn socket_handler(ws: WebSocketUpgrade, State(state): State<Arc<AppState>>, Query(params): Query<SocketRouteParams>) -> impl IntoResponse {
     let (room_code, room) = match params.room {
         Some(room_code) => {
+            let room_code = room_code.to_uppercase();
             let room_store = state.room_store.read().unwrap();
             (room_code.to_owned(), room_store.get(&room_code))
         },
