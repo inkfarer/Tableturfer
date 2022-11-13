@@ -1,10 +1,10 @@
 pub mod room_store;
 pub mod messages;
+mod close_code;
 
-use std::borrow::Cow;
 use std::sync::{Arc};
 use axum::extract::{Query, State, WebSocketUpgrade};
-use axum::extract::ws::{CloseFrame, Message, WebSocket};
+use axum::extract::ws::{Message, WebSocket};
 use axum::response::IntoResponse;
 use futures::{SinkExt, StreamExt};
 use serde::Deserialize;
@@ -12,6 +12,7 @@ use tokio::sync::mpsc;
 use uuid::Uuid;
 use messages::SocketRequest;
 use crate::AppState;
+use crate::socket::close_code::SocketCloseCode;
 use crate::socket::messages::{RoomEvent, SocketEvent};
 use crate::socket::room_store::Room;
 
@@ -41,7 +42,7 @@ async fn handle(stream: WebSocket, room: Option<Room>, room_code: String) {
     let (mut sender, mut receiver) = stream.split();
 
     if room.is_none() {
-        sender.send(Message::Close(Some(CloseFrame { code: 4000, reason: Cow::from(format!("Could not find room \"{room_code}\"")) }))).await.unwrap();
+        sender.send(Message::Close(Some(SocketCloseCode::RoomNotFound(room_code).into()))).await.unwrap();
         return;
     }
 
