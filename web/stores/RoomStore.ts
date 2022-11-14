@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { SocketMessageMap, SocketUser } from '~/types/Socket';
+import { SocketMessageMap, SocketUser } from '~/types/socket/SocketEvent';
 
 interface RoomStore {
     id: string | null

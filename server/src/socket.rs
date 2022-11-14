@@ -92,7 +92,7 @@ async fn handle(stream: WebSocket, state: Arc<AppState>, room_code: Option<Strin
 
     let receive_from_room_task = tokio::spawn(async move {
         while let Ok(msg) = room_rx.recv().await {
-            if socket_tx.send(SocketEvent::from(msg)).await.is_err() {
+            if socket_tx.send(SocketEvent::RoomEvent(msg)).await.is_err() {
                 break;
             }
         }

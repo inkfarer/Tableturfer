@@ -1,3 +1,6 @@
+import { AnyRoomEvent } from '~/types/socket/RoomEvent';
+import { AnyMessage } from '~/types/socket/EventHelper';
+
 export interface SocketActionMap {
     CreateRoom: never
 }
@@ -14,12 +17,7 @@ export interface SocketMessageMap {
         users: Record<string, SocketUser>,
         owner: string
     }
-    UserJoin: { id: string, user: SocketUser }
-    UserLeave: string
-    OwnerChange: string
+    RoomEvent: AnyRoomEvent
 }
 
-type IncomingSocketMessageMap = {
-    [K in keyof SocketMessageMap]: { event: K, detail: SocketMessageMap[K] }
-};
-export type AnySocketMessage = IncomingSocketMessageMap[keyof IncomingSocketMessageMap];
+export type AnySocketMessage = AnyMessage<SocketMessageMap>;

@@ -19,25 +19,12 @@ pub enum SocketEvent {
         users: HashMap<Uuid, RoomUser>,
         owner: Uuid,
     },
-    UserJoin { id: Uuid, user: RoomUser },
-    UserLeave(Uuid),
-    OwnerChange(Uuid),
-    Broadcast { from: Uuid, message: String },
     Error(String),
+    RoomEvent(RoomEvent),
 }
 
-impl From<RoomEvent> for SocketEvent {
-    fn from(event: RoomEvent) -> Self {
-        match event {
-            RoomEvent::UserJoin { id, user } => Self::UserJoin { id, user },
-            RoomEvent::Broadcast { from, message } => Self::Broadcast { from, message },
-            RoomEvent::UserLeave(id) => Self::UserLeave(id),
-            RoomEvent::OwnerChange(id) => Self::OwnerChange(id)
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(tag = "event", content = "detail")]
 pub enum RoomEvent {
     UserJoin { id: Uuid, user: RoomUser },
     UserLeave(Uuid),

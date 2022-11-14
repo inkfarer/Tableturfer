@@ -1,5 +1,6 @@
-import { AnySocketMessage, SocketActionMap } from '~/types/Socket';
+import { AnySocketMessage, SocketActionMap } from '~/types/socket/SocketEvent';
 import { useRoomStore } from '~/stores/RoomStore';
+import { AnyRoomEvent } from '~/types/socket/RoomEvent';
 
 export class SocketService {
     private ws: WebSocket | null;
@@ -94,17 +95,25 @@ export class SocketService {
             case 'Welcome':
                 useRoomStore().joinRoom(msg.detail);
                 break;
-            case 'UserJoin':
-                useRoomStore().addUser(msg.detail.id, msg.detail.user);
-                break;
-            case 'UserLeave':
-                useRoomStore().removeUser(msg.detail);
-                break;
-            case 'OwnerChange':
-                useRoomStore().owner = msg.detail;
+            case 'RoomEvent':
+                this.handleRoomEvent(msg.detail);
                 break;
             default:
                 console.log(`Unhandled event '${msg.event}'`, msg.detail);
+        }
+    }
+
+    private handleRoomEvent(event: AnyRoomEvent) {
+        switch (event.event) {
+            case 'UserJoin':
+                useRoomStore().addUser(event.detail.id, event.detail.user);
+                break;
+            case 'UserLeave':
+                useRoomStore().removeUser(event.detail);
+                break;
+            case 'OwnerChange':
+                useRoomStore().owner = event.detail;
+                break;
         }
     }
 
