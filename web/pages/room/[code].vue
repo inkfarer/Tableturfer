@@ -9,7 +9,7 @@
             <button @click="leaveRoom">back home</button>
         </div>
         <div v-else>
-            joined room {{ roomStore.roomCode }}
+            joined room {{ roomStore.roomCode }} with users {{ roomStore.users }}
             <br>
             <button @click="leaveRoom">cool! can i go back home now</button>
         </div>

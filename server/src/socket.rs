@@ -14,7 +14,6 @@ use messages::SocketRequest;
 use crate::AppState;
 use crate::socket::close_code::SocketCloseCode;
 use crate::socket::messages::{RoomEvent, SocketEvent};
-use crate::socket::room_store::Room;
 
 #[derive(Debug, Deserialize)]
 pub struct SocketRouteParams {
@@ -22,45 +21,55 @@ pub struct SocketRouteParams {
 }
 
 pub async fn socket_handler(ws: WebSocketUpgrade, State(state): State<Arc<AppState>>, Query(params): Query<SocketRouteParams>) -> impl IntoResponse {
-    let (room_code, room) = match params.room {
-        Some(room_code) => {
-            let room_code = room_code.to_uppercase();
-            let room_store = state.room_store.read().unwrap();
-            (room_code.to_owned(), room_store.get(&room_code))
-        },
-        None => {
-            let mut room_store = state.room_store.write().unwrap();
-            let (room_code, room) = room_store.create();
-            (room_code, Some(room))
+    ws.on_upgrade(move |socket| handle(socket, state, params.room))
+}
+
+async fn handle(stream: WebSocket, state: Arc<AppState>, room_code: Option<String>) {
+    let id = Uuid::new_v4();
+
+    let (room_code, room, user) = {
+        let mut room_store = state.room_store.write().unwrap();
+
+        match room_code {
+            Some(room_code) => {
+                let room_code = room_code.to_uppercase();
+                if let Some((room, user)) = room_store.get_and_join_if_exists(&room_code, id) {
+                    (room_code.to_owned(), Some(room), Some(user))
+                } else {
+                    (room_code.to_owned(), None, None)
+                }
+            }
+            None => {
+                let (room_code, room, user) = room_store.create(id.clone());
+                (room_code, Some(room), Some(user))
+            }
         }
     };
 
-    ws.on_upgrade(|socket| handle(socket, room, room_code))
-}
-
-async fn handle(stream: WebSocket, room: Option<Room>, room_code: String) {
     // Split the stream so we can create two separate tasks for getting data to and from the socket
     let (mut sender, mut receiver) = stream.split();
 
     if room.is_none() {
+        log::debug!("Rejecting WS connection as it attempted to join a non-existent room");
         sender.send(Message::Close(Some(SocketCloseCode::RoomNotFound(room_code).into()))).await.unwrap();
         return;
     }
 
     let room = room.unwrap();
-    let id = Uuid::new_v4();
+    let user = user.unwrap();
     // As the socket's stream requires a mutable reference to send messages, we create a new channel
     // here that as many separate threads can send messages into as needed
     let (socket_tx, mut socket_rx) = mpsc::channel(8);
 
     log::debug!("Starting WS connection {id}");
 
+    let room_tx = room.sender.clone();
     // Subscribe to events from the room before we send any events in, otherwise we may encounter errors
-    let mut room_rx = room.subscribe();
-    room.send(RoomEvent::UserJoin(id)).unwrap();
-    socket_tx.send(SocketEvent::Welcome { room_code: room_code.to_owned() }).await.unwrap();
+    let mut room_rx = room_tx.subscribe();
+    room_tx.send(RoomEvent::UserJoin { id, user }).unwrap();
+    socket_tx.send(SocketEvent::Welcome { room_code: room_code.to_owned(), users: room.users }).await.unwrap();
 
-    let room_tx = room.clone();
+    let room_tx_from_client = room_tx.clone();
     let socket_tx_from_client = socket_tx.clone();
     let mut receive_from_client_task = tokio::spawn(async move {
         // Ignore non-text messages, keep listening until we get an error
@@ -70,7 +79,7 @@ async fn handle(stream: WebSocket, room: Option<Room>, room_code: String) {
                     Ok(action) => {
                         match action {
                             SocketRequest::Broadcast(msg) => {
-                                room_tx.send(RoomEvent::Broadcast { from: id, message: msg.to_owned() }).unwrap();
+                                room_tx_from_client.send(RoomEvent::Broadcast { from: id, message: msg.to_owned() }).unwrap();
                             }
                         }
                     }
@@ -112,7 +121,11 @@ async fn handle(stream: WebSocket, room: Option<Room>, room_code: String) {
         _ = (&mut return_to_client_task) => receive_from_client_task.abort()
     }
     receive_from_room_task.abort();
-    room.send(RoomEvent::UserLeave(id)).unwrap();
+    room_tx.send(RoomEvent::UserLeave(id)).unwrap();
+    {
+        let mut room_store = state.room_store.write().unwrap();
+        room_store.remove_user_from_room(&room_code, id);
+    }
 
     log::debug!("WS connection {id} has shut down");
 }

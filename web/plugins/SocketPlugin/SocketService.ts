@@ -23,7 +23,7 @@ export class SocketService {
             }
 
             const closeListener = (e: CloseEvent) => {
-                this.ws?.removeEventListener('message', welcomeListener);
+                removeListeners();
                 reject(e);
             };
 
@@ -31,8 +31,15 @@ export class SocketService {
                 const parsed = this.parseSocketMessage(msg.data);
 
                 if (parsed != null && parsed.event === 'Welcome') {
-                    this.ws?.removeEventListener('close', closeListener);
+                    removeListeners();
                     resolve(parsed.detail.roomCode);
+                }
+            };
+
+            const removeListeners = () => {
+                if (this.ws != null) {
+                    this.ws.removeEventListener('close', closeListener);
+                    this.ws.removeEventListener('message', welcomeListener);
                 }
             };
 
@@ -61,7 +68,7 @@ export class SocketService {
         });
 
         this.ws.addEventListener('close', e => {
-            useRoomStore().roomCode = null;
+            useRoomStore().leaveRoom();
 
             if (e.code >= 4000 && e.code < 5000) {
                 console.error('Websocket closed with message:', e.reason);
@@ -85,7 +92,13 @@ export class SocketService {
     private handleSocketMessage(msg: AnySocketMessage) {
         switch (msg.event) {
             case 'Welcome':
-                useRoomStore().roomCode = msg.detail.roomCode;
+                useRoomStore().joinRoom(msg.detail.roomCode, msg.detail.users);
+                break;
+            case 'UserJoin':
+                useRoomStore().addUser(msg.detail.id, msg.detail.user);
+                break;
+            case 'UserLeave':
+                useRoomStore().removeUser(msg.detail);
                 break;
             default:
                 console.log(`Unhandled event '${msg.event}'`, msg.detail);
