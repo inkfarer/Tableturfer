@@ -27,21 +27,17 @@ pub async fn socket_handler(ws: WebSocketUpgrade, State(state): State<Arc<AppSta
 async fn handle(stream: WebSocket, state: Arc<AppState>, room_code: Option<String>) {
     let id = Uuid::new_v4();
 
-    let (room_code, room, user) = {
+    let (room_code, room) = {
         let mut room_store = state.room_store.write().unwrap();
 
         match room_code {
             Some(room_code) => {
                 let room_code = room_code.to_uppercase();
-                if let Some((room, user)) = room_store.get_and_join_if_exists(&room_code, id) {
-                    (room_code.to_owned(), Some(room), Some(user))
-                } else {
-                    (room_code.to_owned(), None, None)
-                }
+                (room_code.to_owned(), room_store.get_and_join_if_exists(&room_code, id))
             }
             None => {
-                let (room_code, room, user) = room_store.create(id.clone());
-                (room_code, Some(room), Some(user))
+                let (room_code, room) = room_store.create(id.clone());
+                (room_code, Some(room))
             }
         }
     };
@@ -56,7 +52,6 @@ async fn handle(stream: WebSocket, state: Arc<AppState>, room_code: Option<Strin
     }
 
     let room = room.unwrap();
-    let user = user.unwrap();
     // As the socket's stream requires a mutable reference to send messages, we create a new channel
     // here that as many separate threads can send messages into as needed
     let (socket_tx, mut socket_rx) = mpsc::channel(8);
@@ -66,7 +61,6 @@ async fn handle(stream: WebSocket, state: Arc<AppState>, room_code: Option<Strin
     let room_tx = room.sender.clone();
     // Subscribe to events from the room before we send any events in, otherwise we may encounter errors
     let mut room_rx = room_tx.subscribe();
-    room_tx.send(RoomEvent::UserJoin { id, user }).unwrap();
     socket_tx.send(SocketEvent::Welcome { room_code: room_code.to_owned(), users: room.users }).await.unwrap();
 
     let room_tx_from_client = room_tx.clone();
@@ -121,7 +115,6 @@ async fn handle(stream: WebSocket, state: Arc<AppState>, room_code: Option<Strin
         _ = (&mut return_to_client_task) => receive_from_client_task.abort()
     }
     receive_from_room_task.abort();
-    room_tx.send(RoomEvent::UserLeave(id)).unwrap();
     {
         let mut room_store = state.room_store.write().unwrap();
         room_store.remove_user_from_room(&room_code, id);

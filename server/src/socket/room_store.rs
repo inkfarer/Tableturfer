@@ -29,9 +29,8 @@ pub struct SocketRoomStore {
     rooms: HashMap<String, Room>,
 }
 
-// todo: maybe this struct can itself inform the room when users join, instead of the socket doing it?
 impl SocketRoomStore {
-    pub fn create(&mut self, conn_id: Uuid) -> (String, Room, RoomUser) {
+    pub fn create(&mut self, conn_id: Uuid) -> (String, Room) {
         log::debug!("Connection {conn_id} is creating a new room");
         let mut room_code = Self::generate_room_code();
 
@@ -46,12 +45,12 @@ impl SocketRoomStore {
         let room = Room {
             sender: tx.clone(),
             owner_id: conn_id,
-            users: HashMap::from([(conn_id, user.clone())]),
+            users: HashMap::from([(conn_id, user)]),
         };
 
         log::debug!("Connection {conn_id} joins room {room_code}");
         self.rooms.insert(room_code.to_owned(), room.clone());
-        (room_code.to_owned(), room, user)
+        (room_code.to_owned(), room)
     }
 
     // Generates a room code; Determining whether it is unique is up to the caller.
@@ -59,7 +58,7 @@ impl SocketRoomStore {
         Alphanumeric.sample_string(&mut rand::thread_rng(), ROOM_CODE_SIZE).to_uppercase()
     }
 
-    pub fn get_and_join_if_exists(&mut self, room_code: &str, conn_id: Uuid) -> Option<(Room, RoomUser)> {
+    pub fn get_and_join_if_exists(&mut self, room_code: &str, conn_id: Uuid) -> Option<Room> {
         log::debug!("Connection {conn_id} attempts to join room {room_code}");
         match self.rooms.get_mut(room_code) {
             Some(room) => {
@@ -67,8 +66,9 @@ impl SocketRoomStore {
                     joined_at: Utc::now(),
                 };
                 room.users.insert(conn_id, user.clone());
+                room.sender.send(RoomEvent::UserJoin { id: conn_id, user }).ok();
 
-                Some((room.clone(), user))
+                Some(room.clone())
             }
             None => None
         }
@@ -78,6 +78,8 @@ impl SocketRoomStore {
         log::debug!("WS connection {conn_id} leaves room {room_code}");
         if let Some(room) = self.rooms.get_mut(room_code) {
             if room.users.remove(&conn_id).is_some() {
+                room.sender.send(RoomEvent::UserLeave(conn_id)).ok();
+
                 if room.users.is_empty() {
                     log::debug!("Room {room_code} is now empty, clearing it for reuse");
                     self.rooms.remove(room_code);
