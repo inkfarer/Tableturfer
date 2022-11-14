@@ -10,6 +10,9 @@
         </div>
         <div v-else>
             joined room {{ roomStore.roomCode }} with users {{ roomStore.users }}
+            <div v-if="roomStore.isRoomOwner">
+                you own this room!
+            </div>
             <br>
             <button @click="leaveRoom">cool! can i go back home now</button>
         </div>

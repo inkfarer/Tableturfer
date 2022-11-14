@@ -92,13 +92,16 @@ export class SocketService {
     private handleSocketMessage(msg: AnySocketMessage) {
         switch (msg.event) {
             case 'Welcome':
-                useRoomStore().joinRoom(msg.detail.roomCode, msg.detail.users);
+                useRoomStore().joinRoom(msg.detail);
                 break;
             case 'UserJoin':
                 useRoomStore().addUser(msg.detail.id, msg.detail.user);
                 break;
             case 'UserLeave':
                 useRoomStore().removeUser(msg.detail);
+                break;
+            case 'OwnerChange':
+                useRoomStore().owner = msg.detail;
                 break;
             default:
                 console.log(`Unhandled event '${msg.event}'`, msg.detail);

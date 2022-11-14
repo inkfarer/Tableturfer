@@ -61,7 +61,12 @@ async fn handle(stream: WebSocket, state: Arc<AppState>, room_code: Option<Strin
     let room_tx = room.sender.clone();
     // Subscribe to events from the room before we send any events in, otherwise we may encounter errors
     let mut room_rx = room_tx.subscribe();
-    socket_tx.send(SocketEvent::Welcome { room_code: room_code.to_owned(), users: room.users }).await.unwrap();
+    socket_tx.send(SocketEvent::Welcome {
+        id,
+        room_code: room_code.to_owned(),
+        users: room.users,
+        owner: room.owner_id
+    }).await.unwrap();
 
     let room_tx_from_client = room_tx.clone();
     let socket_tx_from_client = socket_tx.clone();

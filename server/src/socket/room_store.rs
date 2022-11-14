@@ -90,6 +90,7 @@ impl SocketRoomStore {
                         Some((first_user_id, _first_user)) => {
                             log::debug!("Room {room_code} is now owned by {first_user_id}");
                             room.owner_id = first_user_id;
+                            room.sender.send(RoomEvent::OwnerChange(first_user_id)).ok();
                         }
                         None => {
                             unreachable!("Room has users, but the first user to join could not be found?");

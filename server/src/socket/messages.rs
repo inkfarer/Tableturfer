@@ -13,9 +13,15 @@ pub enum SocketRequest {
 #[serde(tag = "event", content = "detail")]
 pub enum SocketEvent {
     #[serde(rename_all = "camelCase")]
-    Welcome { room_code: String, users: HashMap<Uuid, RoomUser> },
+    Welcome {
+        id: Uuid,
+        room_code: String,
+        users: HashMap<Uuid, RoomUser>,
+        owner: Uuid,
+    },
     UserJoin { id: Uuid, user: RoomUser },
     UserLeave(Uuid),
+    OwnerChange(Uuid),
     Broadcast { from: Uuid, message: String },
     Error(String),
 }
@@ -23,15 +29,10 @@ pub enum SocketEvent {
 impl From<RoomEvent> for SocketEvent {
     fn from(event: RoomEvent) -> Self {
         match event {
-            RoomEvent::UserJoin { id, user } => {
-                Self::UserJoin { id, user }
-            }
-            RoomEvent::UserLeave(id) => {
-                Self::UserLeave(id)
-            }
-            RoomEvent::Broadcast { from, message } => {
-                Self::Broadcast { from, message }
-            }
+            RoomEvent::UserJoin { id, user } => Self::UserJoin { id, user },
+            RoomEvent::Broadcast { from, message } => Self::Broadcast { from, message },
+            RoomEvent::UserLeave(id) => Self::UserLeave(id),
+            RoomEvent::OwnerChange(id) => Self::OwnerChange(id)
         }
     }
 }
@@ -41,4 +42,5 @@ pub enum RoomEvent {
     UserJoin { id: Uuid, user: RoomUser },
     UserLeave(Uuid),
     Broadcast { from: Uuid, message: String },
+    OwnerChange(Uuid),
 }

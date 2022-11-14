@@ -6,11 +6,17 @@ export interface SocketUser {
     joinedAt: string
 }
 
-interface SocketMessageMap {
+export interface SocketMessageMap {
     Error: string
-    Welcome: { roomCode: string, users: Record<string, SocketUser> }
+    Welcome: {
+        id: string,
+        roomCode: string,
+        users: Record<string, SocketUser>,
+        owner: string
+    }
     UserJoin: { id: string, user: SocketUser }
     UserLeave: string
+    OwnerChange: string
 }
 
 type IncomingSocketMessageMap = {
