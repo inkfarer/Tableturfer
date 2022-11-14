@@ -13,7 +13,7 @@ use uuid::Uuid;
 use messages::SocketRequest;
 use crate::AppState;
 use crate::socket::close_code::SocketCloseCode;
-use crate::socket::messages::{RoomEvent, SocketEvent};
+use crate::socket::messages::{RoomEvent, SocketError, SocketEvent};
 
 #[derive(Debug, Deserialize)]
 pub struct SocketRouteParams {
@@ -65,11 +65,14 @@ async fn handle(stream: WebSocket, state: Arc<AppState>, room_code: Option<Strin
         id,
         room_code: room_code.to_owned(),
         users: room.users,
-        owner: room.owner_id
+        owner: room.owner_id,
+        map: room.map,
     }).await.unwrap();
 
     let room_tx_from_client = room_tx.clone();
     let socket_tx_from_client = socket_tx.clone();
+    let state_from_client = state.clone();
+    let room_code_from_client = room_code.clone();
     let mut receive_from_client_task = tokio::spawn(async move {
         // Ignore non-text messages, keep listening until we get an error
         while let Some(Ok(message)) = receiver.next().await {
@@ -80,10 +83,20 @@ async fn handle(stream: WebSocket, state: Arc<AppState>, room_code: Option<Strin
                             SocketRequest::Broadcast(msg) => {
                                 room_tx_from_client.send(RoomEvent::Broadcast { from: id, message: msg.to_owned() }).unwrap();
                             }
+                            SocketRequest::SetMap(map) => {
+                                let action_result = {
+                                    let mut room_store = state_from_client.room_store.write().unwrap();
+                                    room_store.set_map(id, &room_code_from_client, map)
+                                };
+
+                                if let Err(err) = action_result {
+                                    socket_tx_from_client.send(SocketEvent::Error(err)).await.unwrap();
+                                }
+                            }
                         }
                     }
                     Err(_) => {
-                        socket_tx_from_client.send(SocketEvent::Error("Failed to parse incoming message".to_owned())).await.unwrap();
+                        socket_tx_from_client.send(SocketEvent::Error(SocketError::MessageParsingFailed)).await.unwrap();
                     }
                 }
             }

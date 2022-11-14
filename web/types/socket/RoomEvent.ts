@@ -5,6 +5,7 @@ export interface RoomEventMap {
     UserJoin: { id: string, user: SocketUser }
     UserLeave: string
     OwnerChange: string
+    MapChange: string
 }
 
 export type AnyRoomEvent = AnyMessage<RoomEventMap>;

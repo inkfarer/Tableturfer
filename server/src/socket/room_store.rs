@@ -5,7 +5,8 @@ use rand::distributions::{Alphanumeric, DistString};
 use uuid::Uuid;
 use itertools::Itertools;
 use serde::Serialize;
-use crate::socket::messages::RoomEvent;
+use crate::game::map::{DEFAULT_GAME_MAP, GameMap};
+use crate::socket::messages::{RoomEvent, SocketError};
 
 const ROOM_CODE_SIZE: usize = 4;
 
@@ -22,6 +23,7 @@ pub struct Room {
     pub sender: RoomSender,
     pub owner_id: Uuid,
     pub users: HashMap<Uuid, RoomUser>,
+    pub map: GameMap,
 }
 
 #[derive(Default)]
@@ -46,6 +48,7 @@ impl SocketRoomStore {
             sender: tx.clone(),
             owner_id: conn_id,
             users: HashMap::from([(conn_id, user)]),
+            map: DEFAULT_GAME_MAP,
         };
 
         log::debug!("Connection {conn_id} joins room {room_code}");
@@ -99,6 +102,27 @@ impl SocketRoomStore {
                 }
             }
         }
+    }
+
+    fn is_room_owner(&self, room_code: &str, conn_id: Uuid) -> bool {
+        if let Some(room) = self.rooms.get(room_code) {
+            room.owner_id == conn_id
+        } else {
+            false
+        }
+    }
+
+    pub fn set_map(&mut self, conn_id: Uuid, room_code: &str, map: GameMap) -> Result<(), SocketError> {
+        if !self.is_room_owner(room_code, conn_id) {
+            return Err(SocketError::UserNotRoomOwner);
+        }
+
+        if let Some(room) = self.rooms.get_mut(room_code) {
+            room.map = map.clone();
+            room.sender.send(RoomEvent::MapChange(map)).ok();
+        }
+
+        Ok(())
     }
 }
 

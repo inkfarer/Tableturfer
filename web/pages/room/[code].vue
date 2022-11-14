@@ -10,10 +10,13 @@
         </div>
         <div v-else>
             joined room {{ roomStore.roomCode }} with users {{ roomStore.users }}
-            <div v-if="roomStore.isRoomOwner">
+            <template v-if="roomStore.isRoomOwner">
+                <br>
                 you own this room!
-            </div>
+            </template>
             <br>
+            the map is "{{ gameBoardStore.name }}"
+            <RoomMapSelector />
             <button @click="leaveRoom">cool! can i go back home now</button>
         </div>
     </div>
@@ -23,12 +26,14 @@
 import { definePageMeta, onMounted, ref, useNuxtApp, useRoute, watch } from '#imports';
 import { navigateTo } from '#app';
 import { useRoomStore } from '~/stores/RoomStore';
+import { useGameBoardStore } from '~/stores/GameBoardStore';
 
 // Override the default page key so changing the room code in the URL (For example, /room/new -> /room/ASDF) doesn't make this component reload
 definePageMeta({
     key: 'room'
 });
 
+const gameBoardStore = useGameBoardStore();
 const roomStore = useRoomStore();
 const connectedRoomCode = ref<string | null>(null);
 const { $socket } = useNuxtApp();

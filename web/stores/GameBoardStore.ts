@@ -8,6 +8,7 @@ import { CardSquareType } from '~/types/CardSquareType';
 import cloneDeep from 'lodash/cloneDeep';
 import { useGameStateStore } from '~/stores/GameStateStore';
 import { PlayerTeam } from '~/types/PlayerTeam';
+import * as Maps from '~/data/maps';
 
 interface GameBoardStore {
     name: string
@@ -91,6 +92,14 @@ export const useGameBoardStore = defineStore('gameBoard', {
         }
     },
     actions: {
+        setBoardByName(boardName: string) {
+            const map = (Maps as Record<string, GameMap>)[boardName];
+            if (map != null) {
+                this.setBoard(map);
+            } else {
+                throw new Error(`Unknown map "${boardName}"`);
+            }
+        },
         setBoard(map: GameMap) {
             this.name = map.name;
             this.board = map.squares;

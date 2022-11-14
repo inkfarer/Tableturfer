@@ -1,12 +1,21 @@
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use crate::game::map::GameMap;
 use crate::socket::room_store::RoomUser;
+
+#[derive(Serialize, Debug)]
+#[serde(tag = "code", content = "detail")]
+pub enum SocketError {
+    MessageParsingFailed,
+    UserNotRoomOwner,
+}
 
 #[derive(Deserialize)]
 #[serde(tag = "action", content = "args")]
 pub enum SocketRequest {
     Broadcast(String),
+    SetMap(GameMap),
 }
 
 #[derive(Serialize, Debug)]
@@ -18,8 +27,9 @@ pub enum SocketEvent {
         room_code: String,
         users: HashMap<Uuid, RoomUser>,
         owner: Uuid,
+        map: GameMap,
     },
-    Error(String),
+    Error(SocketError),
     RoomEvent(RoomEvent),
 }
 
@@ -30,4 +40,6 @@ pub enum RoomEvent {
     UserLeave(Uuid),
     Broadcast { from: Uuid, message: String },
     OwnerChange(Uuid),
+
+    MapChange(GameMap),
 }

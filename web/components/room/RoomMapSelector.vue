@@ -3,7 +3,7 @@
         <button
             v-for="map in Maps"
             :key="`map_${map.name}`"
-            @click="gameBoardStore.setBoard(map)"
+            @click="setMap(map.name)"
         >
             {{ map.name }}
         </button>
@@ -12,21 +12,20 @@
 
 <script lang="ts" setup>
 import * as Maps from '~/data/maps';
-import { useGameBoardStore } from '~/stores/GameBoardStore';
+import { useNuxtApp } from '#imports';
 
-const gameBoardStore = useGameBoardStore();
+const { $socket } = useNuxtApp();
+
+function setMap(name: string) {
+    $socket.send('SetMap', name);
+}
 </script>
 
 <style lang="scss" scoped>
 .stage-selector {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-
     button {
-
         &:not(:first-child) {
-            margin-top: 4px;
+            margin-right: 4px;
         }
     }
 }
