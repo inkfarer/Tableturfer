@@ -16,6 +16,14 @@ pub struct RoomUser {
     pub joined_at: DateTime<Utc>,
 }
 
+impl RoomUser {
+    fn new() -> Self {
+        RoomUser {
+            joined_at: Utc::now(),
+        }
+    }
+}
+
 pub type RoomSender = broadcast::Sender<RoomEvent>;
 
 #[derive(Clone)]
@@ -28,10 +36,18 @@ pub struct Room {
 }
 
 impl Room {
+    fn new(owner_id: Uuid) -> Self {
+        Room {
+            sender: broadcast::channel(100).0,
+            owner_id,
+            opponent_id: None,
+            users: HashMap::from([(owner_id, RoomUser::new())]),
+            map: DEFAULT_GAME_MAP,
+        }
+    }
+
     fn add_user(&mut self, id: Uuid) {
-        let user = RoomUser {
-            joined_at: Utc::now(),
-        };
+        let user = RoomUser::new();
 
         self.users.insert(id, user.clone());
         self.sender.send(RoomEvent::UserJoin { id, user }).ok();
@@ -81,6 +97,11 @@ impl Room {
         self.opponent_id = id;
         self.sender.send(RoomEvent::OpponentChange(id)).ok();
     }
+
+    fn set_map(&mut self, map: GameMap) {
+        self.map = map.clone();
+        self.sender.send(RoomEvent::MapChange(map)).ok();
+    }
 }
 
 #[derive(Default)]
@@ -97,17 +118,7 @@ impl SocketRoomStore {
             room_code = Self::generate_room_code();
         }
 
-        let (tx, _rx) = broadcast::channel(100);
-        let user = RoomUser {
-            joined_at: Utc::now(),
-        };
-        let room = Room {
-            sender: tx.clone(),
-            owner_id: conn_id,
-            opponent_id: None,
-            users: HashMap::from([(conn_id, user)]),
-            map: DEFAULT_GAME_MAP,
-        };
+        let room = Room::new(conn_id);
 
         log::debug!("Connection {conn_id} joins room {room_code}");
         self.rooms.insert(room_code.to_owned(), room.clone());
@@ -157,8 +168,7 @@ impl SocketRoomStore {
         }
 
         if let Some(room) = self.rooms.get_mut(room_code) {
-            room.map = map.clone();
-            room.sender.send(RoomEvent::MapChange(map)).ok();
+            room.set_map(map);
         }
 
         Ok(())
