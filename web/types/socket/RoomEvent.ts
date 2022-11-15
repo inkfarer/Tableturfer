@@ -6,6 +6,7 @@ export interface RoomEventMap {
     UserLeave: string
     OwnerChange: string
     MapChange: string
+    OpponentChange: string | null
 }
 
 export type AnyRoomEvent = AnyMessage<RoomEventMap>;

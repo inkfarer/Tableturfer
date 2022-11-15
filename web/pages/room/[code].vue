@@ -14,6 +14,10 @@
                 <br>
                 you own this room!
             </template>
+            <template v-if="roomStore.isOpponent">
+                <br>
+                you are about to play!
+            </template>
             <br>
             the map is "{{ gameBoardStore.name }}"
             <br>

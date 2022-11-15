@@ -21,6 +21,7 @@ export interface SocketMessageMap {
         roomCode: string,
         users: Record<string, SocketUser>,
         owner: string,
+        opponent: string | null,
         map: string
     }
     RoomEvent: AnyRoomEvent

@@ -66,6 +66,7 @@ async fn handle(stream: WebSocket, state: Arc<AppState>, room_code: Option<Strin
         room_code: room_code.to_owned(),
         users: room.users,
         owner: room.owner_id,
+        opponent: room.opponent_id,
         map: room.map,
     }).await.unwrap();
 

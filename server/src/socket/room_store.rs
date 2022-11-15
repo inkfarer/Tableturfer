@@ -22,8 +22,65 @@ pub type RoomSender = broadcast::Sender<RoomEvent>;
 pub struct Room {
     pub sender: RoomSender,
     pub owner_id: Uuid,
+    pub opponent_id: Option<Uuid>,
     pub users: HashMap<Uuid, RoomUser>,
     pub map: GameMap,
+}
+
+impl Room {
+    fn add_user(&mut self, id: Uuid) {
+        let user = RoomUser {
+            joined_at: Utc::now(),
+        };
+
+        self.users.insert(id, user.clone());
+        self.sender.send(RoomEvent::UserJoin { id, user }).ok();
+
+        if self.opponent_id.is_none() {
+            self.set_opponent(Some(id));
+        }
+    }
+
+    fn remove_user(&mut self, id: Uuid) {
+        if self.users.remove(&id).is_some() {
+            self.sender.send(RoomEvent::UserLeave(id)).ok();
+
+            if !self.users.is_empty() {
+                if self.owner_id == id {
+                    if let Some((first_user_id, _first_user)) = self.users.clone().into_iter()
+                        .sorted_by(|(_id_a, user_a), (_id_b, user_b)| Ord::cmp(&user_a.joined_at, &user_b.joined_at))
+                        .next() {
+                        self.set_owner(first_user_id);
+                    }
+                } else if self.is_opponent(id) {
+                    let opponent_candidate = self.users.clone().into_iter()
+                        .filter(|(id, _user)| id != &self.owner_id)
+                        .sorted_by(|(_id_a, user_a), (_id_b, user_b)| Ord::cmp(&user_a.joined_at, &user_b.joined_at))
+                        .next();
+
+                    self.set_opponent(opponent_candidate.map_or(None, |(id, _user)| Some(id)));
+                }
+            }
+        }
+    }
+
+    fn is_opponent(&self, id: Uuid) -> bool {
+        self.opponent_id.is_some() && self.opponent_id.unwrap() == id
+    }
+
+    fn set_owner(&mut self, id: Uuid) {
+        if self.is_opponent(id) {
+            self.set_opponent(None);
+        }
+
+        self.owner_id = id;
+        self.sender.send(RoomEvent::OwnerChange(id)).ok();
+    }
+
+    fn set_opponent(&mut self, id: Option<Uuid>) {
+        self.opponent_id = id;
+        self.sender.send(RoomEvent::OpponentChange(id)).ok();
+    }
 }
 
 #[derive(Default)]
@@ -47,6 +104,7 @@ impl SocketRoomStore {
         let room = Room {
             sender: tx.clone(),
             owner_id: conn_id,
+            opponent_id: None,
             users: HashMap::from([(conn_id, user)]),
             map: DEFAULT_GAME_MAP,
         };
@@ -65,11 +123,7 @@ impl SocketRoomStore {
         log::debug!("Connection {conn_id} attempts to join room {room_code}");
         match self.rooms.get_mut(room_code) {
             Some(room) => {
-                let user = RoomUser {
-                    joined_at: Utc::now(),
-                };
-                room.users.insert(conn_id, user.clone());
-                room.sender.send(RoomEvent::UserJoin { id: conn_id, user }).ok();
+                room.add_user(conn_id);
 
                 Some(room.clone())
             }
@@ -80,26 +134,11 @@ impl SocketRoomStore {
     pub fn remove_user_from_room(&mut self, room_code: &str, conn_id: Uuid) {
         log::debug!("WS connection {conn_id} leaves room {room_code}");
         if let Some(room) = self.rooms.get_mut(room_code) {
-            if room.users.remove(&conn_id).is_some() {
-                room.sender.send(RoomEvent::UserLeave(conn_id)).ok();
+            room.remove_user(conn_id);
 
-                if room.users.is_empty() {
-                    log::debug!("Room {room_code} is now empty, clearing it for reuse");
-                    self.rooms.remove(room_code);
-                } else if room.owner_id == conn_id {
-                    match room.users.clone().into_iter()
-                        .sorted_by(|(_id_a, user_a), (_id_b, user_b)| Ord::cmp(&user_a.joined_at, &user_b.joined_at))
-                        .next() {
-                        Some((first_user_id, _first_user)) => {
-                            log::debug!("Room {room_code} is now owned by {first_user_id}");
-                            room.owner_id = first_user_id;
-                            room.sender.send(RoomEvent::OwnerChange(first_user_id)).ok();
-                        }
-                        None => {
-                            unreachable!("Room has users, but the first user to join could not be found?");
-                        }
-                    }
-                }
+            if room.users.is_empty() {
+                log::debug!("Room {room_code} is now empty, clearing it for reuse");
+                self.rooms.remove(room_code);
             }
         }
     }

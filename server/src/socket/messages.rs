@@ -27,6 +27,7 @@ pub enum SocketEvent {
         room_code: String,
         users: HashMap<Uuid, RoomUser>,
         owner: Uuid,
+        opponent: Option<Uuid>,
         map: GameMap,
     },
     Error(SocketError),
@@ -40,6 +41,7 @@ pub enum RoomEvent {
     UserLeave(Uuid),
     Broadcast { from: Uuid, message: String },
     OwnerChange(Uuid),
+    OpponentChange(Option<Uuid>),
 
     MapChange(GameMap),
 }

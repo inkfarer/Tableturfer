@@ -120,6 +120,8 @@ export class SocketService {
             case 'MapChange':
                 useGameBoardStore().setBoardByName(event.detail);
                 break;
+            case 'OpponentChange':
+                useRoomStore().opponent = event.detail;
         }
     }
 

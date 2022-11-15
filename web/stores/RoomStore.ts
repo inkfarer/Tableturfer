@@ -5,6 +5,7 @@ interface RoomStore {
     id: string | null
     roomCode: string | null
     owner: string | null
+    opponent: string | null
     users: Record<string, SocketUser>
 }
 
@@ -13,10 +14,12 @@ export const useRoomStore = defineStore('room', {
         id: null,
         roomCode: null,
         owner: null,
+        opponent: null,
         users: {}
     }),
     getters: {
-        isRoomOwner: state => state.id === state.owner
+        isRoomOwner: state => state.id === state.owner,
+        isOpponent: state => state.id === state.opponent
     },
     actions: {
         joinRoom(message: SocketMessageMap['Welcome']) {
@@ -24,6 +27,7 @@ export const useRoomStore = defineStore('room', {
             this.roomCode = message.roomCode;
             this.users = message.users;
             this.owner = message.owner;
+            this.opponent = message.opponent;
         },
         addUser(id: string, user: SocketUser) {
             this.users[id] = user;
@@ -32,9 +36,7 @@ export const useRoomStore = defineStore('room', {
             delete this.users[id];
         },
         leaveRoom() {
-            this.roomCode = null;
-            this.owner = null;
-            this.users = {};
+            this.$reset();
         }
     }
 });
