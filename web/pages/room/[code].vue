@@ -16,7 +16,8 @@
             </template>
             <br>
             the map is "{{ gameBoardStore.name }}"
-            <RoomMapSelector />
+            <br>
+            <RoomMapSelector v-if="roomStore.isRoomOwner" />
             <button @click="leaveRoom">cool! can i go back home now</button>
         </div>
     </div>
