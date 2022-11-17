@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { SocketMessageMap, SocketUser } from '~/types/socket/SocketEvent';
+import { PlayerTeam } from '~/types/PlayerTeam';
 
 interface RoomStore {
     id: string | null
@@ -19,7 +20,16 @@ export const useRoomStore = defineStore('room', {
     }),
     getters: {
         isRoomOwner: state => state.id === state.owner,
-        isOpponent: state => state.id === state.opponent
+        isOpponent: state => state.id === state.opponent,
+        playerTeam() {
+            if (this.isRoomOwner) {
+                return PlayerTeam.ALPHA;
+            } else if (this.isOpponent) {
+                return PlayerTeam.BRAVO;
+            } else {
+                return null;
+            }
+        }
     },
     actions: {
         joinRoom(message: SocketMessageMap['Welcome']) {

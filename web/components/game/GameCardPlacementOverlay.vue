@@ -1,7 +1,7 @@
 <template>
     <div
         class="card-placement-overlay"
-        :class="{ placeable, [`team_${gameStateStore.playerTeam}`]: true }"
+        :class="{ placeable, [`team_${roomStore.playerTeam}`]: true }"
         :style="{
             transform: `translate(${Constants.BOARD_SQUARE_SIZE_PX * activeCardStore.position.x}px, ${Constants.BOARD_SQUARE_SIZE_PX * activeCardStore.position.y}px)`
         }"
@@ -30,11 +30,12 @@ import Constants from '~/data/Constants';
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { computed } from '#imports';
-import { useGameStateStore } from '~/stores/GameStateStore';
+import { useRoomStore } from '~/stores/RoomStore';
 
 const activeCardStore = useActiveCardStore();
 const gameBoardStore = useGameBoardStore();
-const gameStateStore = useGameStateStore();
+const roomStore = useRoomStore();
+
 const placeable = computed(() => {
     if (activeCardStore.activeCard == null) {
         return false;

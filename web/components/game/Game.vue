@@ -8,7 +8,6 @@
         <div class="side-section">
             <GameDebugInfo />
             <GameCardActionKeys class="top-margin" />
-            <GameTeamSelector class="top-margin" />
         </div>
     </div>
 </template>

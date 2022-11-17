@@ -6,9 +6,9 @@ import { CardSize, useActiveCardStore } from '~/stores/ActiveCardStore';
 import { Position } from '~/types/Position';
 import { CardSquareType } from '~/types/CardSquareType';
 import cloneDeep from 'lodash/cloneDeep';
-import { useGameStateStore } from '~/stores/GameStateStore';
 import { PlayerTeam } from '~/types/PlayerTeam';
 import * as Maps from '~/data/maps';
+import { useRoomStore } from '~/stores/RoomStore';
 
 interface GameBoardStore {
     name: string
@@ -33,8 +33,8 @@ export const useGameBoardStore = defineStore('gameBoard', {
         },
         isPlaceable() {
             return (position: Position, cardSquares: CardSquareType[][] | null) => {
-                const gameStateStore = useGameStateStore();
-                if (cardSquares == null || this.board == null || gameStateStore.playerTeam == null) {
+                const roomStore = useRoomStore();
+                if (cardSquares == null || this.board == null || roomStore.playerTeam == null) {
                     return false;
                 }
 
@@ -51,7 +51,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
                     return false;
                 }
 
-                const acceptedNearbyBoardSquares = gameStateStore.playerTeam === PlayerTeam.ALPHA
+                const acceptedNearbyBoardSquares = roomStore.playerTeam === PlayerTeam.ALPHA
                     ? [MapSquareType.FILL_ALPHA, MapSquareType.SPECIAL_ALPHA]
                     : [MapSquareType.FILL_BRAVO, MapSquareType.SPECIAL_BRAVO];
 
@@ -104,7 +104,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
             this.name = map.name;
             this.board = map.squares;
 
-            const playerTeam = useGameStateStore().playerTeam;
+            const playerTeam = useRoomStore().playerTeam;
             if (playerTeam != null) {
                 const startSquarePosition = findIndex2D(map.squares, square =>
                     square === (playerTeam === PlayerTeam.ALPHA

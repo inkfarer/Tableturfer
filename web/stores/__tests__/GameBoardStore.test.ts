@@ -4,8 +4,8 @@ import { CardSquareType as CST } from '~/types/CardSquareType';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
 import { createTestingPinia } from '@pinia/testing';
-import { useGameStateStore } from '~/stores/GameStateStore';
 import { PlayerTeam } from '~/types/PlayerTeam';
+import { useRoomStore } from '~/stores/RoomStore';
 
 describe('GameBoardStore', () => {
     beforeEach(() => {
@@ -64,7 +64,8 @@ describe('GameBoardStore', () => {
             });
 
             it('returns false if the board has not been initialized', () => {
-                useGameStateStore().playerTeam = PlayerTeam.ALPHA;
+                // @ts-ignore
+                useRoomStore().playerTeam = PlayerTeam.ALPHA;
                 const store = useGameBoardStore();
                 store.board = null;
 
@@ -72,20 +73,23 @@ describe('GameBoardStore', () => {
             });
 
             it('returns false if no card is passed in', () => {
-                useGameStateStore().playerTeam = PlayerTeam.ALPHA;
+                // @ts-ignore
+                useRoomStore().playerTeam = PlayerTeam.ALPHA;
 
                 expect(useGameBoardStore().isPlaceable({ x: 2, y: 1 }, null)).toBe(false);
             });
 
             it('returns false if the player has no team set', () => {
-                useGameStateStore().playerTeam = null;
+                // @ts-ignore
+                useRoomStore().playerTeam = null;
 
                 expect(useGameBoardStore().isPlaceable({ x: 2, y: 1 }, card3)).toBe(false);
             });
 
             describe.each([PlayerTeam.ALPHA, PlayerTeam.BRAVO])('common for both teams [%s]', team => {
                 beforeEach(() => {
-                    useGameStateStore().playerTeam = team;
+                    // @ts-ignore
+                    useRoomStore().playerTeam = team;
                 });
 
                 it.each([
@@ -128,7 +132,8 @@ describe('GameBoardStore', () => {
 
             describe('alpha team', () => {
                 beforeEach(() => {
-                    useGameStateStore().playerTeam = PlayerTeam.ALPHA;
+                    // @ts-ignore
+                    useRoomStore().playerTeam = PlayerTeam.ALPHA;
                 });
 
                 it.each([
@@ -148,7 +153,8 @@ describe('GameBoardStore', () => {
 
             describe('bravo team', () => {
                 beforeEach(() => {
-                    useGameStateStore().playerTeam = PlayerTeam.BRAVO;
+                    // @ts-ignore
+                    useRoomStore().playerTeam = PlayerTeam.BRAVO;
                 });
 
                 it.each([
@@ -233,7 +239,8 @@ describe('GameBoardStore', () => {
                 [PlayerTeam.ALPHA, 2, 1],
                 [PlayerTeam.BRAVO, 3, 2]
             ])('updates the position of the active card to the location of the starting square for team %s', (team, expectedX, expectedY) => {
-                useGameStateStore().playerTeam = team;
+                // @ts-ignore
+                useRoomStore().playerTeam = team;
                 const activeCardStore = useActiveCardStore();
                 jest.spyOn(activeCardStore, 'setPositionFromCardOrigin');
                 const gameBoardStore = useGameBoardStore();
