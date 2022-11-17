@@ -101,8 +101,13 @@ export class SocketService {
             case 'RoomEvent':
                 this.handleRoomEvent(msg.detail);
                 break;
-            default:
-                console.log(`Unhandled event '${msg.event}'`, msg.detail);
+            case 'Error':
+                if (msg.detail.detail != null) {
+                    console.error(`Received error "${msg.detail.code}":`, msg.detail.detail);
+                } else {
+                    console.error(`Received error "${msg.detail.code}"`);
+                }
+                break;
         }
     }
 
