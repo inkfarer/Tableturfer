@@ -22,6 +22,12 @@
             the map is "{{ gameBoardStore.name }}"
             <br>
             <RoomMapSelector v-if="roomStore.isRoomOwner" />
+            <template v-if="roomStore.isRoomOwner">
+                <button @click="startGame">
+                    start the game!
+                </button>
+                <br>
+            </template>
             <button @click="leaveRoom">cool! can i go back home now</button>
         </div>
     </div>
@@ -67,10 +73,20 @@ onMounted(() => {
             isLoading.value = false;
         }
     }, { immediate: true });
+
+    watch(() => roomStore.started, async (newValue) => {
+        if (newValue) {
+            await navigateTo('/play');
+        }
+    }, { immediate: true });
 });
 
 async function leaveRoom() {
     $socket.disconnect();
     await navigateTo('/');
+}
+
+function startGame() {
+    $socket.send('StartGame');
 }
 </script>

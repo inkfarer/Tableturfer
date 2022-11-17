@@ -7,6 +7,7 @@ export interface RoomEventMap {
     OwnerChange: string
     MapChange: string
     OpponentChange: string | null
+    StartGame: never
 }
 
 export type AnyRoomEvent = AnyMessage<RoomEventMap>;

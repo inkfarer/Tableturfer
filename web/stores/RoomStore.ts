@@ -8,6 +8,7 @@ interface RoomStore {
     owner: string | null
     opponent: string | null
     users: Record<string, SocketUser>
+    started: boolean
 }
 
 export const useRoomStore = defineStore('room', {
@@ -16,7 +17,8 @@ export const useRoomStore = defineStore('room', {
         roomCode: null,
         owner: null,
         opponent: null,
-        users: {}
+        users: {},
+        started: false
     }),
     getters: {
         isRoomOwner: state => state.id === state.owner,
@@ -38,6 +40,7 @@ export const useRoomStore = defineStore('room', {
             this.users = message.users;
             this.owner = message.owner;
             this.opponent = message.opponent;
+            this.started = message.started;
         },
         addUser(id: string, user: SocketUser) {
             this.users[id] = user;

@@ -4,6 +4,9 @@ import { AnyMessage } from '~/types/socket/EventHelper';
 export interface SocketErrorMap {
     MessageParsingFailed: never
     UserNotRoomOwner: never
+    RoomNotFound: string
+    MissingOpponent: never
+    RoomStarted: never
 }
 
 export type AnySocketError = {
@@ -17,12 +20,13 @@ export interface SocketUser {
 export interface SocketMessageMap {
     Error: AnySocketError
     Welcome: {
-        id: string,
-        roomCode: string,
-        users: Record<string, SocketUser>,
-        owner: string,
-        opponent: string | null,
+        id: string
+        roomCode: string
+        users: Record<string, SocketUser>
+        owner: string
+        opponent: string | null
         map: string
+        started: boolean
     }
     RoomEvent: AnyRoomEvent
 }

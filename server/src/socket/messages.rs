@@ -9,6 +9,9 @@ use crate::socket::room_store::RoomUser;
 pub enum SocketError {
     MessageParsingFailed,
     UserNotRoomOwner,
+    RoomNotFound(String),
+    MissingOpponent,
+    RoomStarted,
 }
 
 #[derive(Deserialize)]
@@ -16,6 +19,7 @@ pub enum SocketError {
 pub enum SocketRequest {
     Broadcast(String),
     SetMap(GameMap),
+    StartGame,
 }
 
 #[derive(Serialize, Debug)]
@@ -29,6 +33,7 @@ pub enum SocketEvent {
         owner: Uuid,
         opponent: Option<Uuid>,
         map: GameMap,
+        started: bool,
     },
     Error(SocketError),
     RoomEvent(RoomEvent),
@@ -42,6 +47,6 @@ pub enum RoomEvent {
     Broadcast { from: Uuid, message: String },
     OwnerChange(Uuid),
     OpponentChange(Option<Uuid>),
-
     MapChange(GameMap),
+    StartGame,
 }

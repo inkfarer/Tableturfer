@@ -33,6 +33,7 @@ pub struct Room {
     pub opponent_id: Option<Uuid>,
     pub users: HashMap<Uuid, RoomUser>,
     pub map: GameMap,
+    pub game_started: bool,
 }
 
 impl Room {
@@ -43,6 +44,7 @@ impl Room {
             opponent_id: None,
             users: HashMap::from([(owner_id, RoomUser::new())]),
             map: DEFAULT_GAME_MAP,
+            game_started: false,
         }
     }
 
@@ -61,8 +63,9 @@ impl Room {
         if self.users.remove(&id).is_some() {
             self.sender.send(RoomEvent::UserLeave(id)).ok();
 
-            if !self.users.is_empty() {
+            if !self.users.is_empty() && !self.game_started {
                 if self.owner_id == id {
+                    // todo: find a new opponent if the first user was previously the opponent
                     if let Some((first_user_id, _first_user)) = self.users.clone().into_iter()
                         .sorted_by(|(_id_a, user_a), (_id_b, user_b)| Ord::cmp(&user_a.joined_at, &user_b.joined_at))
                         .next() {
@@ -85,22 +88,41 @@ impl Room {
     }
 
     fn set_owner(&mut self, id: Uuid) {
-        if self.is_opponent(id) {
-            self.set_opponent(None);
-        }
+        if !self.game_started {
+            if self.is_opponent(id) {
+                self.set_opponent(None);
+            }
 
-        self.owner_id = id;
-        self.sender.send(RoomEvent::OwnerChange(id)).ok();
+            self.owner_id = id;
+            self.sender.send(RoomEvent::OwnerChange(id)).ok();
+        }
     }
 
     fn set_opponent(&mut self, id: Option<Uuid>) {
-        self.opponent_id = id;
-        self.sender.send(RoomEvent::OpponentChange(id)).ok();
+        if !self.game_started {
+            self.opponent_id = id;
+            self.sender.send(RoomEvent::OpponentChange(id)).ok();
+        }
     }
 
-    fn set_map(&mut self, map: GameMap) {
-        self.map = map.clone();
-        self.sender.send(RoomEvent::MapChange(map)).ok();
+    fn set_map(&mut self, map: GameMap) -> Result<(), SocketError> {
+        if !self.game_started {
+            self.map = map.clone();
+            self.sender.send(RoomEvent::MapChange(map)).ok();
+            Ok(())
+        } else {
+            Err(SocketError::RoomStarted)
+        }
+    }
+
+    fn start_game(&mut self) -> Result<(), SocketError> {
+        if self.opponent_id.is_none() {
+            Err(SocketError::MissingOpponent)
+        } else {
+            self.game_started = true;
+            self.sender.send(RoomEvent::StartGame).ok();
+            Ok(())
+        }
     }
 }
 
@@ -148,30 +170,34 @@ impl SocketRoomStore {
             room.remove_user(conn_id);
 
             if room.users.is_empty() {
+                // todo: currently, if the room owner is alone in a room and refreshes their browser, they'll receive a "room not found" error
                 log::debug!("Room {room_code} is now empty, clearing it for reuse");
                 self.rooms.remove(room_code);
             }
         }
     }
 
-    fn is_room_owner(&self, room_code: &str, conn_id: Uuid) -> bool {
-        if let Some(room) = self.rooms.get(room_code) {
-            room.owner_id == conn_id
-        } else {
-            false
-        }
+    pub fn set_map(&mut self, conn_id: Uuid, room_code: &str, map: GameMap) -> Result<(), SocketError> {
+        self.do_if_room_owner(room_code, conn_id, |room| room.set_map(map))
     }
 
-    pub fn set_map(&mut self, conn_id: Uuid, room_code: &str, map: GameMap) -> Result<(), SocketError> {
-        if !self.is_room_owner(room_code, conn_id) {
-            return Err(SocketError::UserNotRoomOwner);
-        }
+    pub fn start_room(&mut self, conn_id: Uuid, room_code: &str) -> Result<(), SocketError> {
+        self.do_if_room_owner(room_code, conn_id, |room| room.start_game())
+    }
 
+    fn do_if_room_owner<F>(&mut self, room_code: &str, conn_id: Uuid, action: F) -> Result<(), SocketError>
+        where
+            F: FnOnce(&mut Room) -> Result<(), SocketError>
+    {
         if let Some(room) = self.rooms.get_mut(room_code) {
-            room.set_map(map);
+            if room.owner_id == conn_id {
+                action(room)
+            } else {
+                Err(SocketError::UserNotRoomOwner)
+            }
+        } else {
+            Err(SocketError::RoomNotFound(room_code.to_owned()))
         }
-
-        Ok(())
     }
 }
 

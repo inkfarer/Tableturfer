@@ -127,10 +127,14 @@ export class SocketService {
                 break;
             case 'OpponentChange':
                 useRoomStore().opponent = event.detail;
+                break;
+            case 'StartGame':
+                useRoomStore().started = true;
+                break;
         }
     }
 
-    send<K extends keyof SocketActionMap, D = SocketActionMap[K]>(action: K, args: D): void {
+    send<K extends keyof SocketActionMap, D = SocketActionMap[K]>(action: K, args?: D): void {
         if (this.ws == null || this.ws.readyState !== WebSocket.OPEN) {
             throw new Error('Websocket is not open, cannot send message');
         }

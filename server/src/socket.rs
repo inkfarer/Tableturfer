@@ -68,6 +68,7 @@ async fn handle(stream: WebSocket, state: Arc<AppState>, room_code: Option<Strin
         owner: room.owner_id,
         opponent: room.opponent_id,
         map: room.map,
+        started: room.game_started,
     }).await.unwrap();
 
     let room_tx_from_client = room_tx.clone();
@@ -88,6 +89,16 @@ async fn handle(stream: WebSocket, state: Arc<AppState>, room_code: Option<Strin
                                 let action_result = {
                                     let mut room_store = state_from_client.room_store.write().unwrap();
                                     room_store.set_map(id, &room_code_from_client, map)
+                                };
+
+                                if let Err(err) = action_result {
+                                    socket_tx_from_client.send(SocketEvent::Error(err)).await.unwrap();
+                                }
+                            }
+                            SocketRequest::StartGame => {
+                                let action_result = {
+                                    let mut room_store = state_from_client.room_store.write().unwrap();
+                                    room_store.start_room(id, &room_code_from_client)
                                 };
 
                                 if let Err(err) = action_result {
