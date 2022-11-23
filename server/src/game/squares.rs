@@ -9,7 +9,6 @@ pub enum MapSquareType {
     SpecialBravo,
     FillAlpha,
     FillBravo,
-    OutOfBounds,
 }
 
 pub type MST = MapSquareType;
