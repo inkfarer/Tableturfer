@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use crate::game::map::GameMap;
+use crate::game::state::{GameError, PlayerMove};
+use crate::game::team::PlayerTeam;
 use crate::socket::room_store::RoomUser;
 
 #[derive(Serialize, Debug)]
@@ -9,9 +11,12 @@ use crate::socket::room_store::RoomUser;
 pub enum SocketError {
     MessageParsingFailed,
     UserNotRoomOwner,
+    UserNotPlaying,
     RoomNotFound(String),
     MissingOpponent,
     RoomStarted,
+    RoomNotStarted,
+    GameError(GameError),
 }
 
 #[derive(Deserialize)]
@@ -20,6 +25,7 @@ pub enum SocketRequest {
     Broadcast(String),
     SetMap(GameMap),
     StartGame,
+    ProposeMove(PlayerMove),
 }
 
 #[derive(Serialize, Debug)]
@@ -49,4 +55,6 @@ pub enum RoomEvent {
     OpponentChange(Option<Uuid>),
     MapChange(GameMap),
     StartGame,
+    MoveReceived(PlayerTeam),
+    MovesApplied(HashMap<PlayerTeam, PlayerMove>)
 }

@@ -1,4 +1,4 @@
 export enum PlayerTeam {
-    ALPHA,
-    BRAVO
+    ALPHA = 'Alpha',
+    BRAVO = 'Bravo'
 }

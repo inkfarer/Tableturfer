@@ -1,3 +1,4 @@
+use std::borrow::BorrowMut;
 use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use tokio::sync::broadcast;
@@ -6,6 +7,8 @@ use uuid::Uuid;
 use itertools::Itertools;
 use serde::Serialize;
 use crate::game::map::{DEFAULT_GAME_MAP, GameMap};
+use crate::game::state::{GameError, GameState, PlayerMove};
+use crate::game::team::PlayerTeam;
 use crate::socket::messages::{RoomEvent, SocketError};
 
 const ROOM_CODE_SIZE: usize = 4;
@@ -34,6 +37,7 @@ pub struct Room {
     pub users: HashMap<Uuid, RoomUser>,
     pub map: GameMap,
     pub game_started: bool,
+    pub game_state: Option<GameState>,
 }
 
 impl Room {
@@ -45,6 +49,7 @@ impl Room {
             users: HashMap::from([(owner_id, RoomUser::new())]),
             map: DEFAULT_GAME_MAP,
             game_started: false,
+            game_state: None,
         }
     }
 
@@ -119,9 +124,37 @@ impl Room {
         if self.opponent_id.is_none() {
             Err(SocketError::MissingOpponent)
         } else {
+            // todo: maybe game_state being present can indicate the game has started?
             self.game_started = true;
+            self.game_state = Some(GameState::new(self.map.to_squares()));
             self.sender.send(RoomEvent::StartGame).ok();
             Ok(())
+        }
+    }
+
+    fn propose_move(&mut self, team: PlayerTeam, player_move: PlayerMove) -> Result<(), SocketError> {
+        let sender = self.sender.clone();
+        self.do_with_game(|game| {
+            let result = game.propose_move(team.clone(), player_move);
+            if result.is_ok() {
+                sender.send(RoomEvent::MoveReceived(team)).ok();
+                if game.all_players_have_moved() {
+                    let moves = game.apply_moves();
+                    sender.send(RoomEvent::MovesApplied(moves)).ok();
+                }
+            }
+            result
+        })
+    }
+
+    fn do_with_game<F>(&mut self, action: F) -> Result<(), SocketError>
+        where
+            F: FnOnce(&mut GameState) -> Result<(), GameError>,
+    {
+        if let Some(game) = self.game_state.borrow_mut() {
+            action(game).map_err(|e| SocketError::GameError(e))
+        } else {
+            Err(SocketError::RoomNotStarted)
         }
     }
 }
@@ -185,15 +218,40 @@ impl SocketRoomStore {
         self.do_if_room_owner(room_code, conn_id, |room| room.start_game())
     }
 
+    pub fn propose_move(&mut self, conn_id: Uuid, room_code: &str, player_move: PlayerMove) -> Result<(), SocketError> {
+        self.do_if_player(room_code, conn_id, |room, team| room.propose_move(team, player_move))
+    }
+
     fn do_if_room_owner<F>(&mut self, room_code: &str, conn_id: Uuid, action: F) -> Result<(), SocketError>
         where
-            F: FnOnce(&mut Room) -> Result<(), SocketError>
+            F: FnOnce(&mut Room) -> Result<(), SocketError>,
     {
         if let Some(room) = self.rooms.get_mut(room_code) {
             if room.owner_id == conn_id {
                 action(room)
             } else {
                 Err(SocketError::UserNotRoomOwner)
+            }
+        } else {
+            Err(SocketError::RoomNotFound(room_code.to_owned()))
+        }
+    }
+
+    fn do_if_player<F>(&mut self, room_code: &str, conn_id: Uuid, action: F) -> Result<(), SocketError>
+        where
+            F: FnOnce(&mut Room, PlayerTeam) -> Result<(), SocketError>,
+    {
+        if let Some(room) = self.rooms.get_mut(room_code) {
+            if room.owner_id == conn_id || room.is_opponent(conn_id) {
+                let team = if room.owner_id == conn_id {
+                    PlayerTeam::Alpha
+                } else {
+                    PlayerTeam::Bravo
+                };
+
+                action(room, team)
+            } else {
+                Err(SocketError::UserNotPlaying)
             }
         } else {
             Err(SocketError::RoomNotFound(room_code.to_owned()))

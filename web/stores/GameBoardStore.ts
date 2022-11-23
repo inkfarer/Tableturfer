@@ -32,9 +32,8 @@ export const useGameBoardStore = defineStore('gameBoard', {
             };
         },
         isPlaceable() {
-            return (position: Position, cardSquares: CardSquareType[][] | null) => {
-                const roomStore = useRoomStore();
-                if (cardSquares == null || this.board == null || roomStore.playerTeam == null) {
+            return (position: Position, cardSquares: CardSquareType[][] | null, team: PlayerTeam | null) => {
+                if (cardSquares == null || this.board == null || team == null) {
                     return false;
                 }
 
@@ -51,7 +50,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
                     return false;
                 }
 
-                const acceptedNearbyBoardSquares = roomStore.playerTeam === PlayerTeam.ALPHA
+                const acceptedNearbyBoardSquares = team === PlayerTeam.ALPHA
                     ? [MapSquareType.FILL_ALPHA, MapSquareType.SPECIAL_ALPHA]
                     : [MapSquareType.FILL_BRAVO, MapSquareType.SPECIAL_BRAVO];
 
@@ -117,7 +116,8 @@ export const useGameBoardStore = defineStore('gameBoard', {
             }
         },
         placeCard(position: Position, squares: CardSquareType[][], team: PlayerTeam) {
-            if (!this.isPlaceable(position, squares)) {
+            // todo: assuming placement is validated by the server before we reach here, this might be unnecessary
+            if (!this.isPlaceable(position, squares, team)) {
                 console.warn('Skipping card placement as card is in an invalid position');
                 return;
             }

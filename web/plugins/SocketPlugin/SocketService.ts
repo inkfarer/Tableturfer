@@ -3,6 +3,10 @@ import { useRoomStore } from '~/stores/RoomStore';
 import { AnyRoomEvent } from '~/types/socket/RoomEvent';
 import { SocketActionMap } from '~/types/socket/SocketAction';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
+import * as Cards from '~/data/cards';
+import { Card } from '~/types/Card';
+import { normalizeCardSquares, rotateClockwiseBy } from '~/helpers/ArrayHelper';
+import { PlayerTeam } from '~/types/PlayerTeam';
 
 export class SocketService {
     private ws: WebSocket | null;
@@ -130,6 +134,21 @@ export class SocketService {
                 break;
             case 'StartGame':
                 useRoomStore().started = true;
+                break;
+            case 'MoveReceived':
+                // todo
+                console.log(`Player of team ${event.detail} has made a move`);
+                break;
+            case 'MovesApplied':
+                for (const [team, move] of Object.entries(event.detail)) {
+                    const squares = (Cards as Record<string, Card>)[move.cardName]?.squares;
+                    if (squares == null) {
+                        throw new Error(`Unknown card "${move.cardName}"`);
+                    }
+                    const normalizedSquares = rotateClockwiseBy(normalizeCardSquares(squares), move.rotation);
+
+                    useGameBoardStore().placeCard(move.position, normalizedSquares, team as PlayerTeam);
+                }
                 break;
         }
     }

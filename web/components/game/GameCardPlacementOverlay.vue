@@ -41,7 +41,7 @@ const placeable = computed(() => {
         return false;
     }
 
-    return gameBoardStore.isPlaceable(activeCardStore.position, activeCardStore.activeCard.squares);
+    return gameBoardStore.isPlaceable(activeCardStore.position, activeCardStore.activeCard.squares, roomStore.playerTeam);
 });
 
 </script>
@@ -54,7 +54,7 @@ const placeable = computed(() => {
         filter: grayscale(100%);
     }
 
-    &.team_0 .square {
+    &.team_Alpha .square {
         &.card-square_1 {
             background-color: rgba(236, 144, 9, 0.5);
         }
@@ -64,7 +64,7 @@ const placeable = computed(() => {
         }
     }
 
-    &.team_1 .square {
+    &.team_Bravo .square {
         &.card-square_1 {
             background-color: rgba(75, 80, 243, 0.2);
         }

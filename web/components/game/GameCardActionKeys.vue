@@ -30,20 +30,24 @@
 
 <script lang="ts" setup>
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
-import { useGameBoardStore } from '~/stores/GameBoardStore';
-import { ref } from '#imports';
+import { ref, useNuxtApp } from '#imports';
 import { useRoomStore } from '~/stores/RoomStore';
 
 const activeCardStore = useActiveCardStore();
-const gameBoardStore = useGameBoardStore();
 const roomStore = useRoomStore();
+const { $socket } = useNuxtApp();
 
 function placeCard() {
     if (activeCardStore.activeCard == null || roomStore.playerTeam == null) {
         return;
     }
 
-    gameBoardStore.placeCard(activeCardStore.position, activeCardStore.activeCard.squares, roomStore.playerTeam);
+    $socket.send('ProposeMove', {
+        cardName: activeCardStore.activeCard.name,
+        position: activeCardStore.position,
+        rotation: activeCardStore.rotation
+    });
+    activeCardStore.setActiveCard(null);
 }
 
 const overrideX = ref(0);

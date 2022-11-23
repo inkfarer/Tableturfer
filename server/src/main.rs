@@ -9,6 +9,8 @@ use crate::socket::room_store::SocketRoomStore;
 mod app_config;
 mod socket;
 mod game;
+mod matrix;
+mod position;
 
 pub struct AppState {
     room_store: RwLock<SocketRoomStore>,

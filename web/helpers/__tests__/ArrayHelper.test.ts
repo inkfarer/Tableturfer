@@ -1,4 +1,12 @@
-import { every2D, findIndex2D, rotateClockwise, rotateCounterclockwise, slice2D, some2D } from '~/helpers/ArrayHelper';
+import {
+    every2D,
+    findIndex2D,
+    rotateClockwise,
+    rotateClockwiseBy,
+    rotateCounterclockwise,
+    slice2D,
+    some2D
+} from '~/helpers/ArrayHelper';
 
 describe('ArrayHelper', () => {
     describe('slice2D', () => {
@@ -244,6 +252,50 @@ describe('ArrayHelper', () => {
                 [4, 1],
                 [5, 2],
                 [6, 3]
+            ]);
+        });
+    });
+
+    describe('rotateClockwiseBy', () => {
+        it('rotates the input array by 0 degrees', () => {
+            expect(rotateClockwiseBy([
+                [1, 2, 3],
+                [4, 5, 6]
+            ], 0)).toEqual([
+                [1, 2, 3],
+                [4, 5, 6]
+            ]);
+        });
+
+        it('rotates the input array by 90 degrees', () => {
+            expect(rotateClockwiseBy([
+                [1, 2, 3],
+                [4, 5, 6]
+            ], 90)).toEqual([
+                [4, 1],
+                [5, 2],
+                [6, 3]
+            ]);
+        });
+
+        it('rotates the input array by 180 degrees', () => {
+            expect(rotateClockwiseBy([
+                [1, 2, 3],
+                [4, 5, 6]
+            ], 180)).toEqual([
+                [6, 5, 4],
+                [3, 2, 1]
+            ]);
+        });
+
+        it('rotates the input array by 270 degrees', () => {
+            expect(rotateClockwiseBy([
+                [1, 2, 3],
+                [4, 5, 6]
+            ], 270)).toEqual([
+                [3, 6],
+                [2, 5],
+                [1, 4]
             ]);
         });
     });

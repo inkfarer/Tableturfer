@@ -1,9 +1,25 @@
 import { Position } from '~/types/Position';
+import { CardSquareType } from '~/types/CardSquareType';
+import Constants from '~/data/Constants';
+import chunk from 'lodash/chunk';
 
 // todo: consider creating a "Matrix" class containing all these functions
 
 export function rotateClockwise<T>(array: Array<Array<T>>): Array<Array<T>> {
     return array[0].map((val, index) => array.map(row => row[index]).reverse());
+}
+
+export function rotateClockwiseBy<T>(array: Array<Array<T>>, degrees: 0 | 90 | 180 | 270): Array<Array<T>> {
+    switch (degrees) {
+        case 0:
+            return array;
+        case 90:
+            return rotateClockwise(array);
+        case 180:
+            return array.map(row => row.reverse()).reverse();
+        case 270:
+            return array[0].map((val, index) => array.map(row => row[index])).reverse();
+    }
 }
 
 export function rotateCounterclockwise<T>(array: Array<Array<T>>): Array<Array<T>> {
@@ -81,4 +97,23 @@ export function every2D<T>(array: Array<Array<T>>, predicate: (item: T, position
     }
 
     return true;
+}
+
+// Removes empty rows and columns
+// todo: this should be done when we import cards into a database
+export function normalizeCardSquares(squares: CardSquareType[]): CardSquareType[][] {
+    const emptyColumns = new Set();
+    for (let i = 0; i < Constants.CARD_GRID_SIZE; i++) {
+        if (squares
+            .filter((square, squareIndex) => squareIndex % Constants.CARD_GRID_SIZE === i)
+            .every(square => square === CardSquareType.EMPTY)
+        ) {
+            emptyColumns.add(i);
+        }
+    }
+
+    return chunk(squares, Constants.CARD_GRID_SIZE)
+        .filter(row => row.some(square => square !== CardSquareType.EMPTY))
+        .map(row => row.filter((square, index) => !emptyColumns.has(index)))
+        .reverse();
 }

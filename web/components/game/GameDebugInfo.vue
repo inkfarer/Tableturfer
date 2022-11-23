@@ -4,6 +4,9 @@
             active card: {{ activeCardStore.activeCard?.name ?? 'None' }}
         </div>
         <div>
+            squares: {{ activeCardStore.activeCard?.squares ?? 'None' }}
+        </div>
+        <div>
             pos: {{ activeCardStore.position }}
         </div>
         <div>

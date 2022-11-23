@@ -1,11 +1,9 @@
 import { Card } from '~/types/Card';
 import { Position } from '~/types/Position';
 import { ActiveCard } from '~/types/ActiveCard';
-import Constants from '~/data/Constants';
 import { CardSquareType } from '~/types/CardSquareType';
-import chunk from 'lodash/chunk';
 import { CardRotation } from '~/types/CardRotation';
-import { rotateClockwise, rotateCounterclockwise } from '~/helpers/ArrayHelper';
+import { normalizeCardSquares, rotateClockwise, rotateCounterclockwise } from '~/helpers/ArrayHelper';
 import { defineStore } from 'pinia';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { MapSquareType } from '~/types/MapSquareType';
@@ -80,24 +78,7 @@ export const useActiveCardStore = defineStore('activeCard', {
                 updatePosition([]);
                 this.activeCard = card;
             } else {
-                const squares = card.squares;
-                const emptyColumns = new Set();
-                for (let i = 0; i < Constants.CARD_GRID_SIZE; i++) {
-                    if (squares
-                        .filter((square, squareIndex) => squareIndex % Constants.CARD_GRID_SIZE === i)
-                        .every(square => square === CardSquareType.EMPTY)
-                    ) {
-                        emptyColumns.add(i);
-                    }
-                }
-
-                // Removes empty rows and columns
-                // todo: this should be done when we import cards into a database
-                const normalizedSquares = chunk(squares, Constants.CARD_GRID_SIZE)
-                    .filter(row => row.some(square => square !== CardSquareType.EMPTY))
-                    .map(row => row.filter((square, index) => !emptyColumns.has(index)))
-                    .reverse();
-
+                const normalizedSquares = normalizeCardSquares(card.squares);
                 const origin = updatePosition(normalizedSquares);
 
                 this.activeCard = {

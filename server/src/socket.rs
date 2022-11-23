@@ -105,6 +105,16 @@ async fn handle(stream: WebSocket, state: Arc<AppState>, room_code: Option<Strin
                                     socket_tx_from_client.send(SocketEvent::Error(err)).await.unwrap();
                                 }
                             }
+                            SocketRequest::ProposeMove(player_move) => {
+                                let action_result = {
+                                    let mut room_store = state_from_client.room_store.write().unwrap();
+                                    room_store.propose_move(id, &room_code_from_client, player_move)
+                                };
+
+                                if let Err(err) = action_result {
+                                    socket_tx_from_client.send(SocketEvent::Error(err)).await.unwrap();
+                                }
+                            }
                         }
                     }
                     Err(_) => {
