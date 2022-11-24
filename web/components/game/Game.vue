@@ -2,6 +2,7 @@
     <div class="game-stage-layout">
         <div class="side-section">
             <GameCardSelector class="top-margin" />
+            <button @click="leaveRoom">LEAVE</button>
         </div>
         <GameBoard class="game-board" />
         <div class="side-section">
@@ -10,6 +11,18 @@
         </div>
     </div>
 </template>
+
+<script lang="ts" setup>
+import { navigateTo } from '#app';
+import { useNuxtApp } from '#imports';
+
+const { $socket } = useNuxtApp();
+
+async function leaveRoom() {
+    $socket.disconnect();
+    await navigateTo('/');
+}
+</script>
 
 <style lang="scss">
 .game-stage-layout {
