@@ -3,7 +3,7 @@ use std::str::FromStr;
 use std::sync::{Arc, RwLock};
 use axum::Router;
 use axum::routing::get;
-use crate::socket::socket_handler;
+use crate::socket::SocketHandler;
 use crate::socket::room_store::SocketRoomStore;
 
 mod app_config;
@@ -37,7 +37,7 @@ async fn main() {
 
     let router = Router::with_state(app_state)
         .route("/", get(hello))
-        .route("/ws", get(socket_handler));
+        .route("/ws", get(SocketHandler::request_handler));
 
     let addr = SocketAddr::from((IpAddr::from_str(&config.app.host).unwrap(), config.app.port));
     log::info!("Starting server at {addr}");
