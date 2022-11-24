@@ -88,7 +88,7 @@ impl Room {
         }
     }
 
-    fn is_opponent(&self, id: Uuid) -> bool {
+    pub fn is_opponent(&self, id: Uuid) -> bool {
         self.opponent_id.is_some() && self.opponent_id.unwrap() == id
     }
 
@@ -110,7 +110,7 @@ impl Room {
         }
     }
 
-    fn set_map(&mut self, map: GameMap) -> Result<(), SocketError> {
+    pub fn set_map(&mut self, map: GameMap) -> Result<(), SocketError> {
         if !self.game_started {
             self.map = map.clone();
             self.sender.send(RoomEvent::MapChange(map)).ok();
@@ -120,7 +120,7 @@ impl Room {
         }
     }
 
-    fn start_game(&mut self) -> Result<(), SocketError> {
+    pub fn start_game(&mut self) -> Result<(), SocketError> {
         if self.opponent_id.is_none() {
             Err(SocketError::MissingOpponent)
         } else {
@@ -132,7 +132,7 @@ impl Room {
         }
     }
 
-    fn propose_move(&mut self, team: PlayerTeam, player_move: PlayerMove) -> Result<(), SocketError> {
+    pub fn propose_move(&mut self, team: PlayerTeam, player_move: PlayerMove) -> Result<(), SocketError> {
         let sender = self.sender.clone();
         self.do_with_game(|game| {
             let result = game.propose_move(team.clone(), player_move);
@@ -210,52 +210,8 @@ impl SocketRoomStore {
         }
     }
 
-    pub fn set_map(&mut self, conn_id: Uuid, room_code: &str, map: GameMap) -> Result<(), SocketError> {
-        self.do_if_room_owner(room_code, conn_id, |room| room.set_map(map))
-    }
-
-    pub fn start_room(&mut self, conn_id: Uuid, room_code: &str) -> Result<(), SocketError> {
-        self.do_if_room_owner(room_code, conn_id, |room| room.start_game())
-    }
-
-    pub fn propose_move(&mut self, conn_id: Uuid, room_code: &str, player_move: PlayerMove) -> Result<(), SocketError> {
-        self.do_if_player(room_code, conn_id, |room, team| room.propose_move(team, player_move))
-    }
-
-    fn do_if_room_owner<F>(&mut self, room_code: &str, conn_id: Uuid, action: F) -> Result<(), SocketError>
-        where
-            F: FnOnce(&mut Room) -> Result<(), SocketError>,
-    {
-        if let Some(room) = self.rooms.get_mut(room_code) {
-            if room.owner_id == conn_id {
-                action(room)
-            } else {
-                Err(SocketError::UserNotRoomOwner)
-            }
-        } else {
-            Err(SocketError::RoomNotFound(room_code.to_owned()))
-        }
-    }
-
-    fn do_if_player<F>(&mut self, room_code: &str, conn_id: Uuid, action: F) -> Result<(), SocketError>
-        where
-            F: FnOnce(&mut Room, PlayerTeam) -> Result<(), SocketError>,
-    {
-        if let Some(room) = self.rooms.get_mut(room_code) {
-            if room.owner_id == conn_id || room.is_opponent(conn_id) {
-                let team = if room.owner_id == conn_id {
-                    PlayerTeam::Alpha
-                } else {
-                    PlayerTeam::Bravo
-                };
-
-                action(room, team)
-            } else {
-                Err(SocketError::UserNotPlaying)
-            }
-        } else {
-            Err(SocketError::RoomNotFound(room_code.to_owned()))
-        }
+    pub fn get_mut(&mut self, room_code: &str) -> Option<&mut Room> {
+        self.rooms.get_mut(room_code)
     }
 }
 
