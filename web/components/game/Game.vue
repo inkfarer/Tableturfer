@@ -1,7 +1,6 @@
 <template>
     <div class="game-stage-layout">
         <div class="side-section">
-            <GameMapSelector />
             <GameCardSelector class="top-margin" />
         </div>
         <GameBoard class="game-board" />
