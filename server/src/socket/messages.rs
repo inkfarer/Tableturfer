@@ -21,8 +21,7 @@ pub enum SocketError {
 
 #[derive(Deserialize)]
 #[serde(tag = "action", content = "args")]
-pub enum SocketRequest {
-    Broadcast(String),
+pub enum SocketAction {
     SetMap(GameMap),
     StartGame,
     ProposeMove(PlayerMove),
@@ -50,7 +49,6 @@ pub enum SocketEvent {
 pub enum RoomEvent {
     UserJoin { id: Uuid, user: RoomUser },
     UserLeave(Uuid),
-    Broadcast { from: Uuid, message: String },
     OwnerChange(Uuid),
     OpponentChange(Option<Uuid>),
     MapChange(GameMap),

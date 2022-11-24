@@ -1,6 +1,7 @@
 pub mod room_store;
 pub mod messages;
 mod close_code;
+mod action_handler;
 
 use std::sync::{Arc};
 use axum::extract::{Query, State, WebSocketUpgrade};
@@ -12,8 +13,8 @@ use serde::Deserialize;
 use tokio::sync::{broadcast, mpsc};
 use tokio::task::JoinHandle;
 use uuid::Uuid;
-use messages::SocketRequest;
 use crate::AppState;
+use crate::socket::action_handler::SocketActionHandler;
 use crate::socket::close_code::SocketCloseCode;
 use crate::socket::messages::{RoomEvent, SocketError, SocketEvent};
 use crate::socket::room_store::Room;
@@ -113,56 +114,21 @@ impl SocketHandler {
     }
 
     fn listen_to_client(&self, mut receiver: SplitStream<WebSocket>) -> JoinHandle<()> {
-        let id = self.id.clone();
-        let room_tx = self.room_channel.clone();
-        let socket_tx = self.socket_channel.clone();
-        let state = self.state.clone();
-        let room_code = self.room_code.clone();
+        let action_handler = SocketActionHandler::new(
+            self.id.clone(),
+            self.socket_channel.clone(),
+            self.state.clone(),
+            self.room_code.clone());
 
         tokio::spawn(async move {
             // Ignore non-text messages, keep listening until we get an error
             while let Some(Ok(message)) = receiver.next().await {
                 if let Message::Text(text) = message {
                     match serde_json::from_str(&text) {
-                        Ok(action) => {
-                            match action {
-                                SocketRequest::Broadcast(msg) => {
-                                    room_tx.send(RoomEvent::Broadcast { from: id, message: msg.to_owned() }).unwrap();
-                                }
-                                SocketRequest::SetMap(map) => {
-                                    let action_result = {
-                                        let mut room_store = state.room_store.write().unwrap();
-                                        room_store.set_map(id, &room_code, map)
-                                    };
-
-                                    if let Err(err) = action_result {
-                                        socket_tx.send(SocketEvent::Error(err)).await.unwrap();
-                                    }
-                                }
-                                SocketRequest::StartGame => {
-                                    let action_result = {
-                                        let mut room_store = state.room_store.write().unwrap();
-                                        room_store.start_room(id, &room_code)
-                                    };
-
-                                    if let Err(err) = action_result {
-                                        socket_tx.send(SocketEvent::Error(err)).await.unwrap();
-                                    }
-                                }
-                                SocketRequest::ProposeMove(player_move) => {
-                                    let action_result = {
-                                        let mut room_store = state.room_store.write().unwrap();
-                                        room_store.propose_move(id, &room_code, player_move)
-                                    };
-
-                                    if let Err(err) = action_result {
-                                        socket_tx.send(SocketEvent::Error(err)).await.unwrap();
-                                    }
-                                }
-                            }
-                        }
+                        Ok(action) => action_handler.handle_action(action).await,
                         Err(_) => {
-                            socket_tx.send(SocketEvent::Error(SocketError::MessageParsingFailed)).await.unwrap();
+                            log::debug!("Failed to parse message from client");
+                            action_handler.send_error(SocketError::MessageParsingFailed).await.unwrap();
                         }
                     }
                 }
