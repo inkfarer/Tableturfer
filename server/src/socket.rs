@@ -105,11 +105,11 @@ impl SocketHandler {
         SocketEvent::Welcome {
             id: self.id,
             room_code: self.room_code.clone(),
+            started: room.game_started(),
             users: room.users,
             owner: room.owner_id,
             opponent: room.opponent_id,
             map: room.map,
-            started: room.game_started,
         }
     }
 

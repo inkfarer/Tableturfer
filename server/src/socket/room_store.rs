@@ -36,7 +36,6 @@ pub struct Room {
     pub opponent_id: Option<Uuid>,
     pub users: HashMap<Uuid, RoomUser>,
     pub map: GameMap,
-    pub game_started: bool,
     pub game_state: Option<GameState>,
 }
 
@@ -48,7 +47,6 @@ impl Room {
             opponent_id: None,
             users: HashMap::from([(owner_id, RoomUser::new())]),
             map: DEFAULT_GAME_MAP,
-            game_started: false,
             game_state: None,
         }
     }
@@ -68,7 +66,7 @@ impl Room {
         if self.users.remove(&id).is_some() {
             self.sender.send(RoomEvent::UserLeave(id)).ok();
 
-            if !self.users.is_empty() && !self.game_started {
+            if !self.users.is_empty() && !self.game_started() {
                 if self.owner_id == id {
                     // todo: find a new opponent if the first user was previously the opponent
                     if let Some((first_user_id, _first_user)) = self.users.clone().into_iter()
@@ -93,7 +91,7 @@ impl Room {
     }
 
     fn set_owner(&mut self, id: Uuid) {
-        if !self.game_started {
+        if !self.game_started() {
             if self.is_opponent(id) {
                 self.set_opponent(None);
             }
@@ -104,14 +102,14 @@ impl Room {
     }
 
     fn set_opponent(&mut self, id: Option<Uuid>) {
-        if !self.game_started {
+        if !self.game_started() {
             self.opponent_id = id;
             self.sender.send(RoomEvent::OpponentChange(id)).ok();
         }
     }
 
     pub fn set_map(&mut self, map: GameMap) -> Result<(), SocketError> {
-        if !self.game_started {
+        if !self.game_started() {
             self.map = map.clone();
             self.sender.send(RoomEvent::MapChange(map)).ok();
             Ok(())
@@ -124,8 +122,6 @@ impl Room {
         if self.opponent_id.is_none() {
             Err(SocketError::MissingOpponent)
         } else {
-            // todo: maybe game_state being present can indicate the game has started?
-            self.game_started = true;
             self.game_state = Some(GameState::new(self.map.to_squares()));
             self.sender.send(RoomEvent::StartGame).ok();
             Ok(())
@@ -156,6 +152,10 @@ impl Room {
         } else {
             Err(SocketError::RoomNotStarted)
         }
+    }
+
+    pub fn game_started(&self) -> bool {
+        self.game_state.is_some()
     }
 }
 
