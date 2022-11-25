@@ -9,13 +9,25 @@ pub enum CardSquareType {
 
 pub type CST = CardSquareType;
 
-impl CardSquareType {
+pub trait CardSquareProvider {
+    fn get(&self, card_name: &str) -> Option<Matrix<CardSquareType>>;
+}
+
+pub struct CardSquareProviderImpl {}
+
+impl CardSquareProviderImpl {
+    pub fn new() -> Self {
+        CardSquareProviderImpl {}
+    }
+}
+
+impl CardSquareProvider for CardSquareProviderImpl {
     // todo: doesn't belong here
-    pub fn from_card_name(card_name: &str) -> Option<Matrix<Self>> {
+    fn get(&self, card_name: &str) -> Option<Matrix<CardSquareType>> {
         match card_name {
             "BombCurling" => Some(Matrix::new(vec!(
-                vec!(CST::Empty, CST::Special, CardSquareType::Empty),
-                vec!(CST::Fill, CST::Fill, CardSquareType::Fill),
+                vec!(CST::Empty, CST::Special, CST::Empty),
+                vec!(CST::Fill, CST::Fill, CST::Fill),
             ))),
             "BombQuick" => Some(Matrix::new(vec!(
                 vec!(CST::Special),

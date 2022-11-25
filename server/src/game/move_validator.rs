@@ -1,4 +1,4 @@
-use crate::game::card::CardSquareType;
+use crate::game::card::{CardSquareProvider, CardSquareType};
 use crate::game::squares::MapSquareType;
 use crate::game::state::{GameError, PlayerMove};
 use crate::game::team::PlayerTeam;
@@ -7,8 +7,8 @@ use crate::matrix::{Matrix, Slice};
 pub struct MoveValidator {}
 
 impl MoveValidator {
-    pub fn validate(board: &Matrix<MapSquareType>, team: &PlayerTeam, player_move: &PlayerMove) -> Result<(), GameError> {
-        match CardSquareType::from_card_name(&player_move.card_name) {
+    pub fn validate(board: &Matrix<MapSquareType>, team: &PlayerTeam, player_move: &PlayerMove, card_square_provider: impl CardSquareProvider) -> Result<(), GameError> {
+        match card_square_provider.get(&player_move.card_name) {
             Some(squares) => {
                 let squares = squares.rotate_clockwise(player_move.rotation.into());
 
@@ -63,11 +63,7 @@ impl MoveValidator {
                 }
 
                 let square_pos = (pos_from.0 + position.0, pos_from.1 + position.1);
-
-                let nearby_squares = board.slice((square_pos.0.checked_sub(1).unwrap_or(0), square_pos.1.checked_sub(1).unwrap_or(0))..=(square_pos.0 + 1, square_pos.1 + 1));
-                println!("at {:?}: {:?}", square_pos, nearby_squares);
-
-                nearby_squares
+                board.slice((square_pos.0.checked_sub(1).unwrap_or(0), square_pos.1.checked_sub(1).unwrap_or(0))..=(square_pos.0 + 1, square_pos.1 + 1))
                     .clone().into_iter()
                     .any(|(map_square, _)| accepted_nearby_squares.contains(&map_square))
             })
@@ -76,109 +72,175 @@ impl MoveValidator {
 
 #[cfg(test)]
 mod tests {
+    use parameterized::parameterized as pm;
+    use crate::game::card::CST;
+    use crate::game::squares::MST;
     use crate::game::state::CardRotation;
-    use crate::matrix::MatrixSize;
     use crate::position::INamedPosition;
     use super::*;
 
-    fn player_move(position: INamedPosition, rotation: CardRotation) -> PlayerMove {
+    struct TestCardSquareProvider {}
+
+    impl CardSquareProvider for TestCardSquareProvider {
+        fn get(&self, card_name: &str) -> Option<Matrix<CardSquareType>> {
+            match card_name {
+                "card_1" => Some(Matrix::new(vec!(
+                    vec!(CST::Empty, CST::Fill),
+                    vec!(CST::Empty, CST::Special),
+                    vec!(CST::Fill, CST::Fill),
+                ))),
+                "card_2" => Some(Matrix::new(vec!(
+                    vec!(CST::Fill, CST::Fill),
+                    vec!(CST::Fill, CST::Special),
+                ))),
+                "card_3" => Some(Matrix::new(vec!(
+                    vec!(CST::Fill),
+                ))),
+                _ => None,
+            }
+        }
+    }
+
+    fn player_move(card_name: &str, position: INamedPosition, rotation: CardRotation) -> PlayerMove {
         PlayerMove {
-            card_name: "cool_card".to_string(),
+            card_name: card_name.to_owned(),
             position,
             rotation
         }
     }
 
     fn board() -> Matrix<MapSquareType> {
-        Matrix::filled_with(MatrixSize::new(10, 10), MapSquareType::Empty)
-    }
-
-    fn card() -> Matrix<CardSquareType> {
-        Matrix::filled_with(MatrixSize::new(3, 2), CardSquareType::Fill)
+        Matrix::new(vec!(
+            vec!(MST::Disabled, MST::Disabled, MST::Disabled, MST::Disabled, MST::Disabled, MST::Disabled, MST::Disabled),
+            vec!(MST::Disabled, MST::SpecialAlpha, MST::Empty, MST::Empty, MST::Empty, MST::FillAlpha, MST::Disabled),
+            vec!(MST::Disabled, MST::Empty, MST::Empty, MST::Empty, MST::Empty, MST::Empty, MST::Disabled),
+            vec!(MST::Disabled, MST::Empty, MST::Empty, MST::Empty, MST::Empty, MST::Empty, MST::Disabled),
+            vec!(MST::Disabled, MST::Empty, MST::Empty, MST::Empty, MST::Empty, MST::Empty, MST::Disabled),
+            vec!(MST::Disabled, MST::SpecialBravo, MST::Empty, MST::Empty, MST::Empty, MST::FillBravo, MST::Disabled),
+            vec!(MST::Disabled, MST::Disabled, MST::Disabled, MST::Disabled, MST::Disabled, MST::Disabled, MST::Disabled),
+        ))
     }
 
     #[test]
-    fn card_within_bounds_negative_x() {
-        assert!(!MoveValidator::card_within_bounds(
-            &player_move(INamedPosition::new(-1, 0), CardRotation::Deg0),
+    fn validate_card_not_found() {
+        let result = MoveValidator::validate(
             &board(),
-            &card()))
+            &PlayerTeam::Alpha,
+            &player_move("card_999", INamedPosition::new(0, 0), CardRotation::Deg0),
+            TestCardSquareProvider {});
+
+        assert_eq!(result, Err(GameError::CardNotFound));
     }
 
-    #[test]
-    fn card_within_bounds_negative_y() {
-        assert!(!MoveValidator::card_within_bounds(
-            &player_move(INamedPosition::new(0, -1), CardRotation::Deg0),
-            &board(),
-            &card()))
+    macro_rules! common_team_tests {
+        {$team:expr} => {
+            #[pm(
+                x = { 2, 2, -2, 12 },
+                y = { -3, 15, 2, 2 }
+            )]
+            fn validate_out_of_bounds(x: isize, y: isize) {
+                assert_eq!(MoveValidator::validate(
+                    &board(),
+                    $team,
+                    &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
+                    TestCardSquareProvider {}), Err(GameError::InvalidPosition));
+            }
+
+            #[pm(
+                x = { 1, 0, 5, 2 },
+                y = { 0, 2, 2, 4 }
+            )]
+            fn validate_card_on_disabled_tiles(x: isize, y: isize) {
+                assert_eq!(MoveValidator::validate(
+                    &board(),
+                    $team,
+                    &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
+                    TestCardSquareProvider {}), Err(GameError::InvalidPosition));
+            }
+
+            #[pm(
+                x = { 1, 5, 3, 3, 3 },
+                y = { 3, 3, 1, 5, 3 }
+            )]
+            fn validate_no_adjacent_tiles(x: isize, y: isize) {
+                assert_eq!(MoveValidator::validate(
+                    &board(),
+                    $team,
+                    &player_move("card_3", INamedPosition::new(x, y), CardRotation::Deg0),
+                    TestCardSquareProvider {}), Err(GameError::InvalidPosition));
+            }
+
+            #[pm(
+                x = { 1, 4, 1, 4 },
+                y = { 1, 1, 4, 4 }
+            )]
+            fn validate_covers_existing_tiles(x: isize, y: isize) {
+                assert_eq!(MoveValidator::validate(
+                    &board(),
+                    $team,
+                    &player_move("card_2", INamedPosition::new(x, y), CardRotation::Deg0),
+                    TestCardSquareProvider {}), Err(GameError::InvalidPosition));
+            }
+        }
     }
 
-    #[test]
-    fn card_within_bounds_y_too_high() {
-        assert!(!MoveValidator::card_within_bounds(
-            &player_move(INamedPosition::new(0, 8), CardRotation::Deg0),
-            &board(),
-            &card()))
+    mod team_alpha {
+        use super::*;
+
+        common_team_tests!(&PlayerTeam::Alpha);
+
+        #[pm(
+            x = { 2, 3 },
+            y = { 3, 3 }
+        )]
+        fn validate_next_to_opposing_team_squares(x: isize, y: isize) {
+            assert_eq!(MoveValidator::validate(
+                &board(),
+                &PlayerTeam::Alpha,
+                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
+                TestCardSquareProvider {}), Err(GameError::InvalidPosition));
+        }
+
+        #[pm(
+            x = { 1, 3 },
+            y = { 1, 1 }
+        )]
+        fn validate_next_to_own_team_squares(x: isize, y: isize) {
+            assert_eq!(MoveValidator::validate(
+                &board(),
+                &PlayerTeam::Alpha,
+                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
+                TestCardSquareProvider {}), Ok(()));
+        }
     }
 
-    #[test]
-    fn card_within_bounds_max_y() {
-        assert!(MoveValidator::card_within_bounds(
-            &player_move(INamedPosition::new(0, 7), CardRotation::Deg0),
-            &board(),
-            &card()))
-    }
+    mod team_bravo {
+        use super::*;
 
-    #[test]
-    fn card_within_bounds_x_too_high() {
-        assert!(!MoveValidator::card_within_bounds(
-            &player_move(INamedPosition::new(9, 0), CardRotation::Deg0),
-            &board(),
-            &card()))
-    }
+        common_team_tests!(&PlayerTeam::Bravo);
 
-    #[test]
-    fn card_within_bounds_max_x() {
-        assert!(MoveValidator::card_within_bounds(
-            &player_move(INamedPosition::new(8, 0), CardRotation::Deg0),
-            &board(),
-            &card()))
-    }
+        #[pm(
+        x = { 1, 3 },
+        y = { 1, 1 }
+        )]
+        fn validate_next_to_opposing_team_squares(x: isize, y: isize) {
+            assert_eq!(MoveValidator::validate(
+                &board(),
+                &PlayerTeam::Bravo,
+                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
+                TestCardSquareProvider {}), Err(GameError::InvalidPosition));
+        }
 
-    #[test]
-    fn card_on_blank_spaces_true() {
-        let mut board = board();
-        board[(1, 2)] = MapSquareType::FillAlpha;
-        let mut card = card();
-        card[(1, 2)] = CardSquareType::Empty;
-
-        assert!(MoveValidator::card_on_blank_spaces(
-            &player_move(INamedPosition::new(0, 0), CardRotation::Deg0),
-            &board,
-            &card))
-    }
-
-    #[test]
-    fn card_on_blank_spaces_false() {
-        let mut board = board();
-        board[(1, 2)] = MapSquareType::FillAlpha;
-
-        assert!(!MoveValidator::card_on_blank_spaces(
-            &player_move(INamedPosition::new(0, 0), CardRotation::Deg0),
-            &board,
-            &card()))
-    }
-
-    #[test]
-    fn map_squares_near_card() {
-        let mut board = board();
-        board[(2, 2)] = MapSquareType::FillAlpha;
-        board[(0, 0)] = MapSquareType::FillBravo;
-
-        assert!(MoveValidator::map_squares_near_card(
-            &player_move(INamedPosition::new(0, 0), CardRotation::Deg0),
-            &board,
-            &card(),
-            &PlayerTeam::Alpha))
+        #[pm(
+        x = { 2, 3 },
+        y = { 3, 3 }
+        )]
+        fn validate_next_to_own_team_squares(x: isize, y: isize) {
+            assert_eq!(MoveValidator::validate(
+                &board(),
+                &PlayerTeam::Bravo,
+                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
+                TestCardSquareProvider {}), Ok(()));
+        }
     }
 }

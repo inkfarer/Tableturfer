@@ -2,14 +2,14 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use strum::EnumCount;
-use crate::game::card::CardSquareType;
+use crate::game::card::{CardSquareProvider, CardSquareProviderImpl};
 use crate::game::move_validator::MoveValidator;
 use crate::game::squares::MapSquareType;
 use crate::game::team::PlayerTeam;
 use crate::matrix::{Matrix, MatrixRotation};
 use crate::position::INamedPosition;
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Eq, PartialEq)]
 #[serde(tag = "code", content = "detail")]
 pub enum GameError {
     InvalidPosition,
@@ -59,7 +59,7 @@ impl GameState {
     }
 
     pub fn propose_move(&mut self, team: PlayerTeam, player_move: PlayerMove) -> Result<(), GameError> {
-        match MoveValidator::validate(&self.board, &team, &player_move) {
+        match MoveValidator::validate(&self.board, &team, &player_move, CardSquareProviderImpl::new()) {
             Ok(()) => {
                 self.next_moves.insert(team, player_move);
                 Ok(())
@@ -75,9 +75,10 @@ impl GameState {
     pub fn apply_moves(&mut self) -> HashMap<PlayerTeam, PlayerMove> {
         let moves = std::mem::take(&mut self.next_moves);
         let mut new_board = self.board.clone();
+        let square_provider = CardSquareProviderImpl::new();
 
         for (team, player_move) in moves.iter() {
-            let card_squares: Matrix<MapSquareType> = CardSquareType::from_card_name(&player_move.card_name).unwrap()
+            let card_squares: Matrix<MapSquareType> = square_provider.get(&player_move.card_name).unwrap()
                 .rotate_clockwise(player_move.rotation.into())
                 .into_iter()
                 .map(|(item, position)| (MapSquareType::from_card_square(item, team), position))
