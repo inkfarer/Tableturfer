@@ -64,7 +64,7 @@ impl MoveValidator {
 
                 let square_pos = (pos_from.0 + position.0, pos_from.1 + position.1);
                 board.slice((square_pos.0.checked_sub(1).unwrap_or(0), square_pos.1.checked_sub(1).unwrap_or(0))..=(square_pos.0 + 1, square_pos.1 + 1))
-                    .clone().into_iter()
+                    .into_iter()
                     .any(|(map_square, _)| accepted_nearby_squares.contains(&map_square))
             })
     }
