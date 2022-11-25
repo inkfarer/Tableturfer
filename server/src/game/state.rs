@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use strum::EnumCount;
 use crate::game::card::CardSquareType;
+use crate::game::move_validator::MoveValidator;
 use crate::game::squares::MapSquareType;
 use crate::game::team::PlayerTeam;
 use crate::matrix::{Matrix, MatrixRotation};
@@ -12,11 +13,12 @@ use crate::position::INamedPosition;
 #[serde(tag = "code", content = "detail")]
 pub enum GameError {
     InvalidPosition,
+    CardNotFound,
 }
 
 #[derive(Clone, Copy, Debug, Serialize_repr, Deserialize_repr)]
 #[repr(u16)]
-enum CardRotation {
+pub enum CardRotation {
     Deg0 = 0,
     Deg90 = 90,
     Deg180 = 180,
@@ -37,9 +39,9 @@ impl From<CardRotation> for MatrixRotation {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PlayerMove {
-    card_name: String,
-    position: INamedPosition,
-    rotation: CardRotation,
+    pub card_name: String,
+    pub position: INamedPosition,
+    pub rotation: CardRotation,
 }
 
 #[derive(Clone)]
@@ -57,12 +59,12 @@ impl GameState {
     }
 
     pub fn propose_move(&mut self, team: PlayerTeam, player_move: PlayerMove) -> Result<(), GameError> {
-        // todo: at this point, besides the usual validations, assert that the card is a real card
-        if player_move.position.x < 0 || player_move.position.y < 0 {
-            Err(GameError::InvalidPosition)
-        } else {
-            self.next_moves.insert(team, player_move);
-            Ok(())
+        match MoveValidator::validate(&self.board, &team, &player_move) {
+            Ok(()) => {
+                self.next_moves.insert(team, player_move);
+                Ok(())
+            },
+            Err(err) => Err(err),
         }
     }
 
