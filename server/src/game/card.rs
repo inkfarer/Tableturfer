@@ -1,6 +1,6 @@
 use crate::matrix::Matrix;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub enum CardSquareType {
     Empty,
     Fill,

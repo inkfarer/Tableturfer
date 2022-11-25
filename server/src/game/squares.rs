@@ -1,7 +1,7 @@
 use crate::game::card::CardSquareType;
 use crate::game::team::PlayerTeam;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum MapSquareType {
     Disabled,
     Empty,

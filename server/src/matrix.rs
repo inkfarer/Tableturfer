@@ -1,6 +1,8 @@
 pub mod iter;
 pub mod index;
 
+pub use self::index::Slice;
+
 #[derive(Debug, Eq, PartialEq)]
 pub struct MatrixSize {
     pub h: usize,

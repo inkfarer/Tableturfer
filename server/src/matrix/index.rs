@@ -2,12 +2,12 @@ use std::ops::{Index, IndexMut, Range, RangeInclusive};
 use crate::matrix::Matrix;
 use crate::position::{UNamedPosition, UPosition};
 
-trait Slice<Idx> {
-    fn slice(self, index: Idx) -> Self;
+pub trait Slice<Idx> {
+    fn slice(&self, index: Idx) -> Self;
 }
 
 impl<T: Clone + Copy> Slice<Range<UPosition>> for Matrix<T> {
-    fn slice(self, index: Range<UPosition>) -> Self {
+    fn slice(&self, index: Range<UPosition>) -> Self {
         Matrix::new(self.rows[index.start.1..index.end.1].iter()
             .map(|row| row[index.start.0..index.end.0].to_vec())
             .collect())
@@ -15,7 +15,7 @@ impl<T: Clone + Copy> Slice<Range<UPosition>> for Matrix<T> {
 }
 
 impl<T: Clone + Copy> Slice<RangeInclusive<UPosition>> for Matrix<T> {
-    fn slice(self, index: RangeInclusive<UPosition>) -> Self {
+    fn slice(&self, index: RangeInclusive<UPosition>) -> Self {
         Matrix::new(self.rows[index.start().1..=index.end().1].iter()
             .map(|row| row[index.start().0..=index.end().0].to_vec())
             .collect())
