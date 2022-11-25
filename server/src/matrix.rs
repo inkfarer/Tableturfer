@@ -49,6 +49,10 @@ impl<T: Clone + Copy> Matrix<T> {
         }
     }
 
+    pub fn filled_with(size: MatrixSize, element: T) -> Self {
+        Self::new((0..size.h).into_iter().map(|_| (0..size.w).into_iter().map(|_| element).collect()).collect())
+    }
+
     pub fn empty() -> Self {
         Self {
             rows: Vec::new()
@@ -166,5 +170,16 @@ mod tests {
         let size = matrix.size();
 
         assert_eq!(size, MatrixSize::new(0, 0));
+    }
+
+    #[test]
+    fn matrix_filled_with() {
+        let result = Matrix::filled_with(MatrixSize::new(3, 2), 9);
+
+        assert_eq!(result, Matrix::new(vec!(
+            vec!(9, 9),
+            vec!(9, 9),
+            vec!(9, 9),
+        )));
     }
 }
