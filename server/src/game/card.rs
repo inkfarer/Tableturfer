@@ -1,6 +1,6 @@
 use crate::matrix::Matrix;
 
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq, Debug)]
 pub enum CardSquareType {
     Empty,
     Fill,
@@ -47,9 +47,16 @@ impl CardSquareProvider for CardSquareProviderImpl {
 
 #[cfg(test)]
 pub mod tests {
+    use std::sync::Arc;
     use super::*;
 
     pub struct TestCardSquareProvider {}
+
+    impl TestCardSquareProvider {
+        pub fn new() -> Arc<Self> {
+            Arc::new(Self {})
+        }
+    }
 
     impl CardSquareProvider for TestCardSquareProvider {
         fn get(&self, card_name: &str) -> Option<Matrix<CardSquareType>> {
@@ -65,6 +72,10 @@ pub mod tests {
                 ))),
                 "card_3" => Some(Matrix::new(vec!(
                     vec!(CST::Fill),
+                ))),
+                "card_4" => Some(Matrix::new(vec!(
+                    vec!(CST::Fill, CST::Fill),
+                    vec!(CST::Special, CST::Empty),
                 ))),
                 _ => None,
             }

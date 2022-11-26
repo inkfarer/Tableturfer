@@ -9,6 +9,7 @@ pub enum MapSquareType {
     SpecialBravo,
     FillAlpha,
     FillBravo,
+    Neutral,
 }
 
 pub type MST = MapSquareType;
@@ -26,5 +27,13 @@ impl MapSquareType {
                 PlayerTeam::Bravo => Self::SpecialBravo,
             },
         }
+    }
+
+    pub fn is_fill(&self) -> bool {
+        self == &Self::FillAlpha || self == &Self::FillBravo
+    }
+
+    pub fn is_special(&self) -> bool {
+        self == &Self::SpecialAlpha || self == &Self::SpecialBravo
     }
 }

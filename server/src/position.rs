@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 pub type IPosition = (isize, isize);
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
 pub struct INamedPosition {
     pub x: isize,
     pub y: isize,

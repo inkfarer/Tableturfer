@@ -1,12 +1,15 @@
 use std::borrow::BorrowMut;
 use std::collections::HashMap;
+use std::sync::Arc;
 use chrono::{DateTime, Utc};
 use tokio::sync::broadcast;
 use rand::distributions::{Alphanumeric, DistString};
 use uuid::Uuid;
 use itertools::Itertools;
 use serde::Serialize;
+use crate::game::card::CardSquareProviderImpl;
 use crate::game::map::{DEFAULT_GAME_MAP, GameMap};
+use crate::game::move_validator::MoveValidatorImpl;
 use crate::game::state::{GameError, GameState, PlayerMove};
 use crate::game::team::PlayerTeam;
 use crate::socket::messages::{RoomEvent, SocketError};
@@ -122,7 +125,12 @@ impl Room {
         if self.opponent_id.is_none() {
             Err(SocketError::MissingOpponent)
         } else {
-            self.game_state = Some(GameState::new(self.map.to_squares()));
+            let csp = Arc::new(CardSquareProviderImpl::new());
+            self.game_state = Some(GameState::new(
+                self.map.to_squares(),
+                csp.clone(),
+                Arc::new(MoveValidatorImpl::new(csp))
+            ));
             self.sender.send(RoomEvent::StartGame).ok();
             Ok(())
         }

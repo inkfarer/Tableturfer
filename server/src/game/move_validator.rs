@@ -1,14 +1,31 @@
+use std::sync::Arc;
 use crate::game::card::{CardSquareProvider, CardSquareType};
 use crate::game::squares::MapSquareType;
 use crate::game::state::{GameError, PlayerMove};
 use crate::game::team::PlayerTeam;
 use crate::matrix::{Matrix, Slice};
 
-pub struct MoveValidator {}
+pub trait MoveValidator {
+    fn validate(
+        &self,
+        board: &Matrix<MapSquareType>,
+        team: &PlayerTeam,
+        player_move: &PlayerMove,
+    ) -> Result<(), GameError>;
+}
 
-impl MoveValidator {
-    pub fn validate(board: &Matrix<MapSquareType>, team: &PlayerTeam, player_move: &PlayerMove, card_square_provider: impl CardSquareProvider) -> Result<(), GameError> {
-        match card_square_provider.get(&player_move.card_name) {
+pub struct MoveValidatorImpl {
+    card_square_provider: Arc<dyn CardSquareProvider + Send + Sync>,
+}
+
+impl MoveValidator for MoveValidatorImpl {
+    fn validate(
+        &self,
+        board: &Matrix<MapSquareType>,
+        team: &PlayerTeam,
+        player_move: &PlayerMove
+    ) -> Result<(), GameError> {
+        match self.card_square_provider.get(&player_move.card_name) {
             Some(squares) => {
                 let squares = squares.rotate_clockwise(player_move.rotation.into());
 
@@ -25,6 +42,14 @@ impl MoveValidator {
             }
         }
     }
+}
+
+impl MoveValidatorImpl {
+    pub fn new(card_square_provider: Arc<dyn CardSquareProvider + Send + Sync>) -> Self {
+        Self {
+            card_square_provider,
+        }
+    }
 
     fn card_within_bounds(player_move: &PlayerMove, board: &Matrix<MapSquareType>, card_squares: &Matrix<CardSquareType>) -> bool {
         if player_move.position.x < 0 || player_move.position.y < 0 {
@@ -35,7 +60,7 @@ impl MoveValidator {
         let card_size = card_squares.size();
 
         (player_move.position.x + card_size.w as isize) <= board_size.w as isize
-        && (player_move.position.y + card_size.h as isize) <= board_size.h as isize
+            && (player_move.position.y + card_size.h as isize) <= board_size.h as isize
     }
 
     fn card_on_blank_spaces(player_move: &PlayerMove, board: &Matrix<MapSquareType>, card_squares: &Matrix<CardSquareType>) -> bool {
@@ -71,13 +96,26 @@ impl MoveValidator {
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
+    use std::borrow::Borrow;
     use parameterized::parameterized as pm;
     use crate::game::squares::MST;
     use crate::game::state::CardRotation;
     use crate::game::card::tests::TestCardSquareProvider;
     use crate::position::INamedPosition;
     use super::*;
+
+    pub struct TestMoveValidator {}
+
+    impl MoveValidator for TestMoveValidator {
+        fn validate(&self, board: &Matrix<MapSquareType>, team: &PlayerTeam, player_move: &PlayerMove) -> Result<(), GameError> {
+            match player_move.card_name.borrow() {
+                "invalid_pos_card" => Err(GameError::InvalidPosition),
+                "not_found_card" => Err(GameError::CardNotFound),
+                _ => Ok(()),
+            }
+        }
+    }
 
     fn player_move(card_name: &str, position: INamedPosition, rotation: CardRotation) -> PlayerMove {
         PlayerMove {
@@ -101,11 +139,10 @@ mod tests {
 
     #[test]
     fn validate_card_not_found() {
-        let result = MoveValidator::validate(
+        let result = MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
             &board(),
             &PlayerTeam::Alpha,
-            &player_move("card_999", INamedPosition::new(0, 0), CardRotation::Deg0),
-            TestCardSquareProvider {});
+            &player_move("card_999", INamedPosition::new(0, 0), CardRotation::Deg0));
 
         assert_eq!(result, Err(GameError::CardNotFound));
     }
@@ -117,11 +154,10 @@ mod tests {
                 y = { -3, 15, 2, 2 }
             )]
             fn validate_out_of_bounds(x: isize, y: isize) {
-                assert_eq!(MoveValidator::validate(
+                assert_eq!(MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
                     &board(),
                     $team,
-                    &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
-                    TestCardSquareProvider {}), Err(GameError::InvalidPosition));
+                    &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0)), Err(GameError::InvalidPosition));
             }
 
             #[pm(
@@ -129,11 +165,10 @@ mod tests {
                 y = { 0, 2, 2, 4 }
             )]
             fn validate_card_on_disabled_tiles(x: isize, y: isize) {
-                assert_eq!(MoveValidator::validate(
+                assert_eq!(MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
                     &board(),
                     $team,
-                    &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
-                    TestCardSquareProvider {}), Err(GameError::InvalidPosition));
+                    &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0)), Err(GameError::InvalidPosition));
             }
 
             #[pm(
@@ -141,11 +176,10 @@ mod tests {
                 y = { 3, 3, 1, 5, 3 }
             )]
             fn validate_no_adjacent_tiles(x: isize, y: isize) {
-                assert_eq!(MoveValidator::validate(
+                assert_eq!(MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
                     &board(),
                     $team,
-                    &player_move("card_3", INamedPosition::new(x, y), CardRotation::Deg0),
-                    TestCardSquareProvider {}), Err(GameError::InvalidPosition));
+                    &player_move("card_3", INamedPosition::new(x, y), CardRotation::Deg0)), Err(GameError::InvalidPosition));
             }
 
             #[pm(
@@ -153,11 +187,10 @@ mod tests {
                 y = { 1, 1, 4, 4 }
             )]
             fn validate_covers_existing_tiles(x: isize, y: isize) {
-                assert_eq!(MoveValidator::validate(
+                assert_eq!(MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
                     &board(),
                     $team,
-                    &player_move("card_2", INamedPosition::new(x, y), CardRotation::Deg0),
-                    TestCardSquareProvider {}), Err(GameError::InvalidPosition));
+                    &player_move("card_2", INamedPosition::new(x, y), CardRotation::Deg0)), Err(GameError::InvalidPosition));
             }
         }
     }
@@ -172,11 +205,10 @@ mod tests {
             y = { 3, 3 }
         )]
         fn validate_next_to_opposing_team_squares(x: isize, y: isize) {
-            assert_eq!(MoveValidator::validate(
+            assert_eq!(MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
                 &board(),
                 &PlayerTeam::Alpha,
-                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
-                TestCardSquareProvider {}), Err(GameError::InvalidPosition));
+                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0)), Err(GameError::InvalidPosition));
         }
 
         #[pm(
@@ -184,11 +216,10 @@ mod tests {
             y = { 1, 1 }
         )]
         fn validate_next_to_own_team_squares(x: isize, y: isize) {
-            assert_eq!(MoveValidator::validate(
+            assert_eq!(MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
                 &board(),
                 &PlayerTeam::Alpha,
-                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
-                TestCardSquareProvider {}), Ok(()));
+                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0)), Ok(()));
         }
     }
 
@@ -202,11 +233,10 @@ mod tests {
         y = { 1, 1 }
         )]
         fn validate_next_to_opposing_team_squares(x: isize, y: isize) {
-            assert_eq!(MoveValidator::validate(
+            assert_eq!(MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
                 &board(),
                 &PlayerTeam::Bravo,
-                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
-                TestCardSquareProvider {}), Err(GameError::InvalidPosition));
+                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0)), Err(GameError::InvalidPosition));
         }
 
         #[pm(
@@ -214,11 +244,10 @@ mod tests {
         y = { 3, 3 }
         )]
         fn validate_next_to_own_team_squares(x: isize, y: isize) {
-            assert_eq!(MoveValidator::validate(
+            assert_eq!(MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
                 &board(),
                 &PlayerTeam::Bravo,
-                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
-                TestCardSquareProvider {}), Ok(()));
+                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0)), Ok(()));
         }
     }
 }
