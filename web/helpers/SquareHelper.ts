@@ -14,9 +14,9 @@ export function mapSquareFromCardSquare(square: CardSquareType, team: PlayerTeam
             }
         case CardSquareType.SPECIAL:
             if (team === PlayerTeam.ALPHA) {
-                return MapSquareType.SPECIAL_ALPHA;
+                return MapSquareType.INACTIVE_SPECIAL_ALPHA;
             } else {
-                return MapSquareType.SPECIAL_BRAVO;
+                return MapSquareType.INACTIVE_SPECIAL_BRAVO;
             }
     }
 }
@@ -25,6 +25,14 @@ export function isFillSquare(square: MapSquareType): boolean {
     return square === MapSquareType.FILL_ALPHA || square === MapSquareType.FILL_BRAVO;
 }
 
+export function isInactiveSpecialSquare(square: MapSquareType): boolean {
+    return square === MapSquareType.INACTIVE_SPECIAL_ALPHA
+        || square === MapSquareType.INACTIVE_SPECIAL_BRAVO;
+}
+
 export function isSpecialSquare(square: MapSquareType): boolean {
-    return square === MapSquareType.SPECIAL_ALPHA || square === MapSquareType.SPECIAL_BRAVO;
+    return square === MapSquareType.INACTIVE_SPECIAL_ALPHA
+        || square === MapSquareType.INACTIVE_SPECIAL_BRAVO
+        || square === MapSquareType.ACTIVE_SPECIAL_ALPHA
+        || square === MapSquareType.ACTIVE_SPECIAL_BRAVO;
 }

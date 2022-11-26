@@ -7,6 +7,9 @@ import { createTestingPinia } from '@pinia/testing';
 import { PlayerTeam } from '~/types/PlayerTeam';
 import { useRoomStore } from '~/stores/RoomStore';
 import { fill2D } from '~/helpers/ArrayHelper';
+import { activateSpecialSquares } from '~/helpers/BoardHelper';
+
+jest.mock('~/helpers/BoardHelper');
 
 describe('GameBoardStore', () => {
     beforeEach(() => {
@@ -29,7 +32,7 @@ describe('GameBoardStore', () => {
                 store.board = [
                     [MST.EMPTY, MST.FILL_BRAVO],
                     [MST.FILL_ALPHA, MST.FILL_BRAVO],
-                    [MST.SPECIAL_BRAVO, MST.FILL_BRAVO]
+                    [MST.INACTIVE_SPECIAL_BRAVO, MST.FILL_BRAVO]
                 ];
 
                 expect(store.boardSize).toEqual({ width: 2, height: 3 });
@@ -39,11 +42,11 @@ describe('GameBoardStore', () => {
         describe('isPlaceable', () => {
             const board = [
                 [MST.DISABLED, MST.DISABLED, MST.DISABLED, MST.DISABLED, MST.DISABLED, MST.DISABLED, MST.DISABLED],
-                [MST.DISABLED, MST.SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.FILL_ALPHA, MST.DISABLED],
+                [MST.DISABLED, MST.INACTIVE_SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.FILL_ALPHA, MST.DISABLED],
                 [MST.DISABLED, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.DISABLED],
                 [MST.DISABLED, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.DISABLED],
                 [MST.DISABLED, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.DISABLED],
-                [MST.DISABLED, MST.SPECIAL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.FILL_BRAVO, MST.DISABLED],
+                [MST.DISABLED, MST.INACTIVE_SPECIAL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.FILL_BRAVO, MST.DISABLED],
                 [MST.DISABLED, MST.DISABLED, MST.DISABLED, MST.DISABLED, MST.DISABLED, MST.DISABLED, MST.DISABLED]
             ];
             const card = [
@@ -197,6 +200,23 @@ describe('GameBoardStore', () => {
                 expect(useGameBoardStore().cardIsOutOfBounds({ x, y }, cardSize)).toEqual(expectedResult);
             });
         });
+
+        describe('specialPointCount', () => {
+            it('returns the expected amount of special points', () => {
+                const store = useGameBoardStore();
+                store.board = [
+                    [MST.EMPTY, MST.FILL_BRAVO, MST.ACTIVE_SPECIAL_BRAVO, MST.OUT_OF_BOUNDS],
+                    [MST.FILL_ALPHA, MST.INACTIVE_SPECIAL_ALPHA, MST.FILL_ALPHA, MST.FILL_BRAVO],
+                    [MST.FILL_BRAVO, MST.ACTIVE_SPECIAL_ALPHA, MST.FILL_BRAVO, MST.FILL_ALPHA],
+                    [MST.FILL_BRAVO, MST.FILL_ALPHA, MST.INACTIVE_SPECIAL_BRAVO, MST.EMPTY],
+                ];
+
+                expect(store.specialPointCount).toEqual({
+                    [PlayerTeam.ALPHA]: 1,
+                    [PlayerTeam.BRAVO]: 1
+                });
+            });
+        });
     });
 
     describe('actions', () => {
@@ -229,8 +249,8 @@ describe('GameBoardStore', () => {
                 const gameBoardStore = useGameBoardStore();
                 const squares = [
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.EMPTY, MST.SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.SPECIAL_BRAVO, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.INACTIVE_SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.INACTIVE_SPECIAL_BRAVO, MST.EMPTY],
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY]
                 ];
 
@@ -246,9 +266,10 @@ describe('GameBoardStore', () => {
         describe('applyMoves', () => {
             beforeEach(() => {
                 useGameBoardStore().board = fill2D(6, 6, MapSquareType.EMPTY);
+                (activateSpecialSquares as jest.Mock).mockImplementation(() => {});
             });
 
-            it('applies the chosen moves to the board', () => {
+            it('applies the chosen moves to the board and activates special tiles', () => {
                 const store = useGameBoardStore();
 
                 store.applyMoves({
@@ -264,14 +285,16 @@ describe('GameBoardStore', () => {
                     }
                 });
 
-                expect(store.board).toEqual([
+                const expectedBoard = [
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.EMPTY, MST.FILL_ALPHA, MST.SPECIAL_BRAVO, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.SPECIAL_ALPHA, MST.FILL_ALPHA, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.FILL_ALPHA, MST.INACTIVE_SPECIAL_BRAVO, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.INACTIVE_SPECIAL_ALPHA, MST.FILL_ALPHA, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.EMPTY, MST.FILL_ALPHA, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY]
-                ]);
+                ];
+                expect(activateSpecialSquares).toHaveBeenCalledWith(expectedBoard);
+                expect(store.board).toEqual(expectedBoard);
             });
 
             it('behaves as expected with two identical moves', () => {
@@ -320,7 +343,7 @@ describe('GameBoardStore', () => {
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.FILL_BRAVO, MST.NEUTRAL, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.EMPTY, MST.SPECIAL_BRAVO, MST.SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.INACTIVE_SPECIAL_BRAVO, MST.INACTIVE_SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.EMPTY, MST.FILL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY]
                 ]);
@@ -350,7 +373,7 @@ describe('GameBoardStore', () => {
                     [MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.FILL_BRAVO, MST.NEUTRAL, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.EMPTY, MST.SPECIAL_BRAVO, MST.SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.INACTIVE_SPECIAL_BRAVO, MST.INACTIVE_SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.EMPTY, MST.FILL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY]
                 ]);
@@ -374,8 +397,8 @@ describe('GameBoardStore', () => {
 
                 expect(store.board).toEqual([
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.SPECIAL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.FILL_ALPHA, MST.SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.INACTIVE_SPECIAL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.FILL_ALPHA, MST.INACTIVE_SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.FILL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY]
@@ -400,8 +423,8 @@ describe('GameBoardStore', () => {
 
                 expect(store.board).toEqual([
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.SPECIAL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.FILL_ALPHA, MST.SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.INACTIVE_SPECIAL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.FILL_ALPHA, MST.INACTIVE_SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.FILL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY]
@@ -426,7 +449,7 @@ describe('GameBoardStore', () => {
 
                 expect(store.board).toEqual([
                     [MST.FILL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
-                    [MST.FILL_ALPHA, MST.SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.FILL_ALPHA, MST.INACTIVE_SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.FILL_ALPHA, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
@@ -452,7 +475,7 @@ describe('GameBoardStore', () => {
 
                 expect(store.board).toEqual([
                     [MST.FILL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
-                    [MST.FILL_ALPHA, MST.SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.FILL_ALPHA, MST.INACTIVE_SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.FILL_ALPHA, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],

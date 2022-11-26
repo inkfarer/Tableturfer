@@ -18,6 +18,9 @@
         <div>
             board: {{ gameBoardStore.name }}
         </div>
+        <div>
+            special: {{ gameBoardStore.specialPointCount }}
+        </div>
     </div>
 </template>
 

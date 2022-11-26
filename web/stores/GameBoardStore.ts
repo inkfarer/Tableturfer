@@ -23,6 +23,7 @@ import { PlayerMove } from '~/types/socket/SocketCommon';
 import * as Cards from '~/data/cards';
 import { Card } from '~/types/Card';
 import { isFillSquare, isSpecialSquare, mapSquareFromCardSquare } from '~/helpers/SquareHelper';
+import { activateSpecialSquares } from '~/helpers/BoardHelper';
 
 interface GameBoardStore {
     name: string
@@ -65,8 +66,8 @@ export const useGameBoardStore = defineStore('gameBoard', {
                 }
 
                 const acceptedNearbyBoardSquares = team === PlayerTeam.ALPHA
-                    ? [MapSquareType.FILL_ALPHA, MapSquareType.SPECIAL_ALPHA]
-                    : [MapSquareType.FILL_BRAVO, MapSquareType.SPECIAL_BRAVO];
+                    ? [MapSquareType.FILL_ALPHA, MapSquareType.INACTIVE_SPECIAL_ALPHA]
+                    : [MapSquareType.FILL_BRAVO, MapSquareType.INACTIVE_SPECIAL_BRAVO];
 
                 return every2D(cardSquares, (cardSquare, position) => {
                     // Are any squares outside the map or covering existing squares?
@@ -102,6 +103,23 @@ export const useGameBoardStore = defineStore('gameBoard', {
                     || position.x + cardSize.width > this.boardSize.width
                     || position.y + cardSize.height > this.boardSize.height;
             };
+        },
+        specialPointCount(): { [key in PlayerTeam]: number } {
+            const result = { [PlayerTeam.ALPHA]: 0, [PlayerTeam.BRAVO]: 0 };
+
+            if (this.board == null) {
+                return result;
+            }
+
+            forEach2D(this.board, square => {
+                if (square === MapSquareType.ACTIVE_SPECIAL_ALPHA) {
+                    result[PlayerTeam.ALPHA]++;
+                } else if (square === MapSquareType.ACTIVE_SPECIAL_BRAVO) {
+                    result[PlayerTeam.BRAVO]++;
+                }
+            });
+
+            return result;
         }
     },
     actions: {
@@ -121,8 +139,8 @@ export const useGameBoardStore = defineStore('gameBoard', {
             if (playerTeam != null) {
                 const startSquarePosition = findIndex2D(map.squares, square =>
                     square === (playerTeam === PlayerTeam.ALPHA
-                        ? MapSquareType.SPECIAL_ALPHA
-                        : MapSquareType.SPECIAL_BRAVO));
+                        ? MapSquareType.INACTIVE_SPECIAL_ALPHA
+                        : MapSquareType.INACTIVE_SPECIAL_BRAVO));
                 if (startSquarePosition != null) {
                     const activeCardStore = useActiveCardStore();
                     activeCardStore.setPositionFromCardOrigin(startSquarePosition);
@@ -183,6 +201,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
 
                 newBoard[position.y][position.x] = square;
             });
+            activateSpecialSquares(newBoard);
             this.board = newBoard;
         }
     }
