@@ -44,3 +44,30 @@ impl CardSquareProvider for CardSquareProviderImpl {
         }
     }
 }
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
+    pub struct TestCardSquareProvider {}
+
+    impl CardSquareProvider for TestCardSquareProvider {
+        fn get(&self, card_name: &str) -> Option<Matrix<CardSquareType>> {
+            match card_name {
+                "card_1" => Some(Matrix::new(vec!(
+                    vec!(CST::Empty, CST::Fill),
+                    vec!(CST::Empty, CST::Special),
+                    vec!(CST::Fill, CST::Fill),
+                ))),
+                "card_2" => Some(Matrix::new(vec!(
+                    vec!(CST::Fill, CST::Fill),
+                    vec!(CST::Fill, CST::Special),
+                ))),
+                "card_3" => Some(Matrix::new(vec!(
+                    vec!(CST::Fill),
+                ))),
+                _ => None,
+            }
+        }
+    }
+}
