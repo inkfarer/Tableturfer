@@ -5,5 +5,6 @@ export enum MapSquareType {
     SPECIAL_BRAVO,
     FILL_ALPHA,
     FILL_BRAVO,
+    NEUTRAL,
     OUT_OF_BOUNDS,
 }

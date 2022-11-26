@@ -1,11 +1,12 @@
 import { setActivePinia } from 'pinia';
-import { MapSquareType as MST } from '~/types/MapSquareType';
+import { MapSquareType, MapSquareType as MST } from '~/types/MapSquareType';
 import { CardSquareType as CST } from '~/types/CardSquareType';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
 import { createTestingPinia } from '@pinia/testing';
 import { PlayerTeam } from '~/types/PlayerTeam';
 import { useRoomStore } from '~/stores/RoomStore';
+import { fill2D } from '~/helpers/ArrayHelper';
 
 describe('GameBoardStore', () => {
     beforeEach(() => {
@@ -242,44 +243,220 @@ describe('GameBoardStore', () => {
             });
         });
 
-        describe('placeCard', () => {
-            it('places the card on the board for the alpha team', () => {
-                const store = useGameBoardStore();
-                store.board = [
-                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.EMPTY, MST.EMPTY]
-                ];
+        describe('applyMoves', () => {
+            beforeEach(() => {
+                useGameBoardStore().board = fill2D(6, 6, MapSquareType.EMPTY);
+            });
 
-                store.placeCard({ x: 1, y: 0 }, [
-                    [CST.FILL, CST.SPECIAL],
-                    [CST.EMPTY, CST.FILL]
-                ], PlayerTeam.ALPHA);
+            it('applies the chosen moves to the board', () => {
+                const store = useGameBoardStore();
+
+                store.applyMoves({
+                    [PlayerTeam.ALPHA]: {
+                        cardName: 'BombCurling',
+                        position: { x: 1, y: 1 },
+                        rotation: 270
+                    },
+                    [PlayerTeam.BRAVO]: {
+                        cardName: 'SaberLight00',
+                        position: { x: 3, y: 1 },
+                        rotation: 0
+                    }
+                });
 
                 expect(store.board).toEqual([
-                    [MST.EMPTY, MST.FILL_ALPHA, MST.SPECIAL_ALPHA],
-                    [MST.EMPTY, MST.EMPTY, MST.FILL_ALPHA],
-                    [MST.EMPTY, MST.EMPTY, MST.EMPTY]
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.FILL_ALPHA, MST.SPECIAL_BRAVO, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.SPECIAL_ALPHA, MST.FILL_ALPHA, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.FILL_ALPHA, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY]
                 ]);
             });
 
-            it('places the card on the board for the bravo team', () => {
+            it('behaves as expected with two identical moves', () => {
                 const store = useGameBoardStore();
-                store.board = [
-                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.EMPTY, MST.EMPTY]
-                ];
 
-                store.placeCard({ x: 1, y: 1 }, [
-                    [CST.SPECIAL, CST.FILL],
-                    [CST.FILL, CST.EMPTY]
-                ], PlayerTeam.BRAVO);
+                store.applyMoves({
+                    [PlayerTeam.ALPHA]: {
+                        cardName: 'BombCurling',
+                        position: { x: 1, y: 1 },
+                        rotation: 270
+                    },
+                    [PlayerTeam.BRAVO]: {
+                        cardName: 'BombCurling',
+                        position: { x: 1, y: 1 },
+                        rotation: 270
+                    }
+                });
 
                 expect(store.board).toEqual([
-                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.SPECIAL_BRAVO, MST.FILL_BRAVO],
-                    [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY]
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.NEUTRAL, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.NEUTRAL, MST.NEUTRAL, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.NEUTRAL, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY]
+                ]);
+            });
+
+            it('behaves as expected when overlapping moves have the same cost', () => {
+                const store = useGameBoardStore();
+
+                store.applyMoves({
+                    [PlayerTeam.ALPHA]: {
+                        cardName: 'BombCurling',
+                        position: { x: 2, y: 2 },
+                        rotation: 90
+                    },
+                    [PlayerTeam.BRAVO]: {
+                        cardName: 'BombCurling',
+                        position: { x: 1, y: 2 },
+                        rotation: 180
+                    }
+                });
+
+                expect(store.board).toEqual([
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.FILL_BRAVO, MST.NEUTRAL, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.SPECIAL_BRAVO, MST.SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.FILL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY]
+                ]);
+            });
+
+            it('behaves as expected when applying overlapping moves over existing squares', () => {
+                const store = useGameBoardStore();
+                store.board![0][0] = MapSquareType.FILL_BRAVO;
+                store.board![1][2] = MapSquareType.FILL_BRAVO;
+                store.board![2][3] = MapSquareType.FILL_ALPHA;
+                store.board![2][2] = MapSquareType.FILL_ALPHA;
+
+                store.applyMoves({
+                    [PlayerTeam.ALPHA]: {
+                        cardName: 'BombCurling',
+                        position: { x: 2, y: 2 },
+                        rotation: 90
+                    },
+                    [PlayerTeam.BRAVO]: {
+                        cardName: 'BombCurling',
+                        position: { x: 1, y: 2 },
+                        rotation: 180
+                    }
+                });
+
+                expect(store.board).toEqual([
+                    [MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.FILL_BRAVO, MST.NEUTRAL, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.SPECIAL_BRAVO, MST.SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.FILL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY]
+                ]);
+            });
+
+            it('behaves as expected when overlapping moves have differing costs', () => {
+                const store = useGameBoardStore();
+
+                store.applyMoves({
+                    [PlayerTeam.ALPHA]: {
+                        cardName: 'BombCurling',
+                        position: { x: 1, y: 1 },
+                        rotation: 90
+                    },
+                    [PlayerTeam.BRAVO]: {
+                        cardName: 'SaberLight00',
+                        position: { x: 1, y: 1 },
+                        rotation: 0
+                    }
+                });
+
+                expect(store.board).toEqual([
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.SPECIAL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.FILL_ALPHA, MST.SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.FILL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY]
+                ]);
+            });
+
+            it('behaves as expected when overlapping moves have differing costs, regardless of the order turns appear in', () => {
+                const store = useGameBoardStore();
+
+                store.applyMoves({
+                    [PlayerTeam.BRAVO]: {
+                        cardName: 'SaberLight00',
+                        position: { x: 1, y: 1 },
+                        rotation: 0
+                    },
+                    [PlayerTeam.ALPHA]: {
+                        cardName: 'BombCurling',
+                        position: { x: 1, y: 1 },
+                        rotation: 90
+                    }
+                });
+
+                expect(store.board).toEqual([
+                    [MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.SPECIAL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.FILL_ALPHA, MST.SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.FILL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY]
+                ]);
+            });
+
+            it('behaves as expected when special squares overlap in moves with different costs', () => {
+                const store = useGameBoardStore();
+
+                store.applyMoves({
+                    [PlayerTeam.ALPHA]: {
+                        cardName: 'BombCurling',
+                        position: { x: 0, y: 0 },
+                        rotation: 90
+                    },
+                    [PlayerTeam.BRAVO]: {
+                        cardName: 'SaberLight00',
+                        position: { x: 1, y: 1 },
+                        rotation: 0
+                    }
+                });
+
+                expect(store.board).toEqual([
+                    [MST.FILL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.FILL_ALPHA, MST.SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.FILL_ALPHA, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY]
+                ]);
+            });
+
+            it('behaves as expected when special squares overlap in moves with different costs, regardless of the order turns appear in', () => {
+                const store = useGameBoardStore();
+
+                store.applyMoves({
+                    [PlayerTeam.BRAVO]: {
+                        cardName: 'SaberLight00',
+                        position: { x: 1, y: 1 },
+                        rotation: 0
+                    },
+                    [PlayerTeam.ALPHA]: {
+                        cardName: 'BombCurling',
+                        position: { x: 0, y: 0 },
+                        rotation: 90
+                    }
+                });
+
+                expect(store.board).toEqual([
+                    [MST.FILL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.FILL_ALPHA, MST.SPECIAL_ALPHA, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.FILL_ALPHA, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
+                    [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY]
                 ]);
             });
         });

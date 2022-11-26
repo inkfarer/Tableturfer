@@ -1,7 +1,17 @@
 import { MapSquareType } from '~/types/MapSquareType';
 import { defineStore } from 'pinia';
 import { GameMap } from '~/types/GameMap';
-import { every2D, findIndex2D, slice2D, some2D } from '~/helpers/ArrayHelper';
+import {
+    count2D,
+    every2D,
+    fill2D,
+    findIndex2D,
+    forEach2D,
+    normalizeCardSquares,
+    rotateClockwiseBy,
+    slice2D,
+    some2D
+} from '~/helpers/ArrayHelper';
 import { CardSize, useActiveCardStore } from '~/stores/ActiveCardStore';
 import { Position } from '~/types/Position';
 import { CardSquareType } from '~/types/CardSquareType';
@@ -9,6 +19,10 @@ import cloneDeep from 'lodash/cloneDeep';
 import { PlayerTeam } from '~/types/PlayerTeam';
 import * as Maps from '~/data/maps';
 import { useRoomStore } from '~/stores/RoomStore';
+import { PlayerMove } from '~/types/socket/SocketCommon';
+import * as Cards from '~/data/cards';
+import { Card } from '~/types/Card';
+import { isFillSquare, isSpecialSquare, mapSquareFromCardSquare } from '~/helpers/SquareHelper';
 
 interface GameBoardStore {
     name: string
@@ -115,25 +129,59 @@ export const useGameBoardStore = defineStore('gameBoard', {
                 }
             }
         },
-        placeCard(position: Position, squares: CardSquareType[][], team: PlayerTeam) {
-            const newBoard = cloneDeep(this.board) as MapSquareType[][];
-            squares.forEach((row, rowIndex) => {
-                row.forEach((square, colIndex) => {
-                    switch (square) {
-                        case CardSquareType.EMPTY:
-                            break;
-                        case CardSquareType.FILL:
-                            newBoard[position.y + rowIndex][position.x + colIndex] = team === PlayerTeam.ALPHA
-                                ? MapSquareType.FILL_ALPHA
-                                : MapSquareType.FILL_BRAVO;
-                            break;
-                        case CardSquareType.SPECIAL:
-                            newBoard[position.y + rowIndex][position.x + colIndex] = team === PlayerTeam.ALPHA
-                                ? MapSquareType.SPECIAL_ALPHA
-                                : MapSquareType.SPECIAL_BRAVO;
-                            break;
+        applyMoves(moves: { [team in PlayerTeam]: PlayerMove }) {
+            const boardUpdates = fill2D(this.boardSize.width, this.boardSize.height, MapSquareType.EMPTY);
+
+            const movesWithCards = Object.entries(moves).map(([team, move]) => {
+                const squares = (Cards as Record<string, Card>)[move.cardName]?.squares;
+                if (squares == null) {
+                    throw new Error(`Unknown card "${move.cardName}"`);
+                }
+                const normalizedSquares = rotateClockwiseBy(normalizeCardSquares(squares), move.rotation);
+
+                return {
+                    ...move,
+                    team: team as PlayerTeam,
+                    cardSquares: normalizedSquares,
+                    cardSquareCount: count2D(normalizedSquares, square => square !== CardSquareType.EMPTY)
+                };
+            });
+            movesWithCards.sort((a, b) => b.cardSquareCount - a.cardSquareCount);
+
+            const squareCountsMatch = movesWithCards.every(move => move.cardSquareCount === movesWithCards[0].cardSquareCount);
+
+            movesWithCards.forEach(move => {
+                forEach2D(move.cardSquares, (square, position) => {
+                    if (square === CardSquareType.EMPTY) {
+                        return;
                     }
+
+                    const boardPosition = { x: move.position.x + position.x, y: move.position.y + position.y };
+                    const existingSquare = boardUpdates[boardPosition.y][boardPosition.x];
+                    let newSquare = mapSquareFromCardSquare(square, move.team);
+
+                    if (isSpecialSquare(existingSquare) && isFillSquare(newSquare)) {
+                        return;
+                    }
+
+                    if (squareCountsMatch
+                        && ((isFillSquare(existingSquare) && isFillSquare(newSquare))
+                            || (isSpecialSquare(existingSquare) && isSpecialSquare(newSquare))))
+                    {
+                        newSquare = MapSquareType.NEUTRAL;
+                    }
+
+                    boardUpdates[boardPosition.y][boardPosition.x] = newSquare;
                 });
+            });
+
+            const newBoard = cloneDeep(this.board) as MapSquareType[][];
+            forEach2D(boardUpdates, (square, position) => {
+                if (square === MapSquareType.EMPTY) {
+                    return;
+                }
+
+                newBoard[position.y][position.x] = square;
             });
             this.board = newBoard;
         }

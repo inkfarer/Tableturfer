@@ -99,6 +99,32 @@ export function every2D<T>(array: Array<Array<T>>, predicate: (item: T, position
     return true;
 }
 
+export function forEach2D<T>(array: Array<Array<T>>, callback: (item: T, position: Position) => unknown) {
+    for (let y = 0; y < array.length; y++) {
+        for (let x = 0; x < array[y].length; x++) {
+            callback(array[y][x], { x, y });
+        }
+    }
+}
+
+export function count2D<T>(array: T[][], predicate: (item: T, position: Position) => boolean): number {
+    let count = 0;
+
+    for (let y = 0; y < array.length; y++) {
+        for (let x = 0; x < array[y].length; x++) {
+            if (predicate(array[y][x], { x, y })) {
+                count++;
+            }
+        }
+    }
+
+    return count;
+}
+
+export function fill2D<T>(width: number, height: number, value: T): T[][] {
+    return Array.from({ length: height }, () => Array.from({ length: width }, () => value));
+}
+
 // Removes empty rows and columns
 // todo: this should be done when we import cards into a database
 export function normalizeCardSquares(squares: CardSquareType[]): CardSquareType[][] {
