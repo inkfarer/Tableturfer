@@ -124,14 +124,15 @@ impl GameState {
                     let existing_square = board_updates[board_position];
                     let mut new_square = MapSquareType::from_card_square(item, team);
 
-                    if square_counts_match {
-                        if (existing_square.is_fill() && new_square.is_fill()) || (existing_square.is_special() && new_square.is_special()) {
-                            new_square = MapSquareType::Neutral;
-                        }
-                    }
-
                     if existing_square.is_special() && new_square.is_fill() {
                         return;
+                    }
+
+                    if square_counts_match
+                        && ((existing_square.is_fill() && new_square.is_fill())
+                        || (existing_square.is_special() && new_square.is_special()))
+                    {
+                        new_square = MapSquareType::Neutral;
                     }
 
                     board_updates[board_position] = new_square;
@@ -160,7 +161,7 @@ mod tests {
         GameState::new(
             Matrix::filled_with(MatrixSize::new(6, 6), MST::Empty),
             TestCardSquareProvider::new().clone(),
-            Arc::new(TestMoveValidator {})
+            Arc::new(TestMoveValidator {}),
         )
     }
 
@@ -170,12 +171,12 @@ mod tests {
         state.next_moves.insert(PlayerTeam::Alpha, PlayerMove {
             card_name: "card_1".to_string(),
             position: INamedPosition::new(1, 1),
-            rotation: CardRotation::Deg0
+            rotation: CardRotation::Deg0,
         });
         state.next_moves.insert(PlayerTeam::Bravo, PlayerMove {
             card_name: "card_2".to_string(),
             position: INamedPosition::new(0, 1),
-            rotation: CardRotation::Deg90
+            rotation: CardRotation::Deg90,
         });
         let moves = state.next_moves.clone();
 
@@ -199,12 +200,12 @@ mod tests {
         state.next_moves.insert(PlayerTeam::Alpha, PlayerMove {
             card_name: "card_1".to_string(),
             position: INamedPosition::new(1, 1),
-            rotation: CardRotation::Deg0
+            rotation: CardRotation::Deg0,
         });
         state.next_moves.insert(PlayerTeam::Bravo, PlayerMove {
             card_name: "card_2".to_string(),
             position: INamedPosition::new(1, 1),
-            rotation: CardRotation::Deg90
+            rotation: CardRotation::Deg90,
         });
 
         state.apply_moves();
@@ -225,12 +226,12 @@ mod tests {
         state.next_moves.insert(PlayerTeam::Alpha, PlayerMove {
             card_name: "card_1".to_string(),
             position: INamedPosition::new(1, 1),
-            rotation: CardRotation::Deg180
+            rotation: CardRotation::Deg180,
         });
         state.next_moves.insert(PlayerTeam::Bravo, PlayerMove {
             card_name: "card_1".to_string(),
             position: INamedPosition::new(1, 1),
-            rotation: CardRotation::Deg180
+            rotation: CardRotation::Deg180,
         });
 
         state.apply_moves();
@@ -253,12 +254,12 @@ mod tests {
         state.next_moves.insert(PlayerTeam::Alpha, PlayerMove {
             card_name: "card_1".to_string(),
             position: INamedPosition::new(1, 1),
-            rotation: CardRotation::Deg0
+            rotation: CardRotation::Deg0,
         });
         state.next_moves.insert(PlayerTeam::Bravo, PlayerMove {
             card_name: "card_2".to_string(),
             position: INamedPosition::new(1, 1),
-            rotation: CardRotation::Deg90
+            rotation: CardRotation::Deg90,
         });
 
         state.apply_moves();
@@ -279,12 +280,12 @@ mod tests {
         state.next_moves.insert(PlayerTeam::Alpha, PlayerMove {
             card_name: "card_1".to_string(),
             position: INamedPosition::new(1, 1),
-            rotation: CardRotation::Deg0
+            rotation: CardRotation::Deg0,
         });
         state.next_moves.insert(PlayerTeam::Bravo, PlayerMove {
             card_name: "card_4".to_string(),
             position: INamedPosition::new(1, 2),
-            rotation: CardRotation::Deg0
+            rotation: CardRotation::Deg0,
         });
 
         state.apply_moves();
@@ -305,12 +306,12 @@ mod tests {
         state.next_moves.insert(PlayerTeam::Bravo, PlayerMove {
             card_name: "card_4".to_string(),
             position: INamedPosition::new(1, 2),
-            rotation: CardRotation::Deg0
+            rotation: CardRotation::Deg0,
         });
         state.next_moves.insert(PlayerTeam::Alpha, PlayerMove {
             card_name: "card_1".to_string(),
             position: INamedPosition::new(1, 1),
-            rotation: CardRotation::Deg0
+            rotation: CardRotation::Deg0,
         });
 
         state.apply_moves();
@@ -331,12 +332,12 @@ mod tests {
         state.next_moves.insert(PlayerTeam::Alpha, PlayerMove {
             card_name: "card_1".to_string(),
             position: INamedPosition::new(1, 1),
-            rotation: CardRotation::Deg0
+            rotation: CardRotation::Deg0,
         });
         state.next_moves.insert(PlayerTeam::Bravo, PlayerMove {
             card_name: "card_4".to_string(),
             position: INamedPosition::new(1, 2),
-            rotation: CardRotation::Deg180
+            rotation: CardRotation::Deg180,
         });
 
         state.apply_moves();
@@ -357,12 +358,12 @@ mod tests {
         state.next_moves.insert(PlayerTeam::Bravo, PlayerMove {
             card_name: "card_4".to_string(),
             position: INamedPosition::new(1, 2),
-            rotation: CardRotation::Deg180
+            rotation: CardRotation::Deg180,
         });
         state.next_moves.insert(PlayerTeam::Alpha, PlayerMove {
             card_name: "card_1".to_string(),
             position: INamedPosition::new(1, 1),
-            rotation: CardRotation::Deg0
+            rotation: CardRotation::Deg0,
         });
 
         state.apply_moves();
