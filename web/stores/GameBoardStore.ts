@@ -116,12 +116,6 @@ export const useGameBoardStore = defineStore('gameBoard', {
             }
         },
         placeCard(position: Position, squares: CardSquareType[][], team: PlayerTeam) {
-            // todo: assuming placement is validated by the server before we reach here, this might be unnecessary
-            if (!this.isPlaceable(position, squares, team)) {
-                console.warn('Skipping card placement as card is in an invalid position');
-                return;
-            }
-
             const newBoard = cloneDeep(this.board) as MapSquareType[][];
             squares.forEach((row, rowIndex) => {
                 row.forEach((square, colIndex) => {

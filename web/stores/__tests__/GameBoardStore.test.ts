@@ -243,36 +243,8 @@ describe('GameBoardStore', () => {
         });
 
         describe('placeCard', () => {
-            it('does nothing if the card cannot be placed', () => {
-                const store = useGameBoardStore();
-                const isPlaceable = jest.fn().mockReturnValue(false);
-                // @ts-ignore
-                store.isPlaceable = isPlaceable;
-                store.board = [
-                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.EMPTY, MST.EMPTY]
-                ];
-
-                store.placeCard({ x: 0, y: 0 }, [
-                    [CST.FILL, CST.FILL]
-                ], PlayerTeam.ALPHA);
-
-                expect(store.board).toEqual([
-                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.EMPTY, MST.EMPTY],
-                    [MST.EMPTY, MST.EMPTY, MST.EMPTY]
-                ]);
-                expect(isPlaceable).toHaveBeenCalledWith({ x: 0, y: 0 }, [
-                    [CST.FILL, CST.FILL]
-                ], PlayerTeam.ALPHA);
-            });
-
             it('places the card on the board for the alpha team', () => {
                 const store = useGameBoardStore();
-                const isPlaceable = jest.fn().mockReturnValue(true);
-                // @ts-ignore
-                store.isPlaceable = isPlaceable;
                 store.board = [
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY],
@@ -289,17 +261,10 @@ describe('GameBoardStore', () => {
                     [MST.EMPTY, MST.EMPTY, MST.FILL_ALPHA],
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY]
                 ]);
-                expect(isPlaceable).toHaveBeenCalledWith({ x: 1, y: 0 }, [
-                    [CST.FILL, CST.SPECIAL],
-                    [CST.EMPTY, CST.FILL]
-                ], PlayerTeam.ALPHA);
             });
 
             it('places the card on the board for the bravo team', () => {
                 const store = useGameBoardStore();
-                const isPlaceable = jest.fn().mockReturnValue(true);
-                // @ts-ignore
-                store.isPlaceable = isPlaceable;
                 store.board = [
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY],
@@ -316,10 +281,6 @@ describe('GameBoardStore', () => {
                     [MST.EMPTY, MST.SPECIAL_BRAVO, MST.FILL_BRAVO],
                     [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY]
                 ]);
-                expect(isPlaceable).toHaveBeenCalledWith({ x: 1, y: 1 }, [
-                    [CST.SPECIAL, CST.FILL],
-                    [CST.FILL, CST.EMPTY]
-                ], PlayerTeam.BRAVO);
             });
         });
     });
