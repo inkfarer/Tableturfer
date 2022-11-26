@@ -108,7 +108,7 @@ pub mod tests {
     pub struct TestMoveValidator {}
 
     impl MoveValidator for TestMoveValidator {
-        fn validate(&self, board: &Matrix<MapSquareType>, team: &PlayerTeam, player_move: &PlayerMove) -> Result<(), GameError> {
+        fn validate(&self, _board: &Matrix<MapSquareType>, _team: &PlayerTeam, player_move: &PlayerMove) -> Result<(), GameError> {
             match player_move.card_name.borrow() {
                 "invalid_pos_card" => Err(GameError::InvalidPosition),
                 "not_found_card" => Err(GameError::CardNotFound),
