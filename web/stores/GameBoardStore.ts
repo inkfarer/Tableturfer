@@ -71,8 +71,8 @@ export const useGameBoardStore = defineStore('gameBoard', {
                 }
 
                 const acceptedNearbyBoardSquares = team === PlayerTeam.ALPHA
-                    ? [MapSquareType.FILL_ALPHA, MapSquareType.INACTIVE_SPECIAL_ALPHA]
-                    : [MapSquareType.FILL_BRAVO, MapSquareType.INACTIVE_SPECIAL_BRAVO];
+                    ? [MapSquareType.FILL_ALPHA, MapSquareType.INACTIVE_SPECIAL_ALPHA, MapSquareType.ACTIVE_SPECIAL_ALPHA]
+                    : [MapSquareType.FILL_BRAVO, MapSquareType.INACTIVE_SPECIAL_BRAVO, MapSquareType.ACTIVE_SPECIAL_BRAVO];
 
                 return every2D(cardSquares, (cardSquare, position) => {
                     // Are any squares outside the map or covering existing squares?
