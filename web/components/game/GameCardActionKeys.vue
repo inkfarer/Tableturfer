@@ -45,7 +45,8 @@ function placeCard() {
     $socket.send('ProposeMove', {
         cardName: activeCardStore.activeCard.name,
         position: activeCardStore.position,
-        rotation: activeCardStore.rotation
+        rotation: activeCardStore.rotation,
+        special: false
     });
     activeCardStore.setActiveCard(null);
 }

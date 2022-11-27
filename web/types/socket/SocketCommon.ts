@@ -5,4 +5,5 @@ export interface PlayerMove {
     cardName: string
     position: Position
     rotation: CardRotation
+    special: boolean
 }
