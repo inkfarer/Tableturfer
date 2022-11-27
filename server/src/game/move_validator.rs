@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use crate::game::card::{CardSquareProvider, CardSquareType};
-use crate::game::squares::MapSquareType;
+use crate::game::squares::{MapSquareType, MST};
 use crate::game::state::{GameError, PlayerMove};
 use crate::game::team::PlayerTeam;
 use crate::matrix::{Matrix, Slice};
@@ -36,7 +36,7 @@ impl MoveValidator for MoveValidatorImpl {
                 let squares = card.squares.rotate_clockwise(player_move.rotation.into());
 
                 if !Self::card_within_bounds(player_move, board, &squares)
-                || !Self::card_on_blank_spaces(player_move, board, &squares)
+                || !Self::card_on_correct_spaces(player_move, board, &squares)
                 || !Self::map_squares_near_card(player_move, board, &squares, team) {
                     Err(GameError::InvalidPosition)
                 } else {
@@ -69,22 +69,41 @@ impl MoveValidatorImpl {
             && (player_move.position.y + card_size.h as isize) <= board_size.h as isize
     }
 
-    fn card_on_blank_spaces(player_move: &PlayerMove, board: &Matrix<MapSquareType>, card_squares: &Matrix<CardSquareType>) -> bool {
+    fn card_on_correct_spaces(player_move: &PlayerMove, board: &Matrix<MapSquareType>, card_squares: &Matrix<CardSquareType>) -> bool {
         let card_size = card_squares.size();
         let pos_from = (player_move.position.x as usize, player_move.position.y as usize);
         let squares_under_card = board.slice(pos_from..(pos_from.0 + card_size.w, pos_from.1 + card_size.h));
+        let accepted_covering_map_squares = if player_move.special {
+            vec!(MST::Empty, MST::FillAlpha, MST::FillBravo)
+        } else {
+            vec!(MST::Empty)
+        };
 
         squares_under_card.into_iter()
             .zip(card_squares.clone().into_iter())
-            .all(|((map_square, _), (card_square, _))| map_square == MapSquareType::Empty || card_square == CardSquareType::Empty)
+            .all(|((map_square, _), (card_square, _))| {
+                if card_square == CardSquareType::Empty {
+                    true
+                } else {
+                    accepted_covering_map_squares.contains(&map_square)
+                }
+            })
     }
 
     fn map_squares_near_card(player_move: &PlayerMove, board: &Matrix<MapSquareType>, card_squares: &Matrix<CardSquareType>, team: &PlayerTeam) -> bool {
         let pos_from = (player_move.position.x as usize, player_move.position.y as usize);
 
         let accepted_nearby_squares = match team {
-            PlayerTeam::Alpha => vec!(MapSquareType::FillAlpha, MapSquareType::SpecialAlpha),
-            PlayerTeam::Bravo => vec!(MapSquareType::FillBravo, MapSquareType::SpecialBravo),
+            PlayerTeam::Alpha => if player_move.special {
+                vec!(MapSquareType::SpecialAlpha)
+            } else {
+                vec!(MapSquareType::FillAlpha, MapSquareType::SpecialAlpha)
+            },
+            PlayerTeam::Bravo => if player_move.special {
+                vec!(MapSquareType::SpecialBravo)
+            } else {
+                vec!(MapSquareType::FillBravo, MapSquareType::SpecialBravo)
+            },
         };
 
         card_squares.clone().into_iter()
@@ -254,11 +273,26 @@ pub mod tests {
                 &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0)), Ok(()));
         }
 
+        #[test]
+        fn validate_can_afford_special() {
+            let mut player_move = player_move("card_1", INamedPosition::new(1, 1), CardRotation::Deg0);
+            player_move.special = true;
+            let mut board = board();
+            board[(2, 1)] = MapSquareType::FillAlpha;
+            board[(2, 2)] = MapSquareType::FillBravo;
+
+            assert_eq!(MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
+                &board,
+                2,
+                &PlayerTeam::Alpha,
+                &player_move), Ok(()));
+        }
+
         #[pm(
-            x = { 1, 3 },
-            y = { 1, 1 }
+            x = { 2, 3, 3 },
+            y = { 3, 1, 3 }
         )]
-        fn validate_can_afford_special(x: isize, y: isize) {
+        fn validate_special_next_to_invalid_squares(x: isize, y: isize) {
             let mut player_move = player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0);
             player_move.special = true;
 
@@ -266,7 +300,7 @@ pub mod tests {
                 &board(),
                 2,
                 &PlayerTeam::Alpha,
-                &player_move), Ok(()));
+                &player_move), Err(GameError::InvalidPosition));
         }
     }
 
@@ -276,8 +310,8 @@ pub mod tests {
         common_team_tests!(&PlayerTeam::Bravo);
 
         #[pm(
-        x = { 1, 3 },
-        y = { 1, 1 }
+            x = { 1, 3 },
+            y = { 1, 1 }
         )]
         fn validate_next_to_opposing_team_squares(x: isize, y: isize) {
             assert_eq!(MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
@@ -288,8 +322,8 @@ pub mod tests {
         }
 
         #[pm(
-        x = { 2, 3 },
-        y = { 3, 3 }
+            x = { 2, 3 },
+            y = { 3, 3 }
         )]
         fn validate_next_to_own_team_squares(x: isize, y: isize) {
             assert_eq!(MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
@@ -299,11 +333,26 @@ pub mod tests {
                 &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0)), Ok(()));
         }
 
+        #[test]
+        fn validate_can_afford_special() {
+            let mut player_move = player_move("card_1", INamedPosition::new(2, 3), CardRotation::Deg0);
+            player_move.special = true;
+            let mut board = board();
+            board[(3, 3)] = MapSquareType::FillAlpha;
+            board[(3, 4)] = MapSquareType::FillBravo;
+
+            assert_eq!(MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
+                &board,
+                2,
+                &PlayerTeam::Bravo,
+                &player_move), Ok(()));
+        }
+
         #[pm(
-        x = { 2, 3 },
-        y = { 3, 3 }
+            x = { 1, 3, 3 },
+            y = { 1, 1, 3 }
         )]
-        fn validate_can_afford_special(x: isize, y: isize) {
+        fn validate_special_next_to_invalid_squares(x: isize, y: isize) {
             let mut player_move = player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0);
             player_move.special = true;
 
@@ -311,7 +360,7 @@ pub mod tests {
                 &board(),
                 2,
                 &PlayerTeam::Bravo,
-                &player_move), Ok(()));
+                &player_move), Err(GameError::InvalidPosition));
         }
     }
 }
