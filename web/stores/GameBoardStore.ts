@@ -1,4 +1,4 @@
-import { MapSquareType } from '~/types/MapSquareType';
+import { MapSquareType as MST } from '~/types/MapSquareType';
 import { defineStore } from 'pinia';
 import { GameMap } from '~/types/GameMap';
 import {
@@ -27,7 +27,7 @@ import { activateSpecialSquares } from '~/helpers/BoardHelper';
 
 interface GameBoardStore {
     name: string
-    board: MapSquareType[][] | null
+    board: MST[][] | null
     usedSpecialPoints: { [key in PlayerTeam]: number }
 }
 
@@ -71,22 +71,35 @@ export const useGameBoardStore = defineStore('gameBoard', {
                     return false;
                 }
 
+                const isSpecial = useActiveCardStore().special;
+
                 const acceptedNearbyBoardSquares = team === PlayerTeam.ALPHA
-                    ? [MapSquareType.FILL_ALPHA, MapSquareType.INACTIVE_SPECIAL_ALPHA, MapSquareType.ACTIVE_SPECIAL_ALPHA]
-                    : [MapSquareType.FILL_BRAVO, MapSquareType.INACTIVE_SPECIAL_BRAVO, MapSquareType.ACTIVE_SPECIAL_BRAVO];
+                    ? [MST.INACTIVE_SPECIAL_ALPHA, MST.ACTIVE_SPECIAL_ALPHA]
+                    : [MST.INACTIVE_SPECIAL_BRAVO, MST.ACTIVE_SPECIAL_BRAVO];
+                if (!isSpecial) {
+                    acceptedNearbyBoardSquares.push(team === PlayerTeam.ALPHA ? MST.FILL_ALPHA : MST.FILL_BRAVO);
+                }
+
+                const acceptedCoveringSquares = isSpecial
+                    ? [MST.EMPTY, MST.FILL_ALPHA, MST.FILL_BRAVO]
+                    : [MST.EMPTY];
 
                 return every2D(cardSquares, (cardSquare, position) => {
+                    if (cardSquare === CardSquareType.EMPTY) {
+                        return true;
+                    }
+
                     // Are any squares outside the map or covering existing squares?
                     const boardSquare = placementCheckSquares[position.y][position.x];
-                    return cardSquare === CardSquareType.EMPTY || boardSquare === MapSquareType.EMPTY;
+                    return acceptedCoveringSquares.includes(boardSquare);
                 }) && some2D(cardSquares, (cardSquare, { x, y }) => {
                     // Are there some squares that have existing squares present next to them?
                     if (cardSquare === CardSquareType.EMPTY) {
                         return false;
                     }
 
-                    const boardSquaresAroundCardSquare = slice2D<MapSquareType>(
-                        this.board as MapSquareType[][],
+                    const boardSquaresAroundCardSquare = slice2D<MST>(
+                        this.board as MST[][],
                         { x: position.x - 1 + x, y: position.y - 1 + y },
                         { x: position.x + 1 + x, y: position.y + 1 + y });
 
@@ -100,7 +113,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
                     this.board ?? [],
                     position,
                     { x: position.x + cardSize.width - 1, y: position.y + cardSize.height - 1 },
-                    MapSquareType.OUT_OF_BOUNDS);
+                    MST.OUT_OF_BOUNDS);
             };
         },
         cardIsOutOfBounds() {
@@ -118,9 +131,9 @@ export const useGameBoardStore = defineStore('gameBoard', {
             }
 
             forEach2D(this.board, square => {
-                if (square === MapSquareType.ACTIVE_SPECIAL_ALPHA) {
+                if (square === MST.ACTIVE_SPECIAL_ALPHA) {
                     result[PlayerTeam.ALPHA]++;
-                } else if (square === MapSquareType.ACTIVE_SPECIAL_BRAVO) {
+                } else if (square === MST.ACTIVE_SPECIAL_BRAVO) {
                     result[PlayerTeam.BRAVO]++;
                 }
             });
@@ -146,8 +159,8 @@ export const useGameBoardStore = defineStore('gameBoard', {
             if (playerTeam != null) {
                 const startSquarePosition = findIndex2D(map.squares, square =>
                     square === (playerTeam === PlayerTeam.ALPHA
-                        ? MapSquareType.INACTIVE_SPECIAL_ALPHA
-                        : MapSquareType.INACTIVE_SPECIAL_BRAVO));
+                        ? MST.INACTIVE_SPECIAL_ALPHA
+                        : MST.INACTIVE_SPECIAL_BRAVO));
                 if (startSquarePosition != null) {
                     const activeCardStore = useActiveCardStore();
                     activeCardStore.setPositionFromCardOrigin(startSquarePosition);
@@ -155,7 +168,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
             }
         },
         applyMoves(moves: { [team in PlayerTeam]: PlayerMove }) {
-            const boardUpdates = fill2D(this.boardSize.width, this.boardSize.height, MapSquareType.EMPTY);
+            const boardUpdates = fill2D(this.boardSize.width, this.boardSize.height, MST.EMPTY);
 
             const movesWithCards = Object.entries(moves).map(([team, move]) => {
                 const card = (Cards as Record<string, Card>)[move.cardName];
@@ -200,16 +213,16 @@ export const useGameBoardStore = defineStore('gameBoard', {
                         && ((isFillSquare(existingSquare) && isFillSquare(newSquare))
                             || (isSpecialSquare(existingSquare) && isSpecialSquare(newSquare))))
                     {
-                        newSquare = MapSquareType.NEUTRAL;
+                        newSquare = MST.NEUTRAL;
                     }
 
                     boardUpdates[boardPosition.y][boardPosition.x] = newSquare;
                 });
             });
 
-            const newBoard = cloneDeep(this.board) as MapSquareType[][];
+            const newBoard = cloneDeep(this.board) as MST[][];
             forEach2D(boardUpdates, (square, position) => {
-                if (square === MapSquareType.EMPTY) {
+                if (square === MST.EMPTY) {
                     return;
                 }
 

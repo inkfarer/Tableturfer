@@ -8,6 +8,7 @@ import { PlayerTeam } from '~/types/PlayerTeam';
 import { useRoomStore } from '~/stores/RoomStore';
 import { fill2D } from '~/helpers/ArrayHelper';
 import { activateSpecialSquares } from '~/helpers/BoardHelper';
+import cloneDeep from 'lodash/cloneDeep';
 
 jest.mock('~/helpers/BoardHelper');
 
@@ -64,7 +65,8 @@ describe('GameBoardStore', () => {
             ];
 
             beforeEach(() => {
-                useGameBoardStore().board = board;
+                useGameBoardStore().board = cloneDeep(board);
+                useActiveCardStore().special = false;
             });
 
             it('returns false if the board has not been initialized', () => {
@@ -153,6 +155,29 @@ describe('GameBoardStore', () => {
                 ])('returns true if the card is next to the player\'s tiles ($x, $y)', ({ x, y }) => {
                     expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(true);
                 });
+
+                it.each([
+                    { x: 2, y: 3 },
+                    { x: 3, y: 1 },
+                    { x: 3, y: 3 }
+                ])('returns false if doing a special attack next to tiles that aren\'t special squares ($x, $y)', ({ x, y }) => {
+                    useActiveCardStore().special = true;
+
+                    expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+                });
+
+                it.each([
+                    MST.ACTIVE_SPECIAL_ALPHA,
+                    MST.INACTIVE_SPECIAL_ALPHA
+                ])('returns true if doing a special attack next to the player\'s special squares (%#)', specialSquare => {
+                    useActiveCardStore().special = true;
+                    const store = useGameBoardStore();
+                    store.board![1][1] = specialSquare;
+                    store.board![1][2] = MST.FILL_ALPHA;
+                    store.board![2][2] = MST.FILL_BRAVO;
+
+                    expect(store.isPlaceable({ x: 1, y: 1 }, card)).toBe(true);
+                });
             });
 
             describe('bravo team', () => {
@@ -173,6 +198,29 @@ describe('GameBoardStore', () => {
                     { x: 3, y: 3 }
                 ])('returns true if the card is next to the player\'s tiles ($x, $y)', ({ x, y }) => {
                     expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(true);
+                });
+
+                it.each([
+                    { x: 1, y: 1 },
+                    { x: 3, y: 1 },
+                    { x: 3, y: 3 }
+                ])('returns false if doing a special attack next to tiles that aren\'t special squares ($x, $y)', ({ x, y }) => {
+                    useActiveCardStore().special = true;
+
+                    expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+                });
+
+                it.each([
+                    MST.ACTIVE_SPECIAL_BRAVO,
+                    MST.INACTIVE_SPECIAL_BRAVO
+                ])('returns true if doing a special attack next to the player\'s special squares (%#)', specialSquare => {
+                    useActiveCardStore().special = true;
+                    const store = useGameBoardStore();
+                    store.board![1][1] = specialSquare;
+                    store.board![1][2] = MST.FILL_ALPHA;
+                    store.board![2][2] = MST.FILL_BRAVO;
+
+                    expect(store.isPlaceable({ x: 1, y: 1 }, card)).toBe(true);
                 });
             });
         });
