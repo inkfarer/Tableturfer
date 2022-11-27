@@ -6,7 +6,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 use strum::EnumCount;
 use itertools::Itertools;
 use crate::game::card::{Card, CardSquareProvider, CardSquareType};
-use crate::game::move_validator::MoveValidator;
+use crate::game::move_validator::{InvalidMoveError, MoveValidator};
 use crate::game::squares::MapSquareType;
 use crate::game::team::PlayerTeam;
 use crate::matrix::{Matrix, MatrixRotation, Slice};
@@ -15,9 +15,7 @@ use crate::position::{INamedPosition, UNamedPosition};
 #[derive(Serialize, Debug, Eq, PartialEq)]
 #[serde(tag = "code", content = "detail")]
 pub enum GameError {
-    InvalidPosition,
-    CardNotFound,
-    CannotAffordSpecial,
+    InvalidMove(InvalidMoveError),
 }
 
 #[derive(Clone, Copy, Debug, Serialize_repr, Deserialize_repr, Eq, PartialEq)]
@@ -92,7 +90,7 @@ impl GameState {
                 self.next_moves.insert(team, player_move);
                 Ok(())
             }
-            Err(err) => Err(err),
+            Err(err) => Err(GameError::InvalidMove(err)),
         }
     }
 
