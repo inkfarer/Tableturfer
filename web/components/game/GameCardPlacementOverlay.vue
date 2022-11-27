@@ -41,7 +41,7 @@ const placeable = computed(() => {
         return false;
     }
 
-    return gameBoardStore.isPlaceable(activeCardStore.position, activeCardStore.activeCard.squares, roomStore.playerTeam);
+    return gameBoardStore.isPlaceable(activeCardStore.position, activeCardStore.activeCard.squares);
 });
 
 </script>

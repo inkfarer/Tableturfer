@@ -52,7 +52,8 @@ export const useGameBoardStore = defineStore('gameBoard', {
             };
         },
         isPlaceable() {
-            return (position: Position, cardSquares: CardSquareType[][] | null, team: PlayerTeam | null) => {
+            return (position: Position, cardSquares: CardSquareType[][] | null) => {
+                const team = useRoomStore().playerTeam;
                 if (cardSquares == null || this.board == null || team == null) {
                     return false;
                 }
