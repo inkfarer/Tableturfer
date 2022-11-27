@@ -1,5 +1,10 @@
 <template>
-    <div class="board">
+    <div
+        class="board"
+        :class="{
+            'special-attack': activeCardStore.special
+        }"
+    >
         <GameCardPlacementOverlay />
         <div
             v-for="(row, rowIndex) in gameBoardStore.board"
@@ -23,13 +28,26 @@
 <script lang="ts" setup>
 import Constants from '~/data/Constants';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
+import { useActiveCardStore } from '~/stores/ActiveCardStore';
 
+const activeCardStore = useActiveCardStore();
 const gameBoardStore = useGameBoardStore();
 </script>
 
 <style lang="scss">
 .board {
     position: relative;
+    background-color: #eee;
+
+    &.special-attack {
+        .map-square_5 {
+            opacity: 0.1;
+        }
+
+        .map-square_4 {
+            opacity: 0.3;
+        }
+    }
 }
 
 .square-row {
@@ -37,10 +55,6 @@ const gameBoardStore = useGameBoardStore();
 }
 
 .square {
-    &.map-square_1 {
-        background-color: #eee;
-    }
-
     &.map-square_2 {
         background-color: #EC9009;
     }

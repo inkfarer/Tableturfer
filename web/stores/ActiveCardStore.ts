@@ -13,6 +13,7 @@ interface ActiveCardStore {
     activeCard: ActiveCard | null
     position: Position
     rotation: CardRotation
+    special: boolean
 }
 
 export interface CardSize {
@@ -27,7 +28,8 @@ export const useActiveCardStore = defineStore('activeCard', {
             x: 0,
             y: 0
         },
-        rotation: 0
+        rotation: 0,
+        special: false
     }),
     getters: {
         cardSizeWithoutRotation: (state): CardSize => {

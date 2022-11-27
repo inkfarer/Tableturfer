@@ -12,6 +12,14 @@
             <button @click="activeCardStore.position = { x: overrideX, y: overrideY }">Override Position</button>
         </div>
 
+        <label>
+            special attack!
+            <input
+                v-model="activeCardStore.special"
+                type="checkbox"
+            >
+        </label>
+
         <button @click="activeCardStore.moveUp()">Up</button>
         <div>
             <button @click="activeCardStore.moveLeft()">Left</button>
@@ -46,9 +54,10 @@ function placeCard() {
         cardName: activeCardStore.activeCard.name,
         position: activeCardStore.position,
         rotation: activeCardStore.rotation,
-        special: false
+        special: activeCardStore.special
     });
     activeCardStore.setActiveCard(null);
+    activeCardStore.special = false;
 }
 
 const overrideX = ref(0);

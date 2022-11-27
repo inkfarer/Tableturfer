@@ -21,6 +21,9 @@
         <div>
             special: {{ gameBoardStore.specialPointCount }}
         </div>
+        <div>
+            used sp: {{ gameBoardStore.usedSpecialPoints }}
+        </div>
     </div>
 </template>
 

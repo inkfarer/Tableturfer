@@ -28,12 +28,17 @@ import { activateSpecialSquares } from '~/helpers/BoardHelper';
 interface GameBoardStore {
     name: string
     board: MapSquareType[][] | null
+    usedSpecialPoints: { [key in PlayerTeam]: number }
 }
 
 export const useGameBoardStore = defineStore('gameBoard', {
     state: (): GameBoardStore => ({
         name: 'unknown',
-        board: null
+        board: null,
+        usedSpecialPoints: {
+            [PlayerTeam.ALPHA]: 0,
+            [PlayerTeam.BRAVO]: 0
+        }
     }),
     getters: {
         boardSize: state => {
@@ -134,6 +139,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
         setBoard(map: GameMap) {
             this.name = map.name;
             this.board = map.squares;
+            this.usedSpecialPoints = { [PlayerTeam.ALPHA]: 0, [PlayerTeam.BRAVO]: 0 };
 
             const playerTeam = useRoomStore().playerTeam;
             if (playerTeam != null) {
@@ -151,16 +157,19 @@ export const useGameBoardStore = defineStore('gameBoard', {
             const boardUpdates = fill2D(this.boardSize.width, this.boardSize.height, MapSquareType.EMPTY);
 
             const movesWithCards = Object.entries(moves).map(([team, move]) => {
-                const squares = (Cards as Record<string, Card>)[move.cardName]?.squares;
-                if (squares == null) {
+                const card = (Cards as Record<string, Card>)[move.cardName];
+                if (card == null) {
                     throw new Error(`Unknown card "${move.cardName}"`);
                 }
-                const normalizedSquares = rotateClockwiseBy(normalizeCardSquares(squares), move.rotation);
+                const normalizedSquares = rotateClockwiseBy(normalizeCardSquares(card.squares), move.rotation);
 
                 return {
                     ...move,
                     team: team as PlayerTeam,
-                    cardSquares: normalizedSquares,
+                    card: {
+                        ...card,
+                        squares: normalizedSquares
+                    },
                     cardSquareCount: count2D(normalizedSquares, square => square !== CardSquareType.EMPTY)
                 };
             });
@@ -169,7 +178,11 @@ export const useGameBoardStore = defineStore('gameBoard', {
             const squareCountsMatch = movesWithCards.every(move => move.cardSquareCount === movesWithCards[0].cardSquareCount);
 
             movesWithCards.forEach(move => {
-                forEach2D(move.cardSquares, (square, position) => {
+                if (move.special) {
+                    this.usedSpecialPoints[move.team] += move.card.specialCost;
+                }
+
+                forEach2D(move.card.squares, (square, position) => {
                     if (square === CardSquareType.EMPTY) {
                         return;
                     }

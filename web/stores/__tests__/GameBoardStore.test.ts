@@ -223,6 +223,7 @@ describe('GameBoardStore', () => {
         describe('setBoard', () => {
             it('updates the board', () => {
                 const store = useGameBoardStore();
+                store.usedSpecialPoints = { [PlayerTeam.ALPHA]: 2, [PlayerTeam.BRAVO]: 4 };
                 const squares = [
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY],
@@ -236,6 +237,7 @@ describe('GameBoardStore', () => {
 
                 expect(store.name).toEqual('cool-map');
                 expect(store.board).toEqual(squares);
+                expect(store.usedSpecialPoints).toEqual({ [PlayerTeam.ALPHA]: 0, [PlayerTeam.BRAVO]: 0 });
             });
 
             it.each([
@@ -276,12 +278,14 @@ describe('GameBoardStore', () => {
                     [PlayerTeam.ALPHA]: {
                         cardName: 'BombCurling',
                         position: { x: 1, y: 1 },
-                        rotation: 270
+                        rotation: 270,
+                        special: false
                     },
                     [PlayerTeam.BRAVO]: {
                         cardName: 'SaberLight00',
                         position: { x: 3, y: 1 },
-                        rotation: 0
+                        rotation: 0,
+                        special: false
                     }
                 });
 
@@ -304,12 +308,14 @@ describe('GameBoardStore', () => {
                     [PlayerTeam.ALPHA]: {
                         cardName: 'BombCurling',
                         position: { x: 1, y: 1 },
-                        rotation: 270
+                        rotation: 270,
+                        special: false
                     },
                     [PlayerTeam.BRAVO]: {
                         cardName: 'BombCurling',
                         position: { x: 1, y: 1 },
-                        rotation: 270
+                        rotation: 270,
+                        special: false
                     }
                 });
 
@@ -330,12 +336,14 @@ describe('GameBoardStore', () => {
                     [PlayerTeam.ALPHA]: {
                         cardName: 'BombCurling',
                         position: { x: 2, y: 2 },
-                        rotation: 90
+                        rotation: 90,
+                        special: false
                     },
                     [PlayerTeam.BRAVO]: {
                         cardName: 'BombCurling',
                         position: { x: 1, y: 2 },
-                        rotation: 180
+                        rotation: 180,
+                        special: false
                     }
                 });
 
@@ -360,12 +368,14 @@ describe('GameBoardStore', () => {
                     [PlayerTeam.ALPHA]: {
                         cardName: 'BombCurling',
                         position: { x: 2, y: 2 },
-                        rotation: 90
+                        rotation: 90,
+                        special: false
                     },
                     [PlayerTeam.BRAVO]: {
                         cardName: 'BombCurling',
                         position: { x: 1, y: 2 },
-                        rotation: 180
+                        rotation: 180,
+                        special: false
                     }
                 });
 
@@ -386,12 +396,14 @@ describe('GameBoardStore', () => {
                     [PlayerTeam.ALPHA]: {
                         cardName: 'BombCurling',
                         position: { x: 1, y: 1 },
-                        rotation: 90
+                        rotation: 90,
+                        special: false
                     },
                     [PlayerTeam.BRAVO]: {
                         cardName: 'SaberLight00',
                         position: { x: 1, y: 1 },
-                        rotation: 0
+                        rotation: 0,
+                        special: false
                     }
                 });
 
@@ -412,12 +424,14 @@ describe('GameBoardStore', () => {
                     [PlayerTeam.BRAVO]: {
                         cardName: 'SaberLight00',
                         position: { x: 1, y: 1 },
-                        rotation: 0
+                        rotation: 0,
+                        special: false
                     },
                     [PlayerTeam.ALPHA]: {
                         cardName: 'BombCurling',
                         position: { x: 1, y: 1 },
-                        rotation: 90
+                        rotation: 90,
+                        special: false
                     }
                 });
 
@@ -438,12 +452,14 @@ describe('GameBoardStore', () => {
                     [PlayerTeam.ALPHA]: {
                         cardName: 'BombCurling',
                         position: { x: 0, y: 0 },
-                        rotation: 90
+                        rotation: 90,
+                        special: false
                     },
                     [PlayerTeam.BRAVO]: {
                         cardName: 'SaberLight00',
                         position: { x: 1, y: 1 },
-                        rotation: 0
+                        rotation: 0,
+                        special: false
                     }
                 });
 
@@ -464,12 +480,14 @@ describe('GameBoardStore', () => {
                     [PlayerTeam.BRAVO]: {
                         cardName: 'SaberLight00',
                         position: { x: 1, y: 1 },
-                        rotation: 0
+                        rotation: 0,
+                        special: false
                     },
                     [PlayerTeam.ALPHA]: {
                         cardName: 'BombCurling',
                         position: { x: 0, y: 0 },
-                        rotation: 90
+                        rotation: 90,
+                        special: false
                     }
                 });
 
@@ -481,6 +499,28 @@ describe('GameBoardStore', () => {
                     [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.FILL_BRAVO, MST.EMPTY, MST.EMPTY, MST.EMPTY, MST.EMPTY]
                 ]);
+            });
+
+            it('adds to the used point count for special moves', () => {
+                const store = useGameBoardStore();
+                store.usedSpecialPoints = { [PlayerTeam.ALPHA]: 2, [PlayerTeam.BRAVO]: 4 };
+
+                store.applyMoves({
+                    [PlayerTeam.BRAVO]: {
+                        cardName: 'SaberLight00',
+                        position: { x: 1, y: 1 },
+                        rotation: 0,
+                        special: true
+                    },
+                    [PlayerTeam.ALPHA]: {
+                        cardName: 'BombCurling',
+                        position: { x: 0, y: 0 },
+                        rotation: 90,
+                        special: true
+                    }
+                });
+
+                expect(store.usedSpecialPoints).toEqual({ [PlayerTeam.ALPHA]: 4, [PlayerTeam.BRAVO]: 6 });
             });
         });
     });
