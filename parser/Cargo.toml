@@ -1,0 +1,9 @@
+[package]
+name = "tableturfer-data-parser"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+byml = { path = "lib/byml" }
+zstd = "0.12"
+itertools = "0.10"

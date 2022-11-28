@@ -1,0 +1,19 @@
+[package]
+name = "byml"
+description = "Nintendo BYML (binary YAML) library in Rust"
+documentation = "https://docs.rs/byml"
+readme = "README.md"
+keywords = ["Nintendo", "byml", "Zelda", "parsing", "modding"]
+categories = ["game-development", "parsing"]
+version = "0.1.4"
+authors = ["Caleb Smith <macadamiadaze@gmail.com>"]
+license = "MIT"
+edition = "2018"
+
+[dependencies]
+binread = "^1.0.1"
+byteorder = "1.3.4"
+yaz0 = "0.1.2"
+
+[dev-dependencies]
+glob = "0.3.0"
