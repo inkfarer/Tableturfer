@@ -22,4 +22,5 @@ chrono = { version = "0.4", features = ["serde"] }
 itertools = "0.10.5"
 strum = { version = "0.24", features = ["derive"] }
 
+[dev-dependencies]
 parameterized = "1.0"
