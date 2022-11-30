@@ -1,5 +1,6 @@
 pub mod iter;
 pub mod index;
+pub mod serde;
 
 pub use self::index::Slice;
 
