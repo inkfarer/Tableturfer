@@ -13,7 +13,8 @@ use crate::game::map::{DEFAULT_GAME_MAP, GameMap};
 use crate::game::move_validator::MoveValidatorImpl;
 use crate::game::state::{GameError, GameState, PlayerMove};
 use crate::game::team::PlayerTeam;
-use crate::socket::messages::{RoomEvent, SocketError};
+use crate::socket::messages::{RoomEvent, SocketError, SocketEvent};
+use crate::socket::SocketSender;
 
 const ROOM_CODE_SIZE: usize = 4;
 const DECK_SIZE: usize = 15;
@@ -42,28 +43,31 @@ pub struct Room {
     pub owner_id: Uuid,
     pub opponent_id: Option<Uuid>,
     pub users: HashMap<Uuid, RoomUser>,
+    pub user_channels: HashMap<Uuid, SocketSender>,
     pub map: GameMap,
     pub game_state: Option<GameState>,
     pub card_provider: Arc<dyn CardProvider + Send + Sync>
 }
 
 impl Room {
-    fn new(owner_id: Uuid) -> Self {
+    fn new(owner_id: Uuid, owner_channel: SocketSender) -> Self {
         Room {
             sender: broadcast::channel(100).0,
             owner_id,
             opponent_id: None,
             users: HashMap::from([(owner_id, RoomUser::new())]),
+            user_channels: HashMap::from([(owner_id, owner_channel)]),
             map: DEFAULT_GAME_MAP,
             game_state: None,
             card_provider: Arc::new(CardSquareProviderImpl::new()),
         }
     }
 
-    fn add_user(&mut self, id: Uuid) {
+    fn add_user(&mut self, id: Uuid, channel: SocketSender) {
         let user = RoomUser::new();
 
         self.users.insert(id, user.clone());
+        self.user_channels.insert(id, channel);
         self.sender.send(RoomEvent::UserJoin { id, user }).ok();
 
         if self.opponent_id.is_none() {
@@ -72,6 +76,8 @@ impl Room {
     }
 
     fn remove_user(&mut self, id: Uuid) {
+        self.user_channels.remove(&id);
+
         if self.users.remove(&id).is_some() {
             self.sender.send(RoomEvent::UserLeave(id)).ok();
 
@@ -127,20 +133,41 @@ impl Room {
         }
     }
 
-    pub fn start_game(&mut self) -> Result<(), SocketError> {
+    pub async fn start_game(&mut self) -> Result<(), SocketError> {
         if self.opponent_id.is_none() {
             Err(SocketError::MissingOpponent)
         } else if [self.owner_id, self.opponent_id.unwrap()].iter().any(|user| self.users[user].deck.is_none()) {
             Err(SocketError::DecksNotChosen)
         } else {
-            self.game_state = Some(GameState::new(
+            let players = self.get_players();
+            let mut game_state = GameState::new(
                 self.map.to_squares(),
                 self.card_provider.clone(),
-                Arc::new(MoveValidatorImpl::new(self.card_provider.clone()))
-            ));
+                Arc::new(MoveValidatorImpl::new(self.card_provider.clone())),
+                players.into_iter().map(|(team, player)| {
+                    (team, player.deck.as_ref().unwrap().clone())
+                }).collect()
+            );
             self.sender.send(RoomEvent::StartGame).ok();
+
+            let initial_hands = game_state.assign_initial_hands();
+            for (team, hand) in initial_hands {
+                self.send_to_player(team, SocketEvent::RoomEvent(RoomEvent::HandAssigned(hand))).await;
+            }
+
+            self.game_state = Some(game_state);
             Ok(())
         }
+    }
+
+    fn get_players(&self) -> HashMap<PlayerTeam, &RoomUser> {
+        let mut result = HashMap::from([(PlayerTeam::Alpha, &self.users[&self.owner_id])]);
+
+        if let Some(opponent_id) = self.opponent_id {
+            result.insert(PlayerTeam::Bravo, &self.users[&opponent_id]);
+        }
+
+        result
     }
 
     pub fn set_deck(&mut self, id: Uuid, deck: IndexSet<String>) -> Result<(), SocketError> {
@@ -173,6 +200,19 @@ impl Room {
         })
     }
 
+    async fn send_to_player(&self, team: PlayerTeam, message: SocketEvent) {
+        log::debug!("send_to_player {:?} {:?}", team, message);
+        let sender: Option<&SocketSender> = match team {
+            PlayerTeam::Alpha => self.user_channels.get(&self.owner_id),
+            PlayerTeam::Bravo => self.opponent_id.map_or(None, |id| self.user_channels.get(&id)),
+        };
+
+        if let Some(sender) = sender {
+            log::debug!("sending to player {:?}", team);
+            sender.send(message).await.ok();
+        }
+    }
+
     fn do_with_game<F>(&mut self, action: F) -> Result<(), SocketError>
         where
             F: FnOnce(&mut GameState) -> Result<(), GameError>,
@@ -202,7 +242,7 @@ pub struct SocketRoomStore {
 }
 
 impl SocketRoomStore {
-    pub fn create(&mut self, conn_id: Uuid) -> (String, Room) {
+    pub fn create(&mut self, conn_id: Uuid, conn_channel: SocketSender) -> (String, Room) {
         log::debug!("Connection {conn_id} is creating a new room");
         let mut room_code = Self::generate_room_code();
 
@@ -210,7 +250,7 @@ impl SocketRoomStore {
             room_code = Self::generate_room_code();
         }
 
-        let room = Room::new(conn_id);
+        let room = Room::new(conn_id, conn_channel);
 
         log::debug!("Connection {conn_id} joins room {room_code}");
         self.rooms.insert(room_code.to_owned(), room.clone());
@@ -222,11 +262,11 @@ impl SocketRoomStore {
         Alphanumeric.sample_string(&mut rand::thread_rng(), ROOM_CODE_SIZE).to_uppercase()
     }
 
-    pub fn get_and_join_if_exists(&mut self, room_code: &str, conn_id: Uuid) -> Option<Room> {
+    pub fn get_and_join_if_exists(&mut self, room_code: &str, conn_id: Uuid, conn_channel: SocketSender) -> Option<Room> {
         log::debug!("Connection {conn_id} attempts to join room {room_code}");
         match self.rooms.get_mut(room_code) {
             Some(room) => {
-                room.add_user(conn_id);
+                room.add_user(conn_id, conn_channel);
 
                 Some(room.clone())
             }

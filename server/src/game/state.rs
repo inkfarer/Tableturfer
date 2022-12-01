@@ -1,16 +1,20 @@
 use std::collections::HashMap;
 use std::ops::AddAssign;
 use std::sync::Arc;
+use indexmap::IndexSet;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use strum::EnumCount;
 use itertools::Itertools;
+use rand::prelude::IteratorRandom;
 use crate::game::card::{Card, CardProvider, CardSquareType};
 use crate::game::move_validator::{InvalidMoveError, MoveValidator};
 use crate::game::squares::MapSquareType;
 use crate::game::team::PlayerTeam;
 use crate::matrix::{Matrix, MatrixRotation, Slice};
 use crate::position::{INamedPosition, UNamedPosition};
+
+pub const HAND_SIZE: usize = 4;
 
 #[derive(Serialize, Debug, Eq, PartialEq)]
 #[serde(tag = "code", content = "detail")]
@@ -49,6 +53,53 @@ pub struct PlayerMove {
     pub special: bool,
 }
 
+#[derive(Clone)]
+struct PlayerDeck {
+    pub cards: IndexSet<String>,
+    pub used_cards: IndexSet<String>,
+    pub current_hand: IndexSet<String>,
+}
+
+impl PlayerDeck {
+    pub fn new(cards: IndexSet<String>) -> Self {
+        Self {
+            cards,
+            used_cards: IndexSet::new(),
+            current_hand: IndexSet::new(),
+        }
+    }
+
+    fn available_cards(&self) -> IndexSet<&String> {
+        self.cards.difference(&self.used_cards).collect()
+    }
+
+    fn upcoming_cards(&self) -> IndexSet<String> {
+        let used_or_available_cards: IndexSet<String> = self.used_cards.union(&self.current_hand).map(|str| str.to_string()).collect();
+        self.cards.difference(&used_or_available_cards).map(|str| str.to_owned()).collect()
+    }
+
+    pub fn assign_cards(&mut self) -> &IndexSet<String> {
+        let mut rng = rand::thread_rng();
+        self.current_hand = self.available_cards().into_iter()
+            .choose_multiple(&mut rng, HAND_SIZE).iter()
+            .map(|card| card.to_string())
+            .collect();
+
+        &self.current_hand
+    }
+
+    pub fn use_card(&mut self, card_name: &str) {
+        if self.cards.contains(card_name) {
+            self.used_cards.insert(card_name.to_string());
+
+            self.current_hand.remove(card_name);
+            let upcoming_cards = self.upcoming_cards();
+            let mut rng = rand::thread_rng();
+            self.current_hand.insert(upcoming_cards.iter().choose(&mut rng).unwrap().to_string());
+        }
+    }
+}
+
 struct AugmentedPlayerMove {
     player_move: PlayerMove,
     card: Card,
@@ -62,6 +113,8 @@ pub struct GameState {
     // todo: for cleanup, maybe have a separate ScoreCounter struct that keeps track of these?
     special_points: HashMap<PlayerTeam, usize>,
     used_special_points: HashMap<PlayerTeam, usize>,
+    decks: HashMap<PlayerTeam, PlayerDeck>,
+
     square_provider: Arc<dyn CardProvider + Send + Sync>,
     move_validator: Arc<dyn MoveValidator + Send + Sync>,
 }
@@ -71,12 +124,14 @@ impl GameState {
         board: Matrix<MapSquareType>,
         square_provider: Arc<dyn CardProvider + Send + Sync>,
         move_validator: Arc<dyn MoveValidator + Send + Sync>,
+        decks: HashMap<PlayerTeam, IndexSet<String>>,
     ) -> Self {
         Self {
             board,
             next_moves: HashMap::new(),
             special_points: Self::score_counter(),
             used_special_points: Self::score_counter(),
+            decks: decks.into_iter().map(|(team, cards)| (team, PlayerDeck::new(cards))).collect(),
             square_provider,
             move_validator,
         }
@@ -84,6 +139,10 @@ impl GameState {
 
     fn score_counter() -> HashMap<PlayerTeam, usize> {
         HashMap::from([(PlayerTeam::Alpha, 0), (PlayerTeam::Bravo, 0)])
+    }
+
+    pub fn assign_initial_hands(&mut self) -> HashMap<PlayerTeam, IndexSet<String>> {
+        self.decks.iter_mut().map(|(team, deck)| (team.clone(), deck.assign_cards().clone())).collect()
     }
 
     pub fn propose_move(&mut self, team: PlayerTeam, player_move: PlayerMove) -> Result<(), GameError> {
@@ -210,6 +269,7 @@ mod tests {
             Matrix::filled_with(MatrixSize::new(6, 6), MST::Empty),
             TestCardSquareProvider::new().clone(),
             Arc::new(TestMoveValidator {}),
+            HashMap::new(),
         )
     }
 
@@ -501,6 +561,65 @@ mod tests {
 
             assert_eq!(state.board, new_board);
             assert_eq!(state.special_points, HashMap::from([(PlayerTeam::Alpha, 15), (PlayerTeam::Bravo, 1)]));
+        }
+    }
+
+    mod player_deck {
+        use super::*;
+
+        fn set(items: Vec<&str>) -> IndexSet<String> {
+            items.into_iter().map(|str| str.to_string()).collect()
+        }
+
+        #[test]
+        fn available_cards() {
+            let mut deck = PlayerDeck::new(set(vec!(
+                "card_1",
+                "card_2",
+                "card_3",
+                "card_4",
+            )));
+
+            assert_eq!(deck.available_cards(), IndexSet::from([
+                &"card_1".to_owned(),
+                &"card_2".to_owned(),
+                &"card_3".to_owned(),
+                &"card_4".to_owned(),
+            ]));
+
+            deck.used_cards = set(vec!(
+                "card_2",
+                "card_4",
+            ));
+
+            assert_eq!(deck.available_cards(), IndexSet::from([
+                &"card_1".to_owned(),
+                &"card_3".to_owned(),
+            ]));
+        }
+
+        #[test]
+        fn upcoming_cards() {
+            let mut deck = PlayerDeck::new(set(vec!(
+                "card_1",
+                "card_2",
+                "card_3",
+                "card_4",
+                "card_5",
+            )));
+            deck.current_hand = set(vec!(
+                "card_1",
+                "card_2",
+            ));
+            deck.used_cards = set(vec!(
+                "card_2",
+                "card_3",
+            ));
+
+            assert_eq!(deck.upcoming_cards(), set(vec!(
+                "card_4",
+                "card_5",
+            )))
         }
     }
 }

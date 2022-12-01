@@ -21,13 +21,31 @@ pub enum SocketError {
     GameError(GameError),
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 #[serde(tag = "action", content = "args")]
 pub enum SocketAction {
     SetMap(GameMap),
     StartGame,
     ProposeMove(PlayerMove),
     SetDeck(IndexSet<String>),
+}
+
+impl SocketAction {
+    pub fn is_owner_action(&self) -> bool {
+        match self {
+            SocketAction::SetMap(_) => true,
+            SocketAction::StartGame => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_player_action(&self) -> bool {
+        match self {
+            SocketAction::SetDeck(_) => true,
+            SocketAction::ProposeMove(_) => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Serialize, Debug)]
@@ -59,4 +77,5 @@ pub enum RoomEvent {
     StartGame,
     MoveReceived(PlayerTeam),
     MovesApplied(HashMap<PlayerTeam, PlayerMove>),
+    HandAssigned(IndexSet<String>),
 }

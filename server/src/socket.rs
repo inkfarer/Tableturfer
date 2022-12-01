@@ -24,9 +24,11 @@ pub struct SocketRouteParams {
     room: Option<String>,
 }
 
+pub type SocketSender = mpsc::Sender<SocketEvent>;
+
 pub struct SocketHandler {
     id: Uuid,
-    socket_channel: mpsc::Sender<SocketEvent>,
+    socket_channel: SocketSender,
     room_channel: broadcast::Sender<RoomEvent>,
     state: Arc<AppState>,
     room_code: String,
@@ -41,8 +43,11 @@ impl SocketHandler {
         // Split the stream so we can create two separate tasks for getting data to and from the socket
         let (mut sender, receiver) = socket.split();
         let id = Uuid::new_v4();
+        // As the socket's stream requires a mutable reference to send messages, we create a new channel
+        // here that as many separate threads can send messages into as needed
+        let socket_channel = mpsc::channel(8);
 
-        let (room_code, room) = Self::get_room(id, state.clone(), room_code);
+        let (room_code, room) = Self::get_and_join_room(id, state.clone(), room_code, socket_channel.0.clone()).await;
         if room.is_none() {
             log::debug!("Rejecting WS connection as it attempted to join a non-existent room");
             sender.send(Message::Close(Some(SocketCloseCode::RoomNotFound(room_code).into()))).await.unwrap();
@@ -50,9 +55,6 @@ impl SocketHandler {
         }
 
         let room = room.unwrap();
-        // As the socket's stream requires a mutable reference to send messages, we create a new channel
-        // here that as many separate threads can send messages into as needed
-        let socket_channel = mpsc::channel(8);
 
         Self {
             id,
@@ -63,16 +65,22 @@ impl SocketHandler {
         }.init(room, sender, receiver, socket_channel.1).await;
     }
 
-    fn get_room(id: Uuid, state: Arc<AppState>, room_code: Option<String>) -> (String, Option<Room>) {
-        let mut room_store = state.room_store.write().unwrap();
+    async fn get_and_join_room(
+        id: Uuid,
+        state: Arc<AppState>,
+        room_code: Option<String>,
+        event_sender: SocketSender
+    ) -> (String, Option<Room>)
+    {
+        let mut room_store = state.room_store.write().await;
 
         match room_code {
             Some(room_code) => {
                 let room_code = room_code.to_uppercase();
-                (room_code.to_owned(), room_store.get_and_join_if_exists(&room_code, id))
+                (room_code.to_owned(), room_store.get_and_join_if_exists(&room_code, id, event_sender))
             }
             None => {
-                let (room_code, room) = room_store.create(id.clone());
+                let (room_code, room) = room_store.create(id.clone(), event_sender);
                 (room_code, Some(room))
             }
         }
@@ -94,7 +102,7 @@ impl SocketHandler {
         }
         receive_from_room_task.abort();
         {
-            let mut room_store = self.state.room_store.write().unwrap();
+            let mut room_store = self.state.room_store.write().await;
             room_store.remove_user_from_room(&self.room_code, self.id);
         }
 

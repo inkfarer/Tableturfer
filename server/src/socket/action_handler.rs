@@ -1,8 +1,11 @@
 use std::sync::Arc;
+use indexmap::IndexSet;
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::error::SendError;
 use uuid::Uuid;
 use crate::AppState;
+use crate::game::map::GameMap;
+use crate::game::state::PlayerMove;
 use crate::game::team::PlayerTeam;
 use crate::socket::messages::{SocketError, SocketEvent, SocketAction};
 use crate::socket::room_store::Room;
@@ -13,6 +16,8 @@ pub struct SocketActionHandler {
     socket_channel: mpsc::Sender<SocketEvent>,
     room_code: String,
 }
+
+type ActionHandlerResult = Result<(), SocketError>;
 
 impl SocketActionHandler {
     pub fn new(id: Uuid, socket_channel: mpsc::Sender<SocketEvent>, state: Arc<AppState>, room_code: String) -> Self {
@@ -25,65 +30,54 @@ impl SocketActionHandler {
     }
 
     pub async fn handle_action(&self, action: SocketAction) {
-        match action {
-            SocketAction::SetMap(map) =>
-                self.using_room_if_owner(|room| room.set_map(map)).await,
-            SocketAction::StartGame =>
-                self.using_room_if_owner(|room| room.start_game()).await,
-            SocketAction::ProposeMove(player_move) =>
-                self.using_room_if_player(|room, team| room.propose_move(team, player_move)).await,
-            SocketAction::SetDeck(deck) =>
-                self.using_room_if_player(|room, _| room.set_deck(self.id, deck)).await,
-        }
-    }
-
-    async fn using_room_if_owner<F>(&self, action: F)
-        where
-            F: FnOnce(&mut Room) -> Result<(), SocketError>,
-    {
-        self.using_room(|room| {
-            if room.owner_id == self.id {
-                action(room)
-            } else {
-                Err(SocketError::UserNotRoomOwner)
-            }
-        }).await
-    }
-
-    async fn using_room_if_player<F>(&self, action: F)
-        where
-            F: FnOnce(&mut Room, PlayerTeam) -> Result<(), SocketError>,
-    {
-        self.using_room(|room| {
-            if room.owner_id == self.id || room.is_opponent(self.id) {
-                let team = if room.owner_id == self.id {
-                    PlayerTeam::Alpha
-                } else {
-                    PlayerTeam::Bravo
-                };
-
-                action(room, team)
-            } else {
-                Err(SocketError::UserNotPlaying)
-            }
-        }).await
-    }
-
-    async fn using_room<F>(&self, action: F)
-        where
-            F: FnOnce(&mut Room) -> Result<(), SocketError>,
-    {
-        let action_result = {
-            let mut room_store = self.state.room_store.write().unwrap();
+        let result: ActionHandlerResult = {
+            let mut room_store = self.state.room_store.write().await;
             if let Some(room) = room_store.get_mut(&self.room_code) {
-                action(room)
+                let auth_result = self.authorize_action(action.clone(), room);
+
+                if auth_result.is_ok() {
+                    match action {
+                        SocketAction::SetMap(map) => room.set_map(map),
+                        SocketAction::StartGame => room.start_game().await,
+                        SocketAction::ProposeMove(player_move) => {
+                            let team = self.team(room);
+                            room.propose_move(team.unwrap(), player_move)
+                        },
+                        SocketAction::SetDeck(deck) => room.set_deck(self.id, deck),
+                    }
+                } else {
+                    auth_result
+                }
             } else {
                 Err(SocketError::RoomNotFound(self.room_code.clone()))
             }
         };
 
-        if let Err(err) = action_result {
+        if let Err(err) = result {
             self.send_error(err).await.unwrap();
+        }
+    }
+
+    fn authorize_action(&self, action: SocketAction, room: &Room) -> ActionHandlerResult {
+        if action.is_owner_action() && room.owner_id != self.id {
+            Err(SocketError::UserNotRoomOwner)
+        } else if action.is_player_action()
+            && room.owner_id != self.id
+            && !room.is_opponent(self.id)
+        {
+            Err(SocketError::UserNotPlaying)
+        } else {
+            Ok(())
+        }
+    }
+
+    fn team(&self, room: &Room) -> Option<PlayerTeam> {
+        if room.owner_id == self.id {
+            Some(PlayerTeam::Alpha)
+        } else if room.opponent_id == Some(self.id) {
+            Some(PlayerTeam::Bravo)
+        } else {
+            None
         }
     }
 
