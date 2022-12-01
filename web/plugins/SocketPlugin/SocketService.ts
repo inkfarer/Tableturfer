@@ -142,6 +142,7 @@ export class SocketService {
                 break;
             case 'MovesApplied':
                 useGameBoardStore().applyMoves(event.detail);
+                useDeckStore().setUsedCards(event.detail);
                 break;
             case 'HandAssigned':
                 useDeckStore().availableCards = event.detail;
