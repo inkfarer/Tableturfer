@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use indexmap::IndexSet;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use crate::game::map::GameMap;
@@ -16,6 +17,7 @@ pub enum SocketError {
     MissingOpponent,
     RoomStarted,
     RoomNotStarted,
+    DecksNotChosen,
     GameError(GameError),
 }
 
@@ -25,6 +27,7 @@ pub enum SocketAction {
     SetMap(GameMap),
     StartGame,
     ProposeMove(PlayerMove),
+    SetDeck(IndexSet<String>),
 }
 
 #[derive(Serialize, Debug)]
@@ -48,11 +51,12 @@ pub enum SocketEvent {
 #[serde(tag = "event", content = "detail")]
 pub enum RoomEvent {
     UserJoin { id: Uuid, user: RoomUser },
+    UserUpdate { id: Uuid, user: RoomUser },
     UserLeave(Uuid),
     OwnerChange(Uuid),
     OpponentChange(Option<Uuid>),
     MapChange(GameMap),
     StartGame,
     MoveReceived(PlayerTeam),
-    MovesApplied(HashMap<PlayerTeam, PlayerMove>)
+    MovesApplied(HashMap<PlayerTeam, PlayerMove>),
 }

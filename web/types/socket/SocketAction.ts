@@ -4,4 +4,5 @@ export interface SocketActionMap {
     SetMap: string
     StartGame: never
     ProposeMove: PlayerMove
+    SetDeck: string[]
 }

@@ -16,6 +16,8 @@ use crate::position::{INamedPosition, UNamedPosition};
 #[serde(tag = "code", content = "detail")]
 pub enum GameError {
     InvalidMove(InvalidMoveError),
+    CardNotFound,
+    IncorrectDeckSize,
 }
 
 #[derive(Clone, Copy, Debug, Serialize_repr, Deserialize_repr, Eq, PartialEq)]

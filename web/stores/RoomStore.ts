@@ -23,6 +23,9 @@ export const useRoomStore = defineStore('room', {
     getters: {
         isRoomOwner: state => state.id === state.owner,
         isOpponent: state => state.id === state.opponent,
+        isPlayer() {
+            return this.isRoomOwner || this.isOpponent;
+        },
         playerTeam() {
             if (this.isRoomOwner) {
                 return PlayerTeam.ALPHA;
@@ -42,7 +45,7 @@ export const useRoomStore = defineStore('room', {
             this.opponent = message.opponent;
             this.started = message.started;
         },
-        addUser(id: string, user: SocketUser) {
+        upsertUser(id: string, user: SocketUser) {
             this.users[id] = user;
         },
         removeUser(id: string) {

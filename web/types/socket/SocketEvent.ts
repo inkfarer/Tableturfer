@@ -15,6 +15,7 @@ export type AnySocketError = {
 
 export interface SocketUser {
     joinedAt: string
+    deck: string[] | null
 }
 
 export interface SocketMessageMap {

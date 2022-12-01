@@ -5,6 +5,7 @@ import { PlayerTeam } from '~/types/PlayerTeam';
 
 export interface RoomEventMap {
     UserJoin: { id: string, user: SocketUser }
+    UserUpdate: { id: string, user: SocketUser }
     UserLeave: string
     OwnerChange: string
     MapChange: string

@@ -2,12 +2,13 @@ use std::borrow::BorrowMut;
 use std::collections::HashMap;
 use std::sync::Arc;
 use chrono::{DateTime, Utc};
+use indexmap::IndexSet;
 use tokio::sync::broadcast;
 use rand::distributions::{Alphanumeric, DistString};
 use uuid::Uuid;
 use itertools::Itertools;
 use serde::Serialize;
-use crate::game::card::CardSquareProviderImpl;
+use crate::game::card::{CardProvider, CardSquareProviderImpl};
 use crate::game::map::{DEFAULT_GAME_MAP, GameMap};
 use crate::game::move_validator::MoveValidatorImpl;
 use crate::game::state::{GameError, GameState, PlayerMove};
@@ -15,17 +16,20 @@ use crate::game::team::PlayerTeam;
 use crate::socket::messages::{RoomEvent, SocketError};
 
 const ROOM_CODE_SIZE: usize = 4;
+const DECK_SIZE: usize = 15;
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RoomUser {
     pub joined_at: DateTime<Utc>,
+    pub deck: Option<IndexSet<String>>
 }
 
 impl RoomUser {
     fn new() -> Self {
         RoomUser {
             joined_at: Utc::now(),
+            deck: None,
         }
     }
 }
@@ -40,6 +44,7 @@ pub struct Room {
     pub users: HashMap<Uuid, RoomUser>,
     pub map: GameMap,
     pub game_state: Option<GameState>,
+    pub card_provider: Arc<dyn CardProvider + Send + Sync>
 }
 
 impl Room {
@@ -51,6 +56,7 @@ impl Room {
             users: HashMap::from([(owner_id, RoomUser::new())]),
             map: DEFAULT_GAME_MAP,
             game_state: None,
+            card_provider: Arc::new(CardSquareProviderImpl::new()),
         }
     }
 
@@ -124,14 +130,30 @@ impl Room {
     pub fn start_game(&mut self) -> Result<(), SocketError> {
         if self.opponent_id.is_none() {
             Err(SocketError::MissingOpponent)
+        } else if [self.owner_id, self.opponent_id.unwrap()].iter().any(|user| self.users[user].deck.is_none()) {
+            Err(SocketError::DecksNotChosen)
         } else {
-            let csp = Arc::new(CardSquareProviderImpl::new());
             self.game_state = Some(GameState::new(
                 self.map.to_squares(),
-                csp.clone(),
-                Arc::new(MoveValidatorImpl::new(csp))
+                self.card_provider.clone(),
+                Arc::new(MoveValidatorImpl::new(self.card_provider.clone()))
             ));
             self.sender.send(RoomEvent::StartGame).ok();
+            Ok(())
+        }
+    }
+
+    pub fn set_deck(&mut self, id: Uuid, deck: IndexSet<String>) -> Result<(), SocketError> {
+        if self.game_started() {
+            Err(SocketError::RoomStarted)
+        } else if deck.len() != DECK_SIZE {
+            Err(SocketError::GameError(GameError::IncorrectDeckSize))
+        } else if deck.iter().any(|card| !self.card_provider.exists(card)){
+            Err(SocketError::GameError(GameError::CardNotFound))
+        } else {
+            self.modify_user(id, |user| {
+                user.deck = Some(deck);
+            });
             Ok(())
         }
     }
@@ -159,6 +181,13 @@ impl Room {
             action(game).map_err(|e| SocketError::GameError(e))
         } else {
             Err(SocketError::RoomNotStarted)
+        }
+    }
+
+    fn modify_user<F>(&mut self, id: Uuid, action: F) where F: FnOnce(&mut RoomUser) -> () {
+        if let Some(user) = self.users.get_mut(&id) {
+            action(user);
+            self.sender.send(RoomEvent::UserUpdate { id, user: user.clone() }).ok();
         }
     }
 

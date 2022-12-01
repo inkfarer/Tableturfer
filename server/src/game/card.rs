@@ -24,6 +24,7 @@ pub enum CardRarity {
 }
 
 #[derive(Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Card {
     pub category: String,
     pub name: String,

@@ -32,6 +32,8 @@ impl SocketActionHandler {
                 self.using_room_if_owner(|room| room.start_game()).await,
             SocketAction::ProposeMove(player_move) =>
                 self.using_room_if_player(|room, team| room.propose_move(team, player_move)).await,
+            SocketAction::SetDeck(deck) =>
+                self.using_room_if_player(|room, _| room.set_deck(self.id, deck)).await,
         }
     }
 
