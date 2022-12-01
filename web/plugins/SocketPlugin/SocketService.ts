@@ -3,6 +3,7 @@ import { useRoomStore } from '~/stores/RoomStore';
 import { AnyRoomEvent } from '~/types/socket/RoomEvent';
 import { SocketActionMap } from '~/types/socket/SocketAction';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
+import { useDeckStore } from '~/stores/DeckStore';
 
 export class SocketService {
     private ws: WebSocket | null;
@@ -72,6 +73,7 @@ export class SocketService {
 
         this.ws.addEventListener('close', e => {
             useRoomStore().leaveRoom();
+            useDeckStore().$reset();
 
             if (e.code >= 4000 && e.code < 5000) {
                 console.error('Websocket closed with message:', e.reason);
@@ -140,6 +142,12 @@ export class SocketService {
                 break;
             case 'MovesApplied':
                 useGameBoardStore().applyMoves(event.detail);
+                break;
+            case 'HandAssigned':
+                useDeckStore().availableCards = event.detail;
+                break;
+            case 'NextCardDrawn':
+                useDeckStore().replaceCard(event.detail.replacing, event.detail.newCard);
                 break;
         }
     }

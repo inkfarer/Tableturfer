@@ -13,6 +13,8 @@ export interface RoomEventMap {
     StartGame: never
     MoveReceived: PlayerTeam
     MovesApplied: { [team in PlayerTeam]: PlayerMove }
+    HandAssigned: string[]
+    NextCardDrawn: { newCard: string, replacing: string }
 }
 
 export type AnyRoomEvent = AnyMessage<RoomEventMap>;

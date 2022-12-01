@@ -1,11 +1,11 @@
 <template>
     <div class="game-card-selector">
         <button
-            v-for="([name, card]) in CardMap"
-            :key="`card_${name}`"
+            v-for="card in deckStore.availableCards"
+            :key="`card_${card}`"
             @click="setActiveCard(card)"
         >
-            {{ card.name }}
+            {{ card }}
         </button>
         <button @click="setActiveCard(null)">
             None
@@ -15,13 +15,14 @@
 
 <script lang="ts" setup>
 import { CardMap } from '~/helpers/Cards';
-import { Card } from '~/types/Card';
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { useDeckStore } from '~/stores/DeckStore';
 
 const activeCardStore = useActiveCardStore();
+const deckStore = useDeckStore();
 
-const setActiveCard = (card: Card | null) => {
-    activeCardStore.setActiveCard(card);
+const setActiveCard = (card: string | null) => {
+    activeCardStore.setActiveCard(card == null ? null : CardMap.get(card) ?? null);
 };
 </script>
 
