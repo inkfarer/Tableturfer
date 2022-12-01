@@ -1,4 +1,3 @@
-use std::borrow::BorrowMut;
 use std::collections::HashMap;
 use std::sync::Arc;
 use chrono::{DateTime, Utc};
@@ -185,42 +184,44 @@ impl Room {
         }
     }
 
-    pub fn propose_move(&mut self, team: PlayerTeam, player_move: PlayerMove) -> Result<(), SocketError> {
+    pub async fn propose_move(&mut self, team: PlayerTeam, player_move: PlayerMove) -> Result<(), SocketError> {
+        if self.game_state.is_none() {
+            return Err(SocketError::RoomNotStarted);
+        }
+
+        let game = self.game_state.as_mut().unwrap();
         let sender = self.sender.clone();
-        self.do_with_game(|game| {
-            let result = game.propose_move(team.clone(), player_move);
-            if result.is_ok() {
-                sender.send(RoomEvent::MoveReceived(team)).ok();
-                if game.all_players_have_moved() {
-                    let moves = game.apply_moves();
-                    sender.send(RoomEvent::MovesApplied(moves)).ok();
+        let result = game.propose_move(team.clone(), player_move);
+        if result.is_ok() {
+            sender.send(RoomEvent::MoveReceived(team)).ok();
+
+            if game.all_players_have_moved() {
+                let moves = game.apply_moves();
+
+                sender.send(RoomEvent::MovesApplied(moves.applied_moves.clone())).ok();
+
+                for (team, next_card) in moves.next_cards {
+                    self.send_to_player(
+                        team.clone(),
+                        SocketEvent::RoomEvent(RoomEvent::NextCardDrawn {
+                            new_card: next_card,
+                            replacing: moves.applied_moves[&team].card_name.clone(),
+                        })
+                    ).await;
                 }
             }
-            result
-        })
+        }
+        result.map_err(|e| SocketError::GameError(e))
     }
 
     async fn send_to_player(&self, team: PlayerTeam, message: SocketEvent) {
-        log::debug!("send_to_player {:?} {:?}", team, message);
         let sender: Option<&SocketSender> = match team {
             PlayerTeam::Alpha => self.user_channels.get(&self.owner_id),
             PlayerTeam::Bravo => self.opponent_id.map_or(None, |id| self.user_channels.get(&id)),
         };
 
         if let Some(sender) = sender {
-            log::debug!("sending to player {:?}", team);
             sender.send(message).await.ok();
-        }
-    }
-
-    fn do_with_game<F>(&mut self, action: F) -> Result<(), SocketError>
-        where
-            F: FnOnce(&mut GameState) -> Result<(), GameError>,
-    {
-        if let Some(game) = self.game_state.borrow_mut() {
-            action(game).map_err(|e| SocketError::GameError(e))
-        } else {
-            Err(SocketError::RoomNotStarted)
         }
     }
 

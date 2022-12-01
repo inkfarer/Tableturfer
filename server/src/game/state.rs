@@ -88,15 +88,15 @@ impl PlayerDeck {
         &self.current_hand
     }
 
-    pub fn use_card(&mut self, card_name: &str) {
-        if self.cards.contains(card_name) {
-            self.used_cards.insert(card_name.to_string());
+    pub fn use_card(&mut self, card_name: &str) -> String {
+        self.used_cards.insert(card_name.to_string());
 
-            self.current_hand.remove(card_name);
-            let upcoming_cards = self.upcoming_cards();
-            let mut rng = rand::thread_rng();
-            self.current_hand.insert(upcoming_cards.iter().choose(&mut rng).unwrap().to_string());
-        }
+        self.current_hand.remove(card_name);
+        let upcoming_cards = self.upcoming_cards();
+        let mut rng = rand::thread_rng();
+        let new_card = upcoming_cards.iter().choose(&mut rng).unwrap().to_string();
+        self.current_hand.insert(new_card.clone());
+        new_card
     }
 }
 
@@ -104,6 +104,11 @@ struct AugmentedPlayerMove {
     player_move: PlayerMove,
     card: Card,
     card_square_count: usize,
+}
+
+pub struct ApplyMovesResult {
+    pub applied_moves: HashMap<PlayerTeam, PlayerMove>,
+    pub next_cards: HashMap<PlayerTeam, String>,
 }
 
 #[derive(Clone)]
@@ -195,7 +200,7 @@ impl GameState {
         self.board = board;
     }
 
-    pub fn apply_moves(&mut self) -> HashMap<PlayerTeam, PlayerMove> {
+    pub fn apply_moves(&mut self) -> ApplyMovesResult {
         let moves = std::mem::take(&mut self.next_moves);
         let mut board_updates = Matrix::filled_with(self.board.size(), MapSquareType::Empty);
 
@@ -217,6 +222,7 @@ impl GameState {
         let square_counts_match = augmented_moves.values().into_iter()
             .map(|player_move| player_move.card_square_count)
             .all_equal();
+        let mut next_cards: HashMap<PlayerTeam, String> = HashMap::new();
 
         for (team, aug_move) in augmented_moves.iter()
             .sorted_by(|(_, a), (_, b)| Ord::cmp(&b.card_square_count, &a.card_square_count))
@@ -224,6 +230,8 @@ impl GameState {
             if aug_move.player_move.special {
                 self.used_special_points.get_mut(&team).unwrap().add_assign(aug_move.card.special_cost);
             }
+            let next_card = self.decks.get_mut(&team).unwrap().use_card(&aug_move.card.name);
+            next_cards.insert(team.clone(), next_card);
 
             let move_pos: UNamedPosition = aug_move.player_move.position.clone().try_into().unwrap();
             aug_move.card.squares.clone()
@@ -258,7 +266,10 @@ impl GameState {
         }
         self.update_board(new_board);
 
-        augmented_moves.into_iter().map(|(team, aug_move)| (team, aug_move.player_move)).collect()
+        ApplyMovesResult {
+            applied_moves: augmented_moves.into_iter().map(|(team, aug_move)| (team, aug_move.player_move)).collect(),
+            next_cards,
+        }
     }
 }
 

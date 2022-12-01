@@ -78,4 +78,6 @@ pub enum RoomEvent {
     MoveReceived(PlayerTeam),
     MovesApplied(HashMap<PlayerTeam, PlayerMove>),
     HandAssigned(IndexSet<String>),
+    #[serde(rename_all = "camelCase")]
+    NextCardDrawn { new_card: String, replacing: String },
 }

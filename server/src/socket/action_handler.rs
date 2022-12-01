@@ -1,11 +1,8 @@
 use std::sync::Arc;
-use indexmap::IndexSet;
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::error::SendError;
 use uuid::Uuid;
 use crate::AppState;
-use crate::game::map::GameMap;
-use crate::game::state::PlayerMove;
 use crate::game::team::PlayerTeam;
 use crate::socket::messages::{SocketError, SocketEvent, SocketAction};
 use crate::socket::room_store::Room;
@@ -41,7 +38,7 @@ impl SocketActionHandler {
                         SocketAction::StartGame => room.start_game().await,
                         SocketAction::ProposeMove(player_move) => {
                             let team = self.team(room);
-                            room.propose_move(team.unwrap(), player_move)
+                            room.propose_move(team.unwrap(), player_move).await
                         },
                         SocketAction::SetDeck(deck) => room.set_deck(self.id, deck),
                     }
