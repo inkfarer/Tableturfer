@@ -2,13 +2,14 @@ use std::sync::Arc;
 use serde::Serialize;
 use crate::game::card::{CardProvider, CardSquareType};
 use crate::game::squares::{MapSquareType, MST};
-use crate::game::state::PlayerMove;
+use crate::game::state::{PlayerDeck, PlayerMove};
 use crate::game::team::PlayerTeam;
 use crate::matrix::{Matrix, Slice};
 
 #[derive(Serialize, Debug, Eq, PartialEq)]
 pub enum InvalidMoveError {
     CardNotFound,
+    CardNotInHand,
     CannotAffordSpecial,
     CardOutOfBounds,
     CardOnDisallowedSquares,
@@ -22,6 +23,7 @@ pub trait MoveValidator {
         available_special_points: usize,
         team: &PlayerTeam,
         player_move: &PlayerMove,
+        deck: &PlayerDeck,
     ) -> Result<(), InvalidMoveError>;
 }
 
@@ -35,8 +37,13 @@ impl MoveValidator for MoveValidatorImpl {
         board: &Matrix<MapSquareType>,
         available_special_points: usize,
         team: &PlayerTeam,
-        player_move: &PlayerMove
+        player_move: &PlayerMove,
+        deck: &PlayerDeck,
     ) -> Result<(), InvalidMoveError> {
+        if !deck.current_hand.contains(&player_move.card_name) {
+            return Err(InvalidMoveError::CardNotInHand);
+        }
+
         match self.card_square_provider.get(&player_move.card_name) {
             Some(card) => {
                 if player_move.special && card.special_cost > available_special_points {
@@ -135,6 +142,7 @@ impl MoveValidatorImpl {
 #[cfg(test)]
 pub mod tests {
     use std::borrow::Borrow;
+    use indexmap::IndexSet;
     use parameterized::parameterized as pm;
     use crate::game::squares::MST;
     use crate::game::state::CardRotation;
@@ -150,7 +158,8 @@ pub mod tests {
             _board: &Matrix<MapSquareType>,
             _available_special_points: usize,
             _team: &PlayerTeam,
-            player_move: &PlayerMove
+            player_move: &PlayerMove,
+            _deck: &PlayerDeck,
         ) -> Result<(), InvalidMoveError> {
             match player_move.card_name.borrow() {
                 "invalid_pos_card" => Err(InvalidMoveError::CardOutOfBounds),
@@ -169,6 +178,12 @@ pub mod tests {
         }
     }
 
+    fn player_deck(card_name: &str) -> PlayerDeck {
+        let mut result = PlayerDeck::new(IndexSet::from([card_name.to_owned()]));
+        result.current_hand = IndexSet::from([card_name.to_owned()]);
+        result
+    }
+
     fn board() -> Matrix<MapSquareType> {
         Matrix::new(vec!(
             vec!(MST::Disabled, MST::Disabled, MST::Disabled, MST::Disabled, MST::Disabled, MST::Disabled, MST::Disabled),
@@ -182,12 +197,27 @@ pub mod tests {
     }
 
     #[test]
+    fn validate_card_not_in_hand() {
+        let result = MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
+            &board(),
+            0,
+            &PlayerTeam::Alpha,
+            &player_move("card_999", INamedPosition::new(0, 0), CardRotation::Deg0),
+            &player_deck("card_000")
+        );
+
+        assert_eq!(result, Err(InvalidMoveError::CardNotInHand));
+    }
+
+    #[test]
     fn validate_card_not_found() {
         let result = MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
             &board(),
             0,
             &PlayerTeam::Alpha,
-            &player_move("card_999", INamedPosition::new(0, 0), CardRotation::Deg0));
+            &player_move("card_999", INamedPosition::new(0, 0), CardRotation::Deg0),
+            &player_deck("card_999"),
+        );
 
         assert_eq!(result, Err(InvalidMoveError::CardNotFound));
     }
@@ -203,7 +233,9 @@ pub mod tests {
                     &board(),
                     0,
                     $team,
-                    &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0)), Err(InvalidMoveError::CardOutOfBounds));
+                    &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
+                    &player_deck("card_1"),
+                ), Err(InvalidMoveError::CardOutOfBounds));
             }
 
             #[pm(
@@ -215,7 +247,9 @@ pub mod tests {
                     &board(),
                     0,
                     $team,
-                    &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0)), Err(InvalidMoveError::CardOnDisallowedSquares));
+                    &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
+                    &player_deck("card_1"),
+                ), Err(InvalidMoveError::CardOnDisallowedSquares));
             }
 
             #[pm(
@@ -227,7 +261,9 @@ pub mod tests {
                     &board(),
                     0,
                     $team,
-                    &player_move("card_3", INamedPosition::new(x, y), CardRotation::Deg0)), Err(InvalidMoveError::NoExpectedSquaresNearCard));
+                    &player_move("card_3", INamedPosition::new(x, y), CardRotation::Deg0),
+                    &player_deck("card_3"),
+                ), Err(InvalidMoveError::NoExpectedSquaresNearCard));
             }
 
             #[pm(
@@ -239,7 +275,9 @@ pub mod tests {
                     &board(),
                     0,
                     $team,
-                    &player_move("card_2", INamedPosition::new(x, y), CardRotation::Deg0)), Err(InvalidMoveError::CardOnDisallowedSquares));
+                    &player_move("card_2", INamedPosition::new(x, y), CardRotation::Deg0),
+                    &player_deck("card_2"),
+                ), Err(InvalidMoveError::CardOnDisallowedSquares));
             }
 
             #[test]
@@ -251,7 +289,9 @@ pub mod tests {
                     &board(),
                     0,
                     $team,
-                    &player_move), Err(InvalidMoveError::CannotAffordSpecial));
+                    &player_move,
+                    &player_deck("card_2"),
+                ), Err(InvalidMoveError::CannotAffordSpecial));
             }
         }
     }
@@ -270,7 +310,9 @@ pub mod tests {
                 &board(),
                 0,
                 &PlayerTeam::Alpha,
-                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0)), Err(InvalidMoveError::NoExpectedSquaresNearCard));
+                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
+                &player_deck("card_1"),
+            ), Err(InvalidMoveError::NoExpectedSquaresNearCard));
         }
 
         #[pm(
@@ -282,7 +324,9 @@ pub mod tests {
                 &board(),
                 0,
                 &PlayerTeam::Alpha,
-                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0)), Ok(()));
+                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
+                &player_deck("card_1"),
+            ), Ok(()));
         }
 
         #[test]
@@ -297,7 +341,9 @@ pub mod tests {
                 &board,
                 2,
                 &PlayerTeam::Alpha,
-                &player_move), Ok(()));
+                &player_move,
+                &player_deck("card_1"),
+            ), Ok(()));
         }
 
         #[pm(
@@ -312,7 +358,9 @@ pub mod tests {
                 &board(),
                 2,
                 &PlayerTeam::Alpha,
-                &player_move), Err(InvalidMoveError::NoExpectedSquaresNearCard));
+                &player_move,
+                &player_deck("card_1"),
+            ), Err(InvalidMoveError::NoExpectedSquaresNearCard));
         }
     }
 
@@ -330,7 +378,9 @@ pub mod tests {
                 &board(),
                 0,
                 &PlayerTeam::Bravo,
-                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0)), Err(InvalidMoveError::NoExpectedSquaresNearCard));
+                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
+                &player_deck("card_1"),
+            ), Err(InvalidMoveError::NoExpectedSquaresNearCard));
         }
 
         #[pm(
@@ -342,7 +392,9 @@ pub mod tests {
                 &board(),
                 0,
                 &PlayerTeam::Bravo,
-                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0)), Ok(()));
+                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
+                &player_deck("card_1"),
+            ), Ok(()));
         }
 
         #[test]
@@ -357,7 +409,9 @@ pub mod tests {
                 &board,
                 2,
                 &PlayerTeam::Bravo,
-                &player_move), Ok(()));
+                &player_move,
+                &player_deck("card_1"),
+            ), Ok(()));
         }
 
         #[pm(
@@ -372,7 +426,9 @@ pub mod tests {
                 &board(),
                 2,
                 &PlayerTeam::Bravo,
-                &player_move), Err(InvalidMoveError::NoExpectedSquaresNearCard));
+                &player_move,
+                &player_deck("card_1"),
+            ), Err(InvalidMoveError::NoExpectedSquaresNearCard));
         }
     }
 }

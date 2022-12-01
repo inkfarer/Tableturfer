@@ -54,7 +54,7 @@ pub struct PlayerMove {
 }
 
 #[derive(Clone)]
-struct PlayerDeck {
+pub struct PlayerDeck {
     pub cards: IndexSet<String>,
     pub used_cards: IndexSet<String>,
     pub current_hand: IndexSet<String>,
@@ -146,7 +146,13 @@ impl GameState {
     }
 
     pub fn propose_move(&mut self, team: PlayerTeam, player_move: PlayerMove) -> Result<(), GameError> {
-        match self.move_validator.validate(&self.board, self.available_special_points(&team), &team, &player_move) {
+        match self.move_validator.validate(
+            &self.board,
+            self.available_special_points(&team),
+            &team,
+            &player_move,
+            &self.decks[&team]
+        ) {
             Ok(()) => {
                 self.next_moves.insert(team, player_move);
                 Ok(())
