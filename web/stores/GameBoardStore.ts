@@ -7,7 +7,6 @@ import {
     fill2D,
     findIndex2D,
     forEach2D,
-    normalizeCardSquares,
     rotateClockwiseBy,
     slice2D,
     some2D
@@ -20,10 +19,9 @@ import { PlayerTeam } from '~/types/PlayerTeam';
 import * as Maps from '~/data/maps';
 import { useRoomStore } from '~/stores/RoomStore';
 import { PlayerMove } from '~/types/socket/SocketCommon';
-import * as Cards from '~/data/cards';
-import { Card } from '~/types/Card';
 import { isFillSquare, isSpecialSquare, mapSquareFromCardSquare } from '~/helpers/SquareHelper';
 import { activateSpecialSquares } from '~/helpers/BoardHelper';
+import { CardMap } from '~/helpers/Cards';
 
 interface GameBoardStore {
     name: string
@@ -171,11 +169,11 @@ export const useGameBoardStore = defineStore('gameBoard', {
             const boardUpdates = fill2D(this.boardSize.width, this.boardSize.height, MST.EMPTY);
 
             const movesWithCards = Object.entries(moves).map(([team, move]) => {
-                const card = (Cards as Record<string, Card>)[move.cardName];
+                const card = CardMap.get(move.cardName);
                 if (card == null) {
                     throw new Error(`Unknown card "${move.cardName}"`);
                 }
-                const normalizedSquares = rotateClockwiseBy(normalizeCardSquares(card.squares), move.rotation);
+                const normalizedSquares = rotateClockwiseBy(card.squares, move.rotation);
 
                 return {
                     ...move,

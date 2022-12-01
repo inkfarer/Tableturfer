@@ -6,7 +6,6 @@ import { CardRotation } from '~/types/CardRotation';
 import { CardSquareType as CST } from '~/types/CardSquareType';
 import { CardRarity } from '~/types/CardRarity';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
-import { Nabebuta, Judgekun } from '~/data/cards';
 import { getRotationOffset, withinBoardBounds } from '~/helpers/ActiveCardHelper';
 import Mock = jest.Mock;
 
@@ -64,14 +63,16 @@ describe('ActiveCardStore', () => {
                 (withinBoardBounds as Mock).mockReturnValue({ x: 3, y: 2 });
 
                 store.setActiveCard({
-                    rowId: 'testCard',
                     category: 'Test',
                     name: 'test card',
                     number: 0,
                     rarity: CardRarity.COMMON,
                     season: 999,
                     specialCost: 10,
-                    squares: Nabebuta.squares
+                    squares: [
+                        [CST.EMPTY, CST.EMPTY, CST.SPECIAL, CST.EMPTY, CST.EMPTY],
+                        [CST.FILL, CST.FILL, CST.FILL, CST.FILL, CST.FILL]
+                    ]
                 });
 
                 const expectedSquares = [
@@ -80,7 +81,6 @@ describe('ActiveCardStore', () => {
                 ];
                 expect(store.rotation).toBe(0);
                 expect(store.activeCard).toEqual({
-                    rowId: 'testCard',
                     category: 'Test',
                     name: 'test card',
                     number: 0,
@@ -115,14 +115,18 @@ describe('ActiveCardStore', () => {
                 (withinBoardBounds as Mock).mockReturnValue({ x: 3, y: 2 });
 
                 store.setActiveCard({
-                    rowId: 'testCard2',
                     category: 'Test 2',
                     name: 'test card 2',
                     number: -1,
                     rarity: CardRarity.FRESH,
                     season: 998,
                     specialCost: 11,
-                    squares: Judgekun.squares
+                    squares: [
+                        [CST.EMPTY, CST.FILL, CST.EMPTY, CST.FILL, CST.EMPTY],
+                        [CST.FILL, CST.FILL, CST.FILL, CST.FILL, CST.FILL],
+                        [CST.FILL, CST.EMPTY, CST.FILL, CST.EMPTY, CST.FILL],
+                        [CST.FILL, CST.FILL, CST.EMPTY, CST.SPECIAL, CST.FILL]
+                    ]
                 });
 
                 const expectedSquares = [
@@ -133,7 +137,6 @@ describe('ActiveCardStore', () => {
                 ];
                 expect(store.rotation).toBe(0);
                 expect(store.activeCard).toEqual({
-                    rowId: 'testCard2',
                     category: 'Test 2',
                     name: 'test card 2',
                     number: -1,

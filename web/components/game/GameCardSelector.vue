@@ -1,8 +1,8 @@
 <template>
     <div class="game-card-selector">
         <button
-            v-for="card in Cards"
-            :key="`card_${card.rowId}`"
+            v-for="([name, card]) in CardMap"
+            :key="`card_${name}`"
             @click="setActiveCard(card)"
         >
             {{ card.name }}
@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-import * as Cards from '~/data/cards';
+import { CardMap } from '~/helpers/Cards';
 import { Card } from '~/types/Card';
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
 
@@ -30,6 +30,8 @@ const setActiveCard = (card: Card | null) => {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
+    max-height: 400px;
+    overflow-y: auto;
 
     button {
         display: block;

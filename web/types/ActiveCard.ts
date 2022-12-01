@@ -3,7 +3,6 @@ import { CardSquareType } from '~/types/CardSquareType';
 import { Position } from '~/types/Position';
 
 export interface ActiveCard {
-    rowId: string
     category: string
     name: string
     number: number

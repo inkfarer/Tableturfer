@@ -3,7 +3,7 @@ import { Position } from '~/types/Position';
 import { ActiveCard } from '~/types/ActiveCard';
 import { CardSquareType } from '~/types/CardSquareType';
 import { CardRotation } from '~/types/CardRotation';
-import { normalizeCardSquares, rotateClockwise, rotateCounterclockwise } from '~/helpers/ArrayHelper';
+import { rotateClockwise, rotateCounterclockwise } from '~/helpers/ArrayHelper';
 import { defineStore } from 'pinia';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { MapSquareType } from '~/types/MapSquareType';
@@ -80,7 +80,7 @@ export const useActiveCardStore = defineStore('activeCard', {
                 updatePosition([]);
                 this.activeCard = card;
             } else {
-                const normalizedSquares = normalizeCardSquares(card.squares);
+                const normalizedSquares = card.squares;
                 const origin = updatePosition(normalizedSquares);
 
                 this.activeCard = {
