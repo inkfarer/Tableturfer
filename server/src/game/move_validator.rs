@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use serde::Serialize;
-use crate::game::card::{CardSquareProvider, CardSquareType};
+use crate::game::card::{CardProvider, CardSquareType};
 use crate::game::squares::{MapSquareType, MST};
 use crate::game::state::PlayerMove;
 use crate::game::team::PlayerTeam;
@@ -26,7 +26,7 @@ pub trait MoveValidator {
 }
 
 pub struct MoveValidatorImpl {
-    card_square_provider: Arc<dyn CardSquareProvider + Send + Sync>,
+    card_square_provider: Arc<dyn CardProvider + Send + Sync>,
 }
 
 impl MoveValidator for MoveValidatorImpl {
@@ -63,7 +63,7 @@ impl MoveValidator for MoveValidatorImpl {
 }
 
 impl MoveValidatorImpl {
-    pub fn new(card_square_provider: Arc<dyn CardSquareProvider + Send + Sync>) -> Self {
+    pub fn new(card_square_provider: Arc<dyn CardProvider + Send + Sync>) -> Self {
         Self {
             card_square_provider,
         }

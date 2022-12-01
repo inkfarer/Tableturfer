@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use strum::EnumCount;
 use itertools::Itertools;
-use crate::game::card::{Card, CardSquareProvider, CardSquareType};
+use crate::game::card::{Card, CardProvider, CardSquareType};
 use crate::game::move_validator::{InvalidMoveError, MoveValidator};
 use crate::game::squares::MapSquareType;
 use crate::game::team::PlayerTeam;
@@ -60,14 +60,14 @@ pub struct GameState {
     // todo: for cleanup, maybe have a separate ScoreCounter struct that keeps track of these?
     special_points: HashMap<PlayerTeam, usize>,
     used_special_points: HashMap<PlayerTeam, usize>,
-    square_provider: Arc<dyn CardSquareProvider + Send + Sync>,
+    square_provider: Arc<dyn CardProvider + Send + Sync>,
     move_validator: Arc<dyn MoveValidator + Send + Sync>,
 }
 
 impl GameState {
     pub fn new(
         board: Matrix<MapSquareType>,
-        square_provider: Arc<dyn CardSquareProvider + Send + Sync>,
+        square_provider: Arc<dyn CardProvider + Send + Sync>,
         move_validator: Arc<dyn MoveValidator + Send + Sync>,
     ) -> Self {
         Self {
