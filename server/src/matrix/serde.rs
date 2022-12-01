@@ -64,13 +64,13 @@ mod tests {
     #[should_panic(expected = "expected a sequence")]
     fn deserialize_not_enough_dimensions() {
         let json = "{\"content\": [1, 2, 3]}";
-        let result: StructWithMatrix = serde_json::from_str(json).unwrap();
+        let _result: StructWithMatrix = serde_json::from_str(json).unwrap();
     }
 
     #[test]
     #[should_panic(expected = "expected a matrix (list within a list)")]
     fn deserialize_incorrect_type() {
         let json = "{\"content\": \"test\"}";
-        let result: StructWithMatrix = serde_json::from_str(json).unwrap();
+        let _result: StructWithMatrix = serde_json::from_str(json).unwrap();
     }
 }
