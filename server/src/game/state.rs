@@ -105,15 +105,19 @@ impl PlayerDeck {
         &self.current_hand
     }
 
-    pub fn draw_new_card(&mut self, card_to_replace: &str) -> String {
+    pub fn draw_new_card(&mut self, card_to_replace: &str) -> Option<String> {
         self.used_cards.insert(card_to_replace.to_string());
 
         self.current_hand.remove(card_to_replace);
         let upcoming_cards = self.upcoming_cards();
-        let mut rng = rand::thread_rng();
-        let new_card = upcoming_cards.iter().choose(&mut rng).unwrap().to_string();
-        self.current_hand.insert(new_card.clone());
-        new_card
+        if upcoming_cards.is_empty() {
+            None
+        } else {
+            let mut rng = rand::thread_rng();
+            let new_card = upcoming_cards.iter().choose(&mut rng).unwrap().to_string();
+            self.current_hand.insert(new_card.clone());
+            Ok(new_card)
+        }
     }
 }
 
@@ -247,8 +251,9 @@ impl GameState {
         for (team, aug_move) in augmented_moves.iter()
             .sorted_by(|(_, a), (_, b)| Ord::cmp(&b.card_square_count, &a.card_square_count))
         {
-            let next_card = self.decks.get_mut(&team).unwrap().draw_new_card(&aug_move.card.name);
-            next_cards.insert(team.clone(), next_card);
+            if let Some(next_card) = self.decks.get_mut(&team).unwrap().draw_new_card(&aug_move.card.name) {
+                next_cards.insert(team.clone(), next_card);
+            }
 
             if let PlayerMove::PlaceCard { position, special, rotation, .. } = aug_move.player_move.borrow() {
                 if *special {
