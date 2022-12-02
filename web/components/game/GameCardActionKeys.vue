@@ -50,14 +50,23 @@ function placeCard() {
         return;
     }
 
-    $socket.send('ProposeMove', {
-        cardName: activeCardStore.activeCard.name,
-        position: activeCardStore.position,
-        rotation: activeCardStore.rotation,
-        special: activeCardStore.special
-    });
+    if (!activeCardStore.pass) {
+        $socket.send('ProposeMove', {
+            type: 'PlaceCard',
+            cardName: activeCardStore.activeCard.name,
+            position: activeCardStore.position,
+            rotation: activeCardStore.rotation,
+            special: activeCardStore.special
+        });
+    } else {
+        $socket.send('ProposeMove', {
+            type: 'Pass',
+            cardName: activeCardStore.activeCard.name
+        });
+    }
     activeCardStore.setActiveCard(null);
     activeCardStore.special = false;
+    activeCardStore.pass = false;
 }
 
 const overrideX = ref(0);

@@ -342,12 +342,14 @@ describe('GameBoardStore', () => {
 
                 store.applyMoves({
                     [PlayerTeam.ALPHA]: {
+                        type: 'PlaceCard',
                         cardName: 'BombCurling',
                         position: { x: 1, y: 1 },
                         rotation: 270,
                         special: false
                     },
                     [PlayerTeam.BRAVO]: {
+                        type: 'PlaceCard',
                         cardName: 'SaberLight00',
                         position: { x: 3, y: 1 },
                         rotation: 0,
@@ -372,12 +374,14 @@ describe('GameBoardStore', () => {
 
                 store.applyMoves({
                     [PlayerTeam.ALPHA]: {
+                        type: 'PlaceCard',
                         cardName: 'BombCurling',
                         position: { x: 1, y: 1 },
                         rotation: 270,
                         special: false
                     },
                     [PlayerTeam.BRAVO]: {
+                        type: 'PlaceCard',
                         cardName: 'BombCurling',
                         position: { x: 1, y: 1 },
                         rotation: 270,
@@ -400,12 +404,14 @@ describe('GameBoardStore', () => {
 
                 store.applyMoves({
                     [PlayerTeam.ALPHA]: {
+                        type: 'PlaceCard',
                         cardName: 'BombCurling',
                         position: { x: 2, y: 2 },
                         rotation: 90,
                         special: false
                     },
                     [PlayerTeam.BRAVO]: {
+                        type: 'PlaceCard',
                         cardName: 'BombCurling',
                         position: { x: 1, y: 2 },
                         rotation: 180,
@@ -432,12 +438,14 @@ describe('GameBoardStore', () => {
 
                 store.applyMoves({
                     [PlayerTeam.ALPHA]: {
+                        type: 'PlaceCard',
                         cardName: 'BombCurling',
                         position: { x: 2, y: 2 },
                         rotation: 90,
                         special: false
                     },
                     [PlayerTeam.BRAVO]: {
+                        type: 'PlaceCard',
                         cardName: 'BombCurling',
                         position: { x: 1, y: 2 },
                         rotation: 180,
@@ -460,12 +468,14 @@ describe('GameBoardStore', () => {
 
                 store.applyMoves({
                     [PlayerTeam.ALPHA]: {
+                        type: 'PlaceCard',
                         cardName: 'BombCurling',
                         position: { x: 1, y: 1 },
                         rotation: 90,
                         special: false
                     },
                     [PlayerTeam.BRAVO]: {
+                        type: 'PlaceCard',
                         cardName: 'SaberLight00',
                         position: { x: 1, y: 1 },
                         rotation: 0,
@@ -488,12 +498,14 @@ describe('GameBoardStore', () => {
 
                 store.applyMoves({
                     [PlayerTeam.BRAVO]: {
+                        type: 'PlaceCard',
                         cardName: 'SaberLight00',
                         position: { x: 1, y: 1 },
                         rotation: 0,
                         special: false
                     },
                     [PlayerTeam.ALPHA]: {
+                        type: 'PlaceCard',
                         cardName: 'BombCurling',
                         position: { x: 1, y: 1 },
                         rotation: 90,
@@ -516,12 +528,14 @@ describe('GameBoardStore', () => {
 
                 store.applyMoves({
                     [PlayerTeam.ALPHA]: {
+                        type: 'PlaceCard',
                         cardName: 'BombCurling',
                         position: { x: 0, y: 0 },
                         rotation: 90,
                         special: false
                     },
                     [PlayerTeam.BRAVO]: {
+                        type: 'PlaceCard',
                         cardName: 'SaberLight00',
                         position: { x: 1, y: 1 },
                         rotation: 0,
@@ -544,12 +558,14 @@ describe('GameBoardStore', () => {
 
                 store.applyMoves({
                     [PlayerTeam.BRAVO]: {
+                        type: 'PlaceCard',
                         cardName: 'SaberLight00',
                         position: { x: 1, y: 1 },
                         rotation: 0,
                         special: false
                     },
                     [PlayerTeam.ALPHA]: {
+                        type: 'PlaceCard',
                         cardName: 'BombCurling',
                         position: { x: 0, y: 0 },
                         rotation: 90,
@@ -573,12 +589,14 @@ describe('GameBoardStore', () => {
 
                 store.applyMoves({
                     [PlayerTeam.BRAVO]: {
+                        type: 'PlaceCard',
                         cardName: 'SaberLight00',
                         position: { x: 1, y: 1 },
                         rotation: 0,
                         special: true
                     },
                     [PlayerTeam.ALPHA]: {
+                        type: 'PlaceCard',
                         cardName: 'BombCurling',
                         position: { x: 0, y: 0 },
                         rotation: 90,

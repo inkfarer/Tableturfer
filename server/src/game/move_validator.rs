@@ -5,6 +5,7 @@ use crate::game::squares::{MapSquareType, MST};
 use crate::game::state::{PlayerDeck, PlayerMove};
 use crate::game::team::PlayerTeam;
 use crate::matrix::{Matrix, Slice};
+use crate::position::INamedPosition;
 
 #[derive(Serialize, Debug, Eq, PartialEq)]
 pub enum InvalidMoveError {
@@ -28,7 +29,7 @@ pub trait MoveValidator {
 }
 
 pub struct MoveValidatorImpl {
-    card_square_provider: Arc<dyn CardProvider + Send + Sync>,
+    card_provider: Arc<dyn CardProvider + Send + Sync>,
 }
 
 impl MoveValidator for MoveValidatorImpl {
@@ -40,30 +41,41 @@ impl MoveValidator for MoveValidatorImpl {
         player_move: &PlayerMove,
         deck: &PlayerDeck,
     ) -> Result<(), InvalidMoveError> {
-        if !deck.current_hand.contains(&player_move.card_name) {
+        if !deck.current_hand.contains(player_move.card_name()) {
             return Err(InvalidMoveError::CardNotInHand);
         }
 
-        match self.card_square_provider.get(&player_move.card_name) {
-            Some(card) => {
-                if player_move.special && card.special_cost > available_special_points {
-                    return Err(InvalidMoveError::CannotAffordSpecial);
+        match player_move {
+            PlayerMove::PlaceCard { position, rotation, card_name, special } => {
+                match self.card_provider.get(&card_name) {
+                    Some(card) => {
+                        if *special && card.special_cost > available_special_points {
+                            return Err(InvalidMoveError::CannotAffordSpecial);
+                        }
+
+                        let squares = card.squares.rotate_clockwise(rotation.clone().into());
+
+                        if !Self::card_within_bounds(position, board, &squares) {
+                            Err(InvalidMoveError::CardOutOfBounds)
+                        } else if !Self::card_on_correct_squares(position, *special, board, &squares) {
+                            Err(InvalidMoveError::CardOnDisallowedSquares)
+                        } else if !Self::correct_squares_near_card(position, *special, board, &squares, team) {
+                            Err(InvalidMoveError::NoExpectedSquaresNearCard)
+                        } else {
+                            Ok(())
+                        }
+                    }
+                    None => {
+                        Err(InvalidMoveError::CardNotFound)
+                    }
                 }
-
-                let squares = card.squares.rotate_clockwise(player_move.rotation.into());
-
-                if !Self::card_within_bounds(player_move, board, &squares) {
-                    Err(InvalidMoveError::CardOutOfBounds)
-                } else if !Self::card_on_correct_squares(player_move, board, &squares) {
-                    Err(InvalidMoveError::CardOnDisallowedSquares)
-                } else if !Self::correct_squares_near_card(player_move, board, &squares, team) {
-                    Err(InvalidMoveError::NoExpectedSquaresNearCard)
+            },
+            PlayerMove::Pass { card_name } => {
+                if !self.card_provider.exists(card_name) {
+                    Err(InvalidMoveError::CardNotFound)
                 } else {
                     Ok(())
                 }
-            }
-            None => {
-                Err(InvalidMoveError::CardNotFound)
             }
         }
     }
@@ -72,27 +84,27 @@ impl MoveValidator for MoveValidatorImpl {
 impl MoveValidatorImpl {
     pub fn new(card_square_provider: Arc<dyn CardProvider + Send + Sync>) -> Self {
         Self {
-            card_square_provider,
+            card_provider: card_square_provider,
         }
     }
 
-    fn card_within_bounds(player_move: &PlayerMove, board: &Matrix<MapSquareType>, card_squares: &Matrix<CardSquareType>) -> bool {
-        if player_move.position.x < 0 || player_move.position.y < 0 {
+    fn card_within_bounds(position: &INamedPosition, board: &Matrix<MapSquareType>, card_squares: &Matrix<CardSquareType>) -> bool {
+        if position.x < 0 || position.y < 0 {
             return false;
         }
 
         let board_size = board.size();
         let card_size = card_squares.size();
 
-        (player_move.position.x + card_size.w as isize) <= board_size.w as isize
-            && (player_move.position.y + card_size.h as isize) <= board_size.h as isize
+        (position.x + card_size.w as isize) <= board_size.w as isize
+            && (position.y + card_size.h as isize) <= board_size.h as isize
     }
 
-    fn card_on_correct_squares(player_move: &PlayerMove, board: &Matrix<MapSquareType>, card_squares: &Matrix<CardSquareType>) -> bool {
+    fn card_on_correct_squares(position: &INamedPosition, special: bool, board: &Matrix<MapSquareType>, card_squares: &Matrix<CardSquareType>) -> bool {
         let card_size = card_squares.size();
-        let pos_from = (player_move.position.x as usize, player_move.position.y as usize);
+        let pos_from = (position.x as usize, position.y as usize);
         let squares_under_card = board.slice(pos_from..(pos_from.0 + card_size.w, pos_from.1 + card_size.h));
-        let accepted_covering_map_squares = if player_move.special {
+        let accepted_covering_map_squares = if special {
             vec!(MST::Empty, MST::FillAlpha, MST::FillBravo)
         } else {
             vec!(MST::Empty)
@@ -109,16 +121,16 @@ impl MoveValidatorImpl {
             })
     }
 
-    fn correct_squares_near_card(player_move: &PlayerMove, board: &Matrix<MapSquareType>, card_squares: &Matrix<CardSquareType>, team: &PlayerTeam) -> bool {
-        let pos_from = (player_move.position.x as usize, player_move.position.y as usize);
+    fn correct_squares_near_card(position: &INamedPosition, special: bool, board: &Matrix<MapSquareType>, card_squares: &Matrix<CardSquareType>, team: &PlayerTeam) -> bool {
+        let pos_from = (position.x as usize, position.y as usize);
 
         let accepted_nearby_squares = match team {
-            PlayerTeam::Alpha => if player_move.special {
+            PlayerTeam::Alpha => if special {
                 vec!(MapSquareType::SpecialAlpha)
             } else {
                 vec!(MapSquareType::FillAlpha, MapSquareType::SpecialAlpha)
             },
-            PlayerTeam::Bravo => if player_move.special {
+            PlayerTeam::Bravo => if special {
                 vec!(MapSquareType::SpecialBravo)
             } else {
                 vec!(MapSquareType::FillBravo, MapSquareType::SpecialBravo)
@@ -161,7 +173,7 @@ pub mod tests {
             player_move: &PlayerMove,
             _deck: &PlayerDeck,
         ) -> Result<(), InvalidMoveError> {
-            match player_move.card_name.borrow() {
+            match player_move.card_name().borrow() {
                 "invalid_pos_card" => Err(InvalidMoveError::CardOutOfBounds),
                 "not_found_card" => Err(InvalidMoveError::CardNotFound),
                 _ => Ok(()),
@@ -169,12 +181,12 @@ pub mod tests {
         }
     }
 
-    fn player_move(card_name: &str, position: INamedPosition, rotation: CardRotation) -> PlayerMove {
-        PlayerMove {
+    fn player_move(card_name: &str, position: INamedPosition, rotation: CardRotation, special: bool) -> PlayerMove {
+        PlayerMove::PlaceCard {
             card_name: card_name.to_owned(),
             position,
             rotation,
-            special: false,
+            special,
         }
     }
 
@@ -202,7 +214,7 @@ pub mod tests {
             &board(),
             0,
             &PlayerTeam::Alpha,
-            &player_move("card_999", INamedPosition::new(0, 0), CardRotation::Deg0),
+            &player_move("card_999", INamedPosition::new(0, 0), CardRotation::Deg0, false),
             &player_deck("card_000")
         );
 
@@ -215,7 +227,7 @@ pub mod tests {
             &board(),
             0,
             &PlayerTeam::Alpha,
-            &player_move("card_999", INamedPosition::new(0, 0), CardRotation::Deg0),
+            &player_move("card_999", INamedPosition::new(0, 0), CardRotation::Deg0, false),
             &player_deck("card_999"),
         );
 
@@ -233,7 +245,7 @@ pub mod tests {
                     &board(),
                     0,
                     $team,
-                    &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
+                    &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0, false),
                     &player_deck("card_1"),
                 ), Err(InvalidMoveError::CardOutOfBounds));
             }
@@ -247,7 +259,7 @@ pub mod tests {
                     &board(),
                     0,
                     $team,
-                    &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
+                    &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0, false),
                     &player_deck("card_1"),
                 ), Err(InvalidMoveError::CardOnDisallowedSquares));
             }
@@ -261,7 +273,7 @@ pub mod tests {
                     &board(),
                     0,
                     $team,
-                    &player_move("card_3", INamedPosition::new(x, y), CardRotation::Deg0),
+                    &player_move("card_3", INamedPosition::new(x, y), CardRotation::Deg0, false),
                     &player_deck("card_3"),
                 ), Err(InvalidMoveError::NoExpectedSquaresNearCard));
             }
@@ -275,15 +287,14 @@ pub mod tests {
                     &board(),
                     0,
                     $team,
-                    &player_move("card_2", INamedPosition::new(x, y), CardRotation::Deg0),
+                    &player_move("card_2", INamedPosition::new(x, y), CardRotation::Deg0, false),
                     &player_deck("card_2"),
                 ), Err(InvalidMoveError::CardOnDisallowedSquares));
             }
 
             #[test]
             fn validate_special_too_expensive() {
-                let mut player_move = player_move("card_2", INamedPosition::new(0, 0), CardRotation::Deg0);
-                player_move.special = true;
+                let player_move = player_move("card_2", INamedPosition::new(0, 0), CardRotation::Deg0, true);
 
                 assert_eq!(MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
                     &board(),
@@ -310,7 +321,7 @@ pub mod tests {
                 &board(),
                 0,
                 &PlayerTeam::Alpha,
-                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
+                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0, false),
                 &player_deck("card_1"),
             ), Err(InvalidMoveError::NoExpectedSquaresNearCard));
         }
@@ -324,15 +335,14 @@ pub mod tests {
                 &board(),
                 0,
                 &PlayerTeam::Alpha,
-                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
+                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0, false),
                 &player_deck("card_1"),
             ), Ok(()));
         }
 
         #[test]
         fn validate_can_afford_special() {
-            let mut player_move = player_move("card_1", INamedPosition::new(1, 1), CardRotation::Deg0);
-            player_move.special = true;
+            let player_move = player_move("card_1", INamedPosition::new(1, 1), CardRotation::Deg0, true);
             let mut board = board();
             board[(2, 1)] = MapSquareType::FillAlpha;
             board[(2, 2)] = MapSquareType::FillBravo;
@@ -351,8 +361,7 @@ pub mod tests {
             y = { 3, 1, 3 }
         )]
         fn validate_special_next_to_invalid_squares(x: isize, y: isize) {
-            let mut player_move = player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0);
-            player_move.special = true;
+            let player_move = player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0, true);
 
             assert_eq!(MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
                 &board(),
@@ -378,7 +387,7 @@ pub mod tests {
                 &board(),
                 0,
                 &PlayerTeam::Bravo,
-                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
+                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0, false),
                 &player_deck("card_1"),
             ), Err(InvalidMoveError::NoExpectedSquaresNearCard));
         }
@@ -392,15 +401,14 @@ pub mod tests {
                 &board(),
                 0,
                 &PlayerTeam::Bravo,
-                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0),
+                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0, false),
                 &player_deck("card_1"),
             ), Ok(()));
         }
 
         #[test]
         fn validate_can_afford_special() {
-            let mut player_move = player_move("card_1", INamedPosition::new(2, 3), CardRotation::Deg0);
-            player_move.special = true;
+            let player_move = player_move("card_1", INamedPosition::new(2, 3), CardRotation::Deg0, true);
             let mut board = board();
             board[(3, 3)] = MapSquareType::FillAlpha;
             board[(3, 4)] = MapSquareType::FillBravo;
@@ -419,8 +427,7 @@ pub mod tests {
             y = { 1, 1, 3 }
         )]
         fn validate_special_next_to_invalid_squares(x: isize, y: isize) {
-            let mut player_move = player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0);
-            player_move.special = true;
+            let player_move = player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0, true);
 
             assert_eq!(MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
                 &board(),

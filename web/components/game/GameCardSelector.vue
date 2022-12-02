@@ -10,6 +10,13 @@
         <button @click="setActiveCard(null)">
             None
         </button>
+        <label>
+            <input
+                v-model="activeCardStore.pass"
+                type="checkbox"
+            >
+            pass?
+        </label>
     </div>
 </template>
 

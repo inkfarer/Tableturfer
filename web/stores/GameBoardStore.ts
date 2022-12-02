@@ -18,7 +18,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import { PlayerTeam } from '~/types/PlayerTeam';
 import * as Maps from '~/data/maps';
 import { useRoomStore } from '~/stores/RoomStore';
-import { PlayerMove } from '~/types/socket/SocketCommon';
+import { PlaceCardMove, PlayerMove } from '~/types/socket/SocketCommon';
 import { isFillSquare, isSpecialSquare, mapSquareFromCardSquare } from '~/helpers/SquareHelper';
 import { activateSpecialSquares } from '~/helpers/BoardHelper';
 import { CardMap } from '~/helpers/Cards';
@@ -168,26 +168,29 @@ export const useGameBoardStore = defineStore('gameBoard', {
         applyMoves(moves: { [team in PlayerTeam]: PlayerMove }) {
             const boardUpdates = fill2D(this.boardSize.width, this.boardSize.height, MST.EMPTY);
 
-            const movesWithCards = Object.entries(moves).map(([team, move]) => {
-                const card = CardMap.get(move.cardName);
-                if (card == null) {
-                    throw new Error(`Unknown card "${move.cardName}"`);
-                }
-                const normalizedSquares = rotateClockwiseBy(card.squares, move.rotation);
+            const movesWithCards = (Object.entries(moves)
+                .filter(([, move]) => move.type === 'PlaceCard') as Array<[PlayerTeam, PlaceCardMove]>)
+                .map(([team, move]) => {
+                    const card = CardMap.get(move.cardName);
+                    if (card == null) {
+                        throw new Error(`Unknown card "${move.cardName}"`);
+                    }
+                    const normalizedSquares = rotateClockwiseBy(card.squares, move.rotation);
 
-                return {
-                    ...move,
-                    team: team as PlayerTeam,
-                    card: {
-                        ...card,
-                        squares: normalizedSquares
-                    },
-                    cardSquareCount: count2D(normalizedSquares, square => square !== CardSquareType.EMPTY)
-                };
-            });
+                    return {
+                        ...move,
+                        team: team as PlayerTeam,
+                        card: {
+                            ...card,
+                            squares: normalizedSquares
+                        },
+                        cardSquareCount: count2D(normalizedSquares, square => square !== CardSquareType.EMPTY)
+                    };
+                });
             movesWithCards.sort((a, b) => b.cardSquareCount - a.cardSquareCount);
 
-            const squareCountsMatch = movesWithCards.every(move => move.cardSquareCount === movesWithCards[0].cardSquareCount);
+            const squareCountsMatch = movesWithCards.length === Object.keys(moves).length
+                && movesWithCards.every(move => move.cardSquareCount === movesWithCards[0].cardSquareCount);
 
             movesWithCards.forEach(move => {
                 if (move.special) {

@@ -205,7 +205,7 @@ impl Room {
                         team.clone(),
                         SocketEvent::RoomEvent(RoomEvent::NextCardDrawn {
                             new_card: next_card,
-                            replacing: moves.applied_moves[&team].card_name.clone(),
+                            replacing: moves.applied_moves[&team].card_name().to_owned(),
                         })
                     ).await;
                 }

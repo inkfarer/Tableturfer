@@ -1,7 +1,7 @@
 <template>
     <div
         class="card-placement-overlay"
-        :class="{ placeable, [`team_${roomStore.playerTeam}`]: true }"
+        :class="{ placeable, [`team_${roomStore.playerTeam}`]: true, hidden: activeCardStore.pass }"
         :style="{
             transform: `translate(${Constants.BOARD_SQUARE_SIZE_PX * activeCardStore.position.x}px, ${Constants.BOARD_SQUARE_SIZE_PX * activeCardStore.position.y}px)`
         }"
@@ -52,6 +52,10 @@ const placeable = computed(() => {
 
     &:not(.placeable) {
         filter: grayscale(100%);
+    }
+
+    &.hidden {
+        visibility: hidden;
     }
 
     &.team_Alpha .square {
