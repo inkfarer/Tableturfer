@@ -116,8 +116,6 @@ export class SocketService {
     private handleRoomEvent(event: AnyRoomEvent) {
         switch (event.event) {
             case 'UserJoin':
-                useRoomStore().upsertUser(event.detail.id, event.detail.user);
-                break;
             case 'UserUpdate':
                 useRoomStore().upsertUser(event.detail.id, event.detail.user);
                 break;
