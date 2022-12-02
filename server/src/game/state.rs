@@ -103,10 +103,10 @@ impl PlayerDeck {
         &self.current_hand
     }
 
-    pub fn use_card(&mut self, card_name: &str) -> String {
-        self.used_cards.insert(card_name.to_string());
+    pub fn draw_new_card(&mut self, card_to_replace: &str) -> String {
+        self.used_cards.insert(card_to_replace.to_string());
 
-        self.current_hand.remove(card_name);
+        self.current_hand.remove(card_to_replace);
         let upcoming_cards = self.upcoming_cards();
         let mut rng = rand::thread_rng();
         let new_card = upcoming_cards.iter().choose(&mut rng).unwrap().to_string();
@@ -243,7 +243,7 @@ impl GameState {
         for (team, aug_move) in augmented_moves.iter()
             .sorted_by(|(_, a), (_, b)| Ord::cmp(&b.card_square_count, &a.card_square_count))
         {
-            let next_card = self.decks.get_mut(&team).unwrap().use_card(&aug_move.card.name);
+            let next_card = self.decks.get_mut(&team).unwrap().draw_new_card(&aug_move.card.name);
             next_cards.insert(team.clone(), next_card);
 
             if let PlayerMove::PlaceCard { position, special, rotation, .. } = aug_move.player_move.borrow() {
