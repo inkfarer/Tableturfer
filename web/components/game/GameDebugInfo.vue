@@ -16,6 +16,9 @@
             team: {{ roomStore.playerTeam }}
         </div>
         <div>
+            turns remaining: {{ roomStore.remainingTurns }}
+        </div>
+        <div>
             board: {{ gameBoardStore.name }}
         </div>
         <div>

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { SocketMessageMap, SocketUser } from '~/types/socket/SocketEvent';
 import { PlayerTeam } from '~/types/PlayerTeam';
+import { TURN_COUNT } from '~/data/Constants';
 
 interface RoomStore {
     id: string | null
@@ -9,6 +10,7 @@ interface RoomStore {
     opponent: string | null
     users: Record<string, SocketUser>
     started: boolean
+    remainingTurns: number
 }
 
 export const useRoomStore = defineStore('room', {
@@ -18,7 +20,8 @@ export const useRoomStore = defineStore('room', {
         owner: null,
         opponent: null,
         users: {},
-        started: false
+        started: false,
+        remainingTurns: TURN_COUNT
     }),
     getters: {
         isRoomOwner: state => state.id === state.owner,
