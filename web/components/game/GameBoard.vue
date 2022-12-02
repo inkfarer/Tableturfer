@@ -37,7 +37,6 @@ const gameBoardStore = useGameBoardStore();
 <style lang="scss">
 .board {
     position: relative;
-    background-color: #eee;
     height: max-content;
 
     &.special-attack {
@@ -56,6 +55,10 @@ const gameBoardStore = useGameBoardStore();
 }
 
 .square {
+    &.map-square_1 {
+        background-color: #eee;
+    }
+
     &.map-square_2 {
         background-color: #EC9009;
     }
