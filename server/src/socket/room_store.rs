@@ -10,13 +10,12 @@ use serde::Serialize;
 use crate::game::card::{CardProvider, CardSquareProviderImpl};
 use crate::game::map::{DEFAULT_GAME_MAP, GameMap};
 use crate::game::move_validator::MoveValidatorImpl;
-use crate::game::state::{GameError, GameState, PlayerMove};
+use crate::game::state::{DECK_SIZE, GameError, GameState, PlayerMove};
 use crate::game::team::PlayerTeam;
 use crate::socket::messages::{RoomEvent, SocketError, SocketEvent};
 use crate::socket::SocketSender;
 
 const ROOM_CODE_SIZE: usize = 4;
-const DECK_SIZE: usize = 15;
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]

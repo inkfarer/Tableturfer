@@ -1,6 +1,6 @@
 use std::borrow::Borrow;
 use std::collections::HashMap;
-use std::ops::AddAssign;
+use std::ops::{AddAssign, SubAssign};
 use std::sync::Arc;
 use indexmap::IndexSet;
 use serde::{Deserialize, Serialize};
@@ -16,6 +16,8 @@ use crate::matrix::{Matrix, MatrixRotation, Slice};
 use crate::position::{INamedPosition, UNamedPosition};
 
 pub const HAND_SIZE: usize = 4;
+pub const DECK_SIZE: usize = 15;
+pub const TURN_COUNT: usize = DECK_SIZE - (HAND_SIZE - 1);
 
 #[derive(Serialize, Debug, Eq, PartialEq)]
 #[serde(tag = "code", content = "detail")]
@@ -135,6 +137,7 @@ pub struct GameState {
     special_points: HashMap<PlayerTeam, usize>,
     used_special_points: HashMap<PlayerTeam, usize>,
     decks: HashMap<PlayerTeam, PlayerDeck>,
+    remaining_turns: usize,
 
     square_provider: Arc<dyn CardProvider + Send + Sync>,
     move_validator: Arc<dyn MoveValidator + Send + Sync>,
@@ -153,6 +156,7 @@ impl GameState {
             special_points: Self::score_counter(),
             used_special_points: Self::score_counter(),
             decks: decks.into_iter().map(|(team, cards)| (team, PlayerDeck::new(cards))).collect(),
+            remaining_turns: TURN_COUNT.to_owned(),
             square_provider,
             move_validator,
         }
@@ -284,6 +288,8 @@ impl GameState {
             new_board[position] = square;
         }
         self.update_board(new_board);
+
+        self.remaining_turns.sub_assign(1);
 
         ApplyMovesResult {
             applied_moves: augmented_moves.into_iter().map(|(team, aug_move)| (team, aug_move.player_move)).collect(),
