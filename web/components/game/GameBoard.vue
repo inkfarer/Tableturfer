@@ -38,6 +38,7 @@ const gameBoardStore = useGameBoardStore();
 .board {
     position: relative;
     background-color: #eee;
+    height: max-content;
 
     &.special-attack {
         .map-square_5 {
