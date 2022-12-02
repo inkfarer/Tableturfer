@@ -1,3 +1,4 @@
+use std::cmp;
 use std::sync::Arc;
 use serde::Serialize;
 use crate::game::card::{CardProvider, CardSquareType};
@@ -137,6 +138,7 @@ impl MoveValidatorImpl {
             },
         };
 
+        let board_size = board.size();
         card_squares.clone().into_iter()
             .any(|(square, position)| {
                 if square == CardSquareType::Empty {
@@ -144,7 +146,7 @@ impl MoveValidatorImpl {
                 }
 
                 let square_pos = (pos_from.0 + position.0, pos_from.1 + position.1);
-                board.slice((square_pos.0.checked_sub(1).unwrap_or(0), square_pos.1.checked_sub(1).unwrap_or(0))..=(square_pos.0 + 1, square_pos.1 + 1))
+                board.slice((square_pos.0.checked_sub(1).unwrap_or(0), square_pos.1.checked_sub(1).unwrap_or(0))..=(cmp::min(square_pos.0 + 1, board_size.w - 1), cmp::min(square_pos.1 + 1, board_size.h - 1)))
                     .into_iter()
                     .any(|(map_square, _)| accepted_nearby_squares.contains(&map_square))
             })
@@ -205,6 +207,16 @@ pub mod tests {
             vec!(MST::Disabled, MST::Empty, MST::Empty, MST::Empty, MST::Empty, MST::Empty, MST::Disabled),
             vec!(MST::Disabled, MST::SpecialBravo, MST::Empty, MST::Empty, MST::Empty, MST::FillBravo, MST::Disabled),
             vec!(MST::Disabled, MST::Disabled, MST::Disabled, MST::Disabled, MST::Disabled, MST::Disabled, MST::Disabled),
+        ))
+    }
+
+    fn board_2() -> Matrix<MapSquareType> {
+        Matrix::new(vec!(
+            vec!(MST::SpecialAlpha, MST::Empty, MST::Empty, MST::Empty, MST::FillAlpha),
+            vec!(MST::Empty, MST::Empty, MST::Empty, MST::Empty, MST::Empty),
+            vec!(MST::Empty, MST::Empty, MST::Empty, MST::Empty, MST::Empty),
+            vec!(MST::Empty, MST::Empty, MST::Empty, MST::Empty, MST::Empty),
+            vec!(MST::SpecialBravo, MST::Empty, MST::Empty, MST::Empty, MST::FillBravo),
         ))
     }
 
@@ -340,6 +352,20 @@ pub mod tests {
             ), Ok(()));
         }
 
+        #[pm(
+            x = { 0, 2 },
+            y = { 1, 1 }
+        )]
+        fn validate_next_to_own_team_squares_board_2(x: isize, y: isize) {
+            assert_eq!(MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
+                &board_2(),
+                0,
+                &PlayerTeam::Alpha,
+                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0, false),
+                &player_deck("card_1"),
+            ), Ok(()));
+        }
+
         #[test]
         fn validate_can_afford_special() {
             let player_move = player_move("card_1", INamedPosition::new(1, 1), CardRotation::Deg0, true);
@@ -399,6 +425,20 @@ pub mod tests {
         fn validate_next_to_own_team_squares(x: isize, y: isize) {
             assert_eq!(MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
                 &board(),
+                0,
+                &PlayerTeam::Bravo,
+                &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0, false),
+                &player_deck("card_1"),
+            ), Ok(()));
+        }
+
+        #[pm(
+            x = { 1, 3 },
+            y = { 2, 1 }
+        )]
+        fn validate_next_to_own_team_squares_board_2(x: isize, y: isize) {
+            assert_eq!(MoveValidatorImpl::new(TestCardSquareProvider::new()).validate(
+                &board_2(),
                 0,
                 &PlayerTeam::Bravo,
                 &player_move("card_1", INamedPosition::new(x, y), CardRotation::Deg0, false),
