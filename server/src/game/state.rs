@@ -25,6 +25,7 @@ pub enum GameError {
     InvalidMove(InvalidMoveError),
     CardNotFound,
     IncorrectDeckSize,
+    GameEnded,
 }
 
 #[derive(Clone, Copy, Debug, Serialize_repr, Deserialize_repr, Eq, PartialEq)]
@@ -175,6 +176,10 @@ impl GameState {
     }
 
     pub fn propose_move(&mut self, team: PlayerTeam, player_move: PlayerMove) -> Result<(), GameError> {
+        if self.remaining_turns <= 0 {
+            return Err(GameError::GameEnded);
+        }
+
         match self.move_validator.validate(
             &self.board,
             self.available_special_points(&team),
