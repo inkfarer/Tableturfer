@@ -47,25 +47,24 @@ definePageMeta({
 
 const gameBoardStore = useGameBoardStore();
 const roomStore = useRoomStore();
-const connectedRoomCode = ref<string | null>(null);
 const { $socket } = useNuxtApp();
-const isLoading = ref(true);
+const isLoading = ref(false);
 const isError = ref(false);
 
 onMounted(() => {
     watch(() => useRoute().params.code as string, async (newValue) => {
-        if (newValue.toUpperCase() === connectedRoomCode.value) {
+        if (newValue.toUpperCase() === roomStore.roomCode && $socket.isOpen()) {
             return;
         }
 
-        connectedRoomCode.value = null;
+        $socket.disconnect();
         isLoading.value = true;
         isError.value = false;
 
         try {
-            connectedRoomCode.value = await $socket.connect(newValue.toLowerCase() === 'new' ? undefined : newValue);
-            if (connectedRoomCode.value !== newValue.toUpperCase()) {
-                await navigateTo(`/room/${connectedRoomCode.value}`, { replace: true });
+            roomStore.roomCode = await $socket.connect(newValue.toLowerCase() === 'new' ? undefined : newValue);
+            if (roomStore.roomCode !== newValue.toUpperCase()) {
+                await navigateTo(`/room/${roomStore.roomCode}`, { replace: true });
             }
         } catch (e) {
             console.error(e);

@@ -44,6 +44,9 @@ export const useDeckStore = defineStore('deck', {
             Object.entries(event).forEach(([team, move]) => {
                 this.usedCards[team as PlayerTeam].add(move.cardName);
             });
+        },
+        resetGame() {
+            this.$reset();
         }
     }
 });

@@ -4,6 +4,8 @@ import { AnyRoomEvent } from '~/types/socket/RoomEvent';
 import { SocketActionMap } from '~/types/socket/SocketAction';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { useDeckStore } from '~/stores/DeckStore';
+import { navigateTo } from '#imports';
+import { useActiveCardStore } from '~/stores/ActiveCardStore';
 
 export class SocketService {
     private ws: WebSocket | null;
@@ -14,8 +16,12 @@ export class SocketService {
         this.url = url;
     }
 
+    isOpen(): boolean {
+        return this.ws != null && (this.ws?.readyState === WebSocket.OPEN || this.ws?.readyState === WebSocket.CONNECTING);
+    }
+
     async connect(roomCode?: string): Promise<string> {
-        if (this.ws != null && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
+        if (this.isOpen()) {
             throw new Error('Websocket is already open');
         }
 
@@ -113,7 +119,7 @@ export class SocketService {
         }
     }
 
-    private handleRoomEvent(event: AnyRoomEvent) {
+    private async handleRoomEvent(event: AnyRoomEvent) {
         switch (event.event) {
             case 'UserJoin':
             case 'UserUpdate':
@@ -149,6 +155,15 @@ export class SocketService {
             case 'NextCardDrawn':
                 useDeckStore().replaceCard(event.detail.replacing, event.detail.newCard);
                 break;
+            case 'ReturnToRoom': {
+                useActiveCardStore().resetGame();
+                useDeckStore().resetGame();
+                useGameBoardStore().resetBoard();
+                const roomStore = useRoomStore();
+                roomStore.resetGame();
+                await navigateTo(`/room/${roomStore.roomCode}`);
+                break;
+            }
         }
     }
 

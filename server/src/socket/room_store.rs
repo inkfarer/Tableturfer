@@ -217,6 +217,11 @@ impl Room {
         result.map_err(|e| SocketError::GameError(e))
     }
 
+    pub fn return_to_room(&mut self) {
+        self.game_state = None;
+        self.sender.send(RoomEvent::ReturnToRoom).ok();
+    }
+
     async fn send_to_player(&self, team: PlayerTeam, message: SocketEvent) {
         let sender: Option<&SocketSender> = match team {
             PlayerTeam::Alpha => self.user_channels.get(&self.owner_id),

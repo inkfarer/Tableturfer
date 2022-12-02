@@ -41,6 +41,10 @@ impl SocketActionHandler {
                             room.propose_move(team.unwrap(), player_move).await
                         },
                         SocketAction::SetDeck(deck) => room.set_deck(self.id, deck),
+                        SocketAction::ReturnToRoom => {
+                            room.return_to_room();
+                            Ok(())
+                        },
                     }
                 } else {
                     auth_result

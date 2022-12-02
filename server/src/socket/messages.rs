@@ -28,6 +28,7 @@ pub enum SocketAction {
     StartGame,
     ProposeMove(PlayerMove),
     SetDeck(IndexSet<String>),
+    ReturnToRoom,
 }
 
 impl SocketAction {
@@ -35,6 +36,7 @@ impl SocketAction {
         match self {
             SocketAction::SetMap(_) => true,
             SocketAction::StartGame => true,
+            SocketAction::ReturnToRoom => true,
             _ => false,
         }
     }
@@ -81,4 +83,5 @@ pub enum RoomEvent {
     #[serde(rename_all = "camelCase")]
     NextCardDrawn { new_card: String, replacing: String },
     EndGame { score: HashMap<PlayerTeam, usize> },
+    ReturnToRoom,
 }

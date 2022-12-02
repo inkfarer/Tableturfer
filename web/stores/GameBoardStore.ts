@@ -140,6 +140,9 @@ export const useGameBoardStore = defineStore('gameBoard', {
         }
     },
     actions: {
+        resetBoard() {
+            this.setBoardByName(this.name);
+        },
         setBoardByName(boardName: string) {
             const map = (Maps as Record<string, GameMap>)[boardName];
             if (map != null) {

@@ -33,6 +33,9 @@
         <div style="margin-top: 10px;">
             <button @click="placeCard">Place</button>
         </div>
+        <div v-if="roomStore.completed && roomStore.isRoomOwner">
+            <button @click="returnToRoom">Back to room</button>
+        </div>
     </div>
 </template>
 
@@ -44,6 +47,10 @@ import { useRoomStore } from '~/stores/RoomStore';
 const activeCardStore = useActiveCardStore();
 const roomStore = useRoomStore();
 const { $socket } = useNuxtApp();
+
+function returnToRoom() {
+    $socket.send('ReturnToRoom');
+}
 
 function placeCard() {
     if (activeCardStore.activeCard == null || roomStore.playerTeam == null) {

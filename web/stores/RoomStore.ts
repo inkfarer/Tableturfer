@@ -37,7 +37,8 @@ export const useRoomStore = defineStore('room', {
             } else {
                 return null;
             }
-        }
+        },
+        completed: state => state.remainingTurns <= 0
     },
     actions: {
         joinRoom(message: SocketMessageMap['Welcome']) {
@@ -53,6 +54,10 @@ export const useRoomStore = defineStore('room', {
         },
         removeUser(id: string) {
             delete this.users[id];
+        },
+        resetGame() {
+            this.started = false;
+            this.remainingTurns = TURN_COUNT;
         },
         leaveRoom() {
             this.$reset();

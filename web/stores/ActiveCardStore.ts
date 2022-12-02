@@ -170,6 +170,9 @@ export const useActiveCardStore = defineStore('activeCard', {
         },
         moveRight() {
             this.applyDeltaIfPossible({ x: 1, y: 0 });
+        },
+        resetGame() {
+            this.$reset();
         }
     }
 });
