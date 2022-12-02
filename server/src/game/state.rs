@@ -117,7 +117,7 @@ impl PlayerDeck {
             let mut rng = rand::thread_rng();
             let new_card = upcoming_cards.iter().choose(&mut rng).unwrap().to_string();
             self.current_hand.insert(new_card.clone());
-            Ok(new_card)
+            Some(new_card)
         }
     }
 }
