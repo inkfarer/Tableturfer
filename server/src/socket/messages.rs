@@ -80,4 +80,5 @@ pub enum RoomEvent {
     HandAssigned(IndexSet<String>),
     #[serde(rename_all = "camelCase")]
     NextCardDrawn { new_card: String, replacing: String },
+    EndGame { score: HashMap<PlayerTeam, usize> },
 }

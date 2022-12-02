@@ -171,6 +171,23 @@ impl GameState {
         HashMap::from([(PlayerTeam::Alpha, 0), (PlayerTeam::Bravo, 0)])
     }
 
+    pub fn completed(&self) -> bool {
+        self.remaining_turns <= 0
+    }
+
+    pub fn score(&self) -> HashMap<PlayerTeam, usize> {
+        let mut result = HashMap::new();
+
+        result.insert(PlayerTeam::Alpha, self.board.clone().into_iter()
+            .filter(|(square, _)| square == &MapSquareType::SpecialAlpha || square == &MapSquareType::FillAlpha)
+            .count());
+        result.insert(PlayerTeam::Bravo, self.board.clone().into_iter()
+            .filter(|(square, _)| square == &MapSquareType::SpecialBravo || square == &MapSquareType::FillBravo)
+            .count());
+
+        result
+    }
+
     pub fn assign_initial_hands(&mut self) -> HashMap<PlayerTeam, IndexSet<String>> {
         self.decks.iter_mut().map(|(team, deck)| (team.clone(), deck.assign_cards().clone())).collect()
     }

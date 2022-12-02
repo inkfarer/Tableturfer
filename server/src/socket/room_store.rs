@@ -199,6 +199,10 @@ impl Room {
 
                 sender.send(RoomEvent::MovesApplied(moves.applied_moves.clone())).ok();
 
+                if game.completed() {
+                    sender.send(RoomEvent::EndGame { score: game.score() }).ok();
+                }
+
                 for (team, next_card) in moves.next_cards {
                     self.send_to_player(
                         team.clone(),
