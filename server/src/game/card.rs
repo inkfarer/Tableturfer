@@ -13,8 +13,6 @@ pub enum CardSquareType {
     Special = 2,
 }
 
-pub type CST = CardSquareType;
-
 #[derive(Clone, Deserialize_repr)]
 #[repr(u8)]
 pub enum CardRarity {

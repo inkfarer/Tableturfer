@@ -8,7 +8,7 @@ use uuid::Uuid;
 use itertools::Itertools;
 use serde::Serialize;
 use crate::game::card::{CardProvider, CardSquareProviderImpl};
-use crate::game::map::{DEFAULT_GAME_MAP, GameMap};
+use crate::game::map::{DEFAULT_GAME_MAP, MapProvider, MapProviderImpl};
 use crate::game::move_validator::MoveValidatorImpl;
 use crate::game::state::{DECK_SIZE, GameError, GameState, PlayerMove};
 use crate::game::team::PlayerTeam;
@@ -42,9 +42,10 @@ pub struct Room {
     pub opponent_id: Option<Uuid>,
     pub users: HashMap<Uuid, RoomUser>,
     pub user_channels: HashMap<Uuid, SocketSender>,
-    pub map: GameMap,
+    pub map: String,
     pub game_state: Option<GameState>,
-    pub card_provider: Arc<dyn CardProvider + Send + Sync>
+    pub card_provider: Arc<dyn CardProvider + Send + Sync>,
+    pub map_provider: Arc<dyn MapProvider + Send + Sync>,
 }
 
 impl Room {
@@ -55,9 +56,10 @@ impl Room {
             opponent_id: None,
             users: HashMap::from([(owner_id, RoomUser::new())]),
             user_channels: HashMap::from([(owner_id, owner_channel)]),
-            map: DEFAULT_GAME_MAP,
+            map: DEFAULT_GAME_MAP.to_string(),
             game_state: None,
             card_provider: Arc::new(CardSquareProviderImpl::new()),
+            map_provider: Arc::new(MapProviderImpl::new()),
         }
     }
 
@@ -121,7 +123,11 @@ impl Room {
         }
     }
 
-    pub fn set_map(&mut self, map: GameMap) -> Result<(), SocketError> {
+    pub fn set_map(&mut self, map: String) -> Result<(), SocketError> {
+        if !self.map_provider.exists(&map) {
+            return Err(SocketError::GameError(GameError::MapNotFound));
+        }
+
         if !self.game_started() {
             self.map = map.clone();
             self.sender.send(RoomEvent::MapChange(map)).ok();
@@ -138,8 +144,9 @@ impl Room {
             Err(SocketError::DecksNotChosen)
         } else {
             let players = self.get_players();
+            let map = self.map_provider.get(&self.map).unwrap();
             let mut game_state = GameState::new(
-                self.map.to_squares(),
+                map.squares,
                 self.card_provider.clone(),
                 Arc::new(MoveValidatorImpl::new(self.card_provider.clone())),
                 players.into_iter().map(|(team, player)| {

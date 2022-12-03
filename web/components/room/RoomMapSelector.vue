@@ -1,9 +1,9 @@
 <template>
     <div class="stage-selector">
         <button
-            v-for="map in Maps"
-            :key="`map_${map.name}`"
-            @click="setMap(map.name)"
+            v-for="[name, map] in GameMapMap"
+            :key="`map_${name}`"
+            @click="setMap(name)"
         >
             {{ map.name }}
         </button>
@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts" setup>
-import * as Maps from '~/data/maps';
+import { GameMapMap } from '~/helpers/Maps';
 import { useNuxtApp } from '#imports';
 
 const { $socket } = useNuxtApp();
@@ -24,7 +24,7 @@ function setMap(name: string) {
 <style lang="scss" scoped>
 .stage-selector {
     button {
-        &:not(:first-child) {
+        &:not(:last-child) {
             margin-right: 4px;
         }
     }

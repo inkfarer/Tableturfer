@@ -24,6 +24,7 @@ pub const TURN_COUNT: usize = DECK_SIZE - (HAND_SIZE - 1);
 pub enum GameError {
     InvalidMove(InvalidMoveError),
     CardNotFound,
+    MapNotFound,
     IncorrectDeckSize,
     GameEnded,
 }

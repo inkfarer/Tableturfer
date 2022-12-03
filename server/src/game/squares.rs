@@ -1,12 +1,14 @@
+use serde_repr::Deserialize_repr;
 use crate::game::card::CardSquareType;
 use crate::game::team::PlayerTeam;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize_repr)]
+#[repr(u8)]
 pub enum MapSquareType {
-    Disabled,
-    Empty,
-    SpecialAlpha,
-    SpecialBravo,
+    Disabled = 0,
+    Empty = 1,
+    SpecialAlpha = 2,
+    SpecialBravo = 3,
     FillAlpha,
     FillBravo,
     Neutral,

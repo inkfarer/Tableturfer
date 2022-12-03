@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use indexmap::IndexSet;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use crate::game::map::GameMap;
 use crate::game::state::{GameError, PlayerMove};
 use crate::game::team::PlayerTeam;
 use crate::socket::room_store::RoomUser;
@@ -24,7 +23,7 @@ pub enum SocketError {
 #[derive(Deserialize, Clone)]
 #[serde(tag = "action", content = "args")]
 pub enum SocketAction {
-    SetMap(GameMap),
+    SetMap(String),
     StartGame,
     ProposeMove(PlayerMove),
     SetDeck(IndexSet<String>),
@@ -60,7 +59,7 @@ pub enum SocketEvent {
         users: HashMap<Uuid, RoomUser>,
         owner: Uuid,
         opponent: Option<Uuid>,
-        map: GameMap,
+        map: String,
         started: bool,
     },
     Error(SocketError),
@@ -75,7 +74,7 @@ pub enum RoomEvent {
     UserLeave(Uuid),
     OwnerChange(Uuid),
     OpponentChange(Option<Uuid>),
-    MapChange(GameMap),
+    MapChange(String),
     StartGame,
     MoveReceived(PlayerTeam),
     MovesApplied(HashMap<PlayerTeam, PlayerMove>),
