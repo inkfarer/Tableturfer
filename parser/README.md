@@ -2,16 +2,33 @@
 
 Parses Splatoon game data and prepares it for use by Tableturfer.
 
-## Usage
+## Setup
 
-- Add the required Splatoon data to the `input` directory. By the end, you should have the following directory structure:
-    ```
-    .
-    ├── input
-    │   └── RSDB
-    │       └── MiniGameCardInfo[...].byml.zs
-    ├── lib
-    ├── src
-    └── ...
-    ```
-- Run the program: `cargo run`
+Before it can be used, this project requires some files from a dumped copy of Splatoon 3.  
+After adding the required Splatoon data to the `input` directory, the project folder should contain the following:
+```
+.
+├── input
+│   ├── maps
+│   │   └── ... (These files are created manually.)
+│   └── RSDB
+│       └── MiniGameCardInfo[...].byml.zs
+├── lib
+├── src
+└── ...
+```
+
+## Modules
+
+### card_db
+
+`cargo run --bin card_db`
+
+Parses the game's card database (`RSDB/MiniGameCardInfo[...].byml.zs`) and saves the resulting JSON into the appropriate
+source directories.
+
+### maps
+
+`cargo run --bin maps`
+
+Parses and compresses maps (`maps/*.json`) into a single JSON file. 

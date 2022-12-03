@@ -3,7 +3,6 @@ use std::fs;
 use std::fs::File;
 use std::borrow::Borrow;
 use std::collections::HashSet;
-use std::path::Path;
 use byml::Byml;
 use serde::Serialize;
 
@@ -121,18 +120,14 @@ fn parse_card_info() -> Result<Vec<TableturfCard>, Box<dyn Error>> {
     Ok(result)
 }
 
-#[tokio::main]
-async fn main() {
-    let server_cards_path = Path::new("../server/src/game/");
-    let client_cards_path = Path::new("../web/assets/");
+fn main() {
+    let paths = tableturfer_data_parser::verify_paths("../server/src/game/", "../web/assets/", CARD_FILE_NAME);
 
-    if !server_cards_path.exists() || !client_cards_path.exists() {
-        panic!("Found that the path to place the parsed cards into does not exist");
-    }
-
+    println!("Reading card data");
     let card_info = parse_card_info().expect("Failed to parse card data");
     let card_info_json = serde_json::to_string(&card_info).expect("Failed to convert card data to JSON");
 
-    fs::write(format!("{}/{}", server_cards_path.display(), CARD_FILE_NAME), card_info_json.clone()).expect("Failed to save card data for server");
-    fs::write(format!("{}/{}", client_cards_path.display(), CARD_FILE_NAME), card_info_json).expect("Failed to save card data for client");
+    println!("Writing result to file");
+    tableturfer_data_parser::write_string(paths, card_info_json);
+    println!("Done!");
 }
