@@ -1,0 +1,18 @@
+[package]
+name = "msbt"
+version = "0.1.1"
+authors = ["Anna Clemens <github@annaclemens.io>"]
+edition = "2018"
+
+[dependencies]
+byteordered = "0.4"
+thiserror = "1"
+serde = { version = "1", optional = true }
+serde_derive = { version = "1", optional = true }
+
+[features]
+serde_support = ["serde", "serde_derive"]
+
+[[bin]]
+name = "read_write"
+path = "bin/read_write.rs"
