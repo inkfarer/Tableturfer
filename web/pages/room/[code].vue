@@ -22,7 +22,7 @@
             the map is "{{ gameBoardStore.name }}"
             <br>
             <RoomMapSelector v-if="roomStore.isRoomOwner" />
-            <RoomDeckSelector v-if="roomStore.isPlayer" />
+            <RoomDeckSelector v-if="roomStore.isRoomOwner || roomStore.isOpponent" />
             <template v-if="roomStore.isRoomOwner">
                 <button @click="startGame">
                     start the game!
