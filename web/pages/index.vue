@@ -1,6 +1,6 @@
 <template>
     <div style="margin: 8px;">
-        <div>hello</div>
+        <div>{{ $t('hello') }}</div>
         <NuxtLink to="/play">player</NuxtLink>
         <div>
             <button @click="createRoom">new room</button>
