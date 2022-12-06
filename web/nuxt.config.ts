@@ -1,7 +1,16 @@
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
+    vite: {
+        css: {
+            preprocessorOptions: {
+                scss: {
+                    additionalData: '@use "@/assets/styles/constants.scss" as *; @use "@/assets/styles/breakpoints.scss" as *;'
+                }
+            }
+        }
+    },
     css: [
-        '@/assets/style-common.scss',
+        '@/assets/styles/style-common.scss',
         '/node_modules/normalize.css/normalize.css'
     ],
     imports: {

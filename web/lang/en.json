@@ -1,3 +1,18 @@
 {
-    "hello": "greetings"
+    "nav": {
+        "siteName": "tblturf.ink",
+        "decks": "Decks"
+    },
+    "index": {
+        "title": "Welcome to tblturf.ink!",
+        "subtitle": "The Tableturf Battle simulator.",
+        "smallScreen": "Playing on a small screen may not work as expected. tblturf.ink is a work in progress."
+    },
+    "roomJoiner": {
+        "newRoom": "Create a new room",
+        "joinRoom": "Join room"
+    },
+    "footer": {
+        "text": "tblturf.ink is created by inkfarer."
+    }
 }
