@@ -1,14 +1,14 @@
 <template>
     <nav>
         <div class="content-wrapper">
-            <NuxtLink
+            <PageNavLink
                 to="/"
                 class="site-name"
             >
                 {{ $t('nav.siteName') }}
-            </NuxtLink>
+            </PageNavLink>
             <div>
-                <NuxtLink to="/decks">{{ $t('nav.decks') }}</NuxtLink>
+                <PageNavLink to="/decks">{{ $t('nav.decks') }}</PageNavLink>
             </div>
         </div>
     </nav>
@@ -24,20 +24,9 @@
     align-items: center;
     padding: 10px 20px;
 
-    a {
-        color: white;
-        transition: color 350ms;
-        text-decoration: none;
-        font-size: 1.25em;
-
-        &.site-name {
-            font-size: 1.5em;
-            font-weight: 800;
-        }
-
-        &:hover {
-            color: #94DDC9;
-        }
+    a.site-name {
+        font-size: 1.5em;
+        font-weight: 800;
     }
 }
 </style>
