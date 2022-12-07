@@ -4,12 +4,14 @@ import { PlayerTeam } from '~/types/PlayerTeam';
 import { RoomEventMap } from '~/types/socket/RoomEvent';
 
 interface DeckStore {
+    deckName: string | null
     availableCards: string[]
     usedCards: { [key in PlayerTeam]: Set<string> }
 }
 
 export const useDeckStore = defineStore('deck', {
     state: (): DeckStore => ({
+        deckName: null,
         availableCards: [],
         usedCards: {
             [PlayerTeam.ALPHA]: new Set(),

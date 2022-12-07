@@ -1,12 +1,21 @@
 <template>
-    <div>
-        <button @click="setDeck(defaultDeck)">use default deck</button>
-        <button @click="setDeck(testDeck)">use other deck</button>
-    </div>
+    <Overlay v-model="isOpen">
+        <div class="deck-selector">
+            <TtButton @click="setDeck(defaultDeck, 'default')">use default deck</TtButton>
+            <TtButton @click="setDeck(testDeck, 'testDeck')">use other deck</TtButton>
+        </div>
+    </Overlay>
 </template>
 
 <script lang="ts" setup>
-import { useNuxtApp } from '#imports';
+import { ref, useNuxtApp } from '#imports';
+import { useDeckStore } from '~/stores/DeckStore';
+
+const isOpen = ref(false);
+
+function open() {
+    isOpen.value = true;
+}
 
 const defaultDeck = [
     'ShooterNormal00',
@@ -44,9 +53,26 @@ const testDeck = [
     'Judgekun'
 ];
 
+const deckStore = useDeckStore();
 const { $socket } = useNuxtApp();
 
-function setDeck(deck: string[]) {
+function setDeck(deck: string[], name: string) {
+    deckStore.deckName = name;
     $socket.send('SetDeck', deck);
+    isOpen.value = false;
 }
+
+defineExpose({
+    open
+});
 </script>
+
+<style lang="scss" scoped>
+.deck-selector {
+    .button {
+        &:not(:last-child) {
+            margin-bottom: 8px;
+        }
+    }
+}
+</style>

@@ -12,6 +12,29 @@
         "newRoom": "Create a new room",
         "joinRoom": "Join room"
     },
+    "room": {
+        "loading": "Loading...",
+        "beforeRoomCode": "Joined room",
+        "errorOccurred": "An error has occurred.",
+        "backHome": "Back to main page",
+        "mapName": "Map",
+        "deckName": "Deck",
+        "setMap": "Change map",
+        "setDeck": "Change deck",
+        "startGame": "Start the game!",
+        "leave": "Leave room",
+        "userRole": {
+            "owner": "Room Owner",
+            "opponent": "Opponent",
+            "spectator": "Spectator"
+        },
+        "userError": {
+            "deckNotChosen": "Deck not chosen!"
+        }
+    },
+    "user": {
+        "guestUser": "Guest #{number}"
+    },
     "footer": {
         "text": "tblturf.ink is created by inkfarer."
     }
