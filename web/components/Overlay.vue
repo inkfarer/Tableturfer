@@ -28,6 +28,7 @@ function close() {
 <style lang="scss" scoped>
 .overlay-wrapper {
     position: absolute;
+    z-index: 9999999;
     top: 0;
     left: 0;
     height: 100vh;
