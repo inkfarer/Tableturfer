@@ -7,15 +7,17 @@
         >
             {{ $t('user.guestUser', { number: index + 1 }) }}
             <div class="extra">
-                <template v-if="roomStore.owner === id">
-                    {{ $t('room.userRole.owner') }}
-                </template>
-                <template v-else-if="roomStore.opponent === id">
-                    {{ $t('room.userRole.opponent') }}
-                </template>
-                <template v-else>
-                    {{ $t('room.userRole.spectator') }}
-                </template>
+                <div class="role">
+                    <template v-if="roomStore.owner === id">
+                        {{ $t('room.userRole.owner') }}
+                    </template>
+                    <template v-else-if="roomStore.opponent === id">
+                        {{ $t('room.userRole.opponent') }}
+                    </template>
+                    <template v-else>
+                        {{ $t('room.userRole.spectator') }}
+                    </template>
+                </div>
                 <div
                     v-if="(roomStore.owner === id || roomStore.opponent === id) && user.deck == null"
                     class="error"
@@ -49,6 +51,9 @@ const roomStore = useRoomStore();
         text-align: right;
         font-size: 0.85em;
         font-weight: 400;
+    }
+
+    .role {
         opacity: 0.75;
     }
 
