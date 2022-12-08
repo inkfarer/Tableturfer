@@ -48,7 +48,10 @@ export const useDeckStore = defineStore('deck', {
             });
         },
         resetGame() {
-            this.$reset();
+            // todo: deckName can go out of sync with what the player's current deck really is
+            this.availableCards = [];
+            this.usedCards.Alpha.clear();
+            this.usedCards.Bravo.clear();
         }
     }
 });
