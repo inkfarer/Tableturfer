@@ -72,7 +72,7 @@ function toggle() {
     }
 
     &.disabled {
-        filter: saturate(0.5);
+        filter: brightness(0.75);
         cursor: initial;
     }
 }

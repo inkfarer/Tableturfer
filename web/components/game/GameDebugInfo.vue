@@ -28,7 +28,7 @@
             used sp: {{ gameBoardStore.usedSpecialPoints }}
         </div>
         <div>
-            used cards: {{ deckStore.usedCards }}
+            move locked? {{ activeCardStore.locked }}
         </div>
     </div>
 </template>
@@ -37,12 +37,10 @@
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { useRoomStore } from '~/stores/RoomStore';
-import { useDeckStore } from '~/stores/DeckStore';
 
 const activeCardStore = useActiveCardStore();
 const gameBoardStore = useGameBoardStore();
 const roomStore = useRoomStore();
-const deckStore = useDeckStore();
 </script>
 
 <style lang="scss" scoped>

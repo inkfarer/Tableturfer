@@ -15,6 +15,7 @@ interface ActiveCardStore {
     rotation: CardRotation
     special: boolean
     pass: boolean
+    locked: boolean
 }
 
 export interface CardSize {
@@ -31,7 +32,8 @@ export const useActiveCardStore = defineStore('activeCard', {
         },
         rotation: 0,
         special: false,
-        pass: false
+        pass: false,
+        locked: false
     }),
     getters: {
         cardSizeWithoutRotation: (state): CardSize => {
@@ -54,6 +56,10 @@ export const useActiveCardStore = defineStore('activeCard', {
     },
     actions: {
         setActiveCard(card: Card | null) {
+            if (this.locked) {
+                return;
+            }
+
             // Returns the new origin - Could be avoided later when cards are normalized before they are sent into this function
             const updatePosition = (squares: CardSquareType[][]): Position => {
                 const oldOrigin = this.activeCard?.origin ?? { x: 0, y: 0 };
@@ -175,16 +181,26 @@ export const useActiveCardStore = defineStore('activeCard', {
             this.$reset();
         },
         setSpecial(special: boolean) {
-            if (special) {
-                this.pass = false;
+            if (!this.locked) {
+                if (special) {
+                    this.pass = false;
+                }
+                this.special = special;
             }
-            this.special = special;
         },
         setPass(pass: boolean) {
-            if (pass) {
-                this.special = false;
+            if (!this.locked) {
+                if (pass) {
+                    this.special = false;
+                }
+                this.pass = pass;
             }
-            this.pass = pass;
+        },
+        onNewMove() {
+            this.locked = false;
+            this.pass = false;
+            this.special = false;
+            this.setActiveCard(null);
         }
     }
 });

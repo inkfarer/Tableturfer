@@ -9,7 +9,7 @@
             <GameCardActionKeys class="action-keys" />
         </div>
         <div class="side-section">
-
+            <GameDebugInfo />
         </div>
     </div>
 </template>

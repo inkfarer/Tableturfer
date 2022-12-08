@@ -115,6 +115,11 @@ export class SocketService {
                 } else {
                     console.error(`Received error "${msg.detail.code}"`);
                 }
+
+                if (msg.detail.code === 'GameError' && msg.detail.detail.code === 'InvalidMove') {
+                    useActiveCardStore().locked = false;
+                }
+
                 break;
         }
     }
@@ -145,6 +150,7 @@ export class SocketService {
                 console.log(`Player of team ${event.detail} has made a move`);
                 break;
             case 'MovesApplied':
+                useActiveCardStore().onNewMove();
                 useGameBoardStore().applyMoves(event.detail);
                 useDeckStore().setUsedCards(event.detail);
                 useRoomStore().remainingTurns--;

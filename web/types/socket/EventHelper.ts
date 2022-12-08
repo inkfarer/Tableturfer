@@ -3,3 +3,7 @@
 export type AnyMessage<MessageMap> = {
     [K in keyof MessageMap]: { event: K, detail: MessageMap[K] }
 }[keyof MessageMap];
+
+export type AnyError<MessageMap> = {
+    [K in keyof MessageMap]: { code: K, detail: MessageMap[K] }
+}[keyof MessageMap];

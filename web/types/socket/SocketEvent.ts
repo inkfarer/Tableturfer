@@ -1,17 +1,38 @@
 import { AnyRoomEvent } from '~/types/socket/RoomEvent';
-import { AnyMessage } from '~/types/socket/EventHelper';
+import { AnyError, AnyMessage } from '~/types/socket/EventHelper';
+
+interface InvalidMoveErrorMap {
+    CardNotFound: never
+    CardNotInHand: never
+    CannotAffordSpecial: never
+    CardOutOfBounds: never
+    CardOnDisallowedSquares: never
+    NoExpectedSquaresNearCard: never
+}
+
+export interface GameErrorMap {
+    InvalidMove: AnyError<InvalidMoveErrorMap>
+    CardNotFound: never
+    MapNotFound: never
+    IncorrectDeckSize: never
+    GameEnded: never
+}
+
+export type AnyGameError = AnyError<GameErrorMap>;
 
 export interface SocketErrorMap {
     MessageParsingFailed: never
     UserNotRoomOwner: never
+    UserNotPlaying: never
     RoomNotFound: string
     MissingOpponent: never
     RoomStarted: never
+    RoomNotStarted: never
+    DecksNotChosen: never
+    GameError: AnyGameError
 }
 
-export type AnySocketError = {
-    [K in keyof SocketErrorMap]: { code: K, detail: SocketErrorMap[K] }
-}[keyof SocketErrorMap];
+export type AnySocketError = AnyError<SocketErrorMap>;
 
 export interface SocketUser {
     joinedAt: string

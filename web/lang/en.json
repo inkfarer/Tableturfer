@@ -36,7 +36,8 @@
         "pass": "Pass",
         "special": "Special ON!",
         "placeCard": "Place card",
-        "turnsRemaining": "Turns left"
+        "turnsRemaining": "Turns left",
+        "returnToRoom": "Back to room"
     },
     "user": {
         "guestUser": "Guest #{number}"

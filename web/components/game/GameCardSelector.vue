@@ -8,12 +8,14 @@
         />
         <TtToggleButton
             :model-value="activeCardStore.pass"
+            :disabled="activeCardStore.locked"
             @update:model-value="activeCardStore.setPass($event)"
         >
             {{ $t('game.pass') }}
         </TtToggleButton>
         <TtToggleButton
             :model-value="activeCardStore.special"
+            :disabled="activeCardStore.locked"
             @update:model-value="activeCardStore.setSpecial($event)"
         >
             {{ $t('game.special') }}

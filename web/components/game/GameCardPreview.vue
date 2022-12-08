@@ -1,7 +1,7 @@
 <template>
     <div
         class="card-preview"
-        :class="{ active: activeCardStore.activeCard?.name === cardData?.name }"
+        :class="{ active: activeCardStore.activeCard?.name === cardData?.name, locked: activeCardStore.locked }"
     >
         <div class="card-name">
             {{ cardData == null ? '???' : $t(`game.card.${cardData.name}`) }}
@@ -60,19 +60,22 @@ const squareCount = computed(() => {
     border: 2px solid $accent;
     background-color: $accent-a10;
     text-align: center;
-    cursor: pointer;
     transition: background-color $default-transition-duration;
 
     &.active {
         background-color: $accent-a35;
     }
 
-    &:hover {
-        background-color: $accent-a50;
-    }
+    &:not(.locked) {
+        cursor: pointer;
 
-    &:active {
-        background-color: $accent-a75;
+        &:hover {
+            background-color: $accent-a50;
+        }
+
+        &:active {
+            background-color: $accent-a75;
+        }
     }
 
     > .card-name {

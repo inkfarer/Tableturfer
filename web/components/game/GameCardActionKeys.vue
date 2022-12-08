@@ -1,28 +1,37 @@
 <template>
     <div class="card-movement-keys">
         <div class="keypad">
-            <TtButton @click="activeCardStore.previousRotationStep()">
-                <Icon name="fa6-solid:arrow-rotate-left" />
-            </TtButton>
-            <TtButton @click="activeCardStore.moveUp()">
-                <Icon name="fa6-solid:angle-up" />
-            </TtButton>
-            <TtButton @click="activeCardStore.nextRotationStep()">
-                <Icon name="fa6-solid:arrow-rotate-right" />
-            </TtButton>
-            <TtButton @click="activeCardStore.moveLeft()">
-                <Icon name="fa6-solid:angle-left" />
-            </TtButton>
-            <TtButton @click="activeCardStore.moveDown()">
-                <Icon name="fa6-solid:angle-down" />
-            </TtButton>
-            <TtButton @click="activeCardStore.moveRight()">
-                <Icon name="fa6-solid:angle-right" />
-            </TtButton>
+            <GameCardActionKey
+                icon="fa6-solid:arrow-rotate-left"
+                @click="activeCardStore.previousRotationStep()"
+            />
+            <GameCardActionKey
+                icon="fa6-solid:angle-up"
+                @click="activeCardStore.moveUp()"
+            />
+            <GameCardActionKey
+                icon="fa6-solid:arrow-rotate-right"
+                @click="activeCardStore.nextRotationStep()"
+            />
+            <GameCardActionKey
+                icon="fa6-solid:angle-left"
+                @click="activeCardStore.moveLeft()"
+            />
+            <GameCardActionKey
+                icon="fa6-solid:angle-down"
+                @click="activeCardStore.moveDown()"
+            />
+            <GameCardActionKey
+                icon="fa6-solid:angle-right"
+                @click="activeCardStore.moveRight()"
+            />
         </div>
 
         <div class="extra-buttons">
-            <TtButton @click="placeCard">{{ $t('game.placeCard') }}</TtButton>
+            <GameCardActionKey
+                :text="$t('game.placeCard')"
+                @click="placeCard"
+            />
             <TtButton
                 v-if="roomStore.completed && roomStore.isRoomOwner"
                 @click="returnToRoom"
@@ -65,9 +74,7 @@ function placeCard() {
             cardName: activeCardStore.activeCard.name
         });
     }
-    activeCardStore.setActiveCard(null);
-    activeCardStore.special = false;
-    activeCardStore.pass = false;
+    activeCardStore.locked = true;
 }
 </script>
 
