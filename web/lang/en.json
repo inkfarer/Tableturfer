@@ -43,6 +43,11 @@
         "guestUser": "Guest #{number}"
     },
     "footer": {
-        "beforeCreatedBy": "tblturf.ink is created by "
+        "beforeCreatedBy": "tblturf.ink is created by ",
+        "versionInfo": {
+            "appName": "Tableturfer",
+            "commitAndDate": "commit {commit} built on {date}",
+            "devBuild": "development build!"
+        }
     }
 }

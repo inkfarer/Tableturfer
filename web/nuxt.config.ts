@@ -1,3 +1,7 @@
+import { gitDescribeSync } from 'git-describe';
+
+const gitInfo = gitDescribeSync();
+
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
     vite: {
@@ -43,7 +47,9 @@ export default defineNuxtConfig({
     },
     runtimeConfig: {
         public: {
-            socketUrl: 'ws://192.168.1.232:8080/ws'
+            socketUrl: 'ws://192.168.1.232:8080/ws',
+            commitHash: gitInfo.hash,
+            buildDate: new Date().getTime()
         }
     }
 });
