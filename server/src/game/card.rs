@@ -86,9 +86,9 @@ pub mod tests {
                         season: 1,
                         special_cost: 2,
                         squares: Matrix::new(vec!(
-                            vec!(CST::Empty, CST::Fill),
-                            vec!(CST::Empty, CST::Special),
-                            vec!(CST::Fill, CST::Fill),
+                            vec!(CardSquareType::Empty, CardSquareType::Fill),
+                            vec!(CardSquareType::Empty, CardSquareType::Special),
+                            vec!(CardSquareType::Fill, CardSquareType::Fill),
                         )),
                     }),
                     ("card_2".to_owned(), Card {
@@ -99,8 +99,8 @@ pub mod tests {
                         season: 1,
                         special_cost: 1,
                         squares: Matrix::new(vec!(
-                            vec!(CST::Fill, CST::Fill),
-                            vec!(CST::Fill, CST::Special),
+                            vec!(CardSquareType::Fill, CardSquareType::Fill),
+                            vec!(CardSquareType::Fill, CardSquareType::Special),
                         )),
                     }),
                     ("card_3".to_owned(), Card {
@@ -111,7 +111,7 @@ pub mod tests {
                         season: 1,
                         special_cost: 1,
                         squares: Matrix::new(vec!(
-                            vec!(CST::Fill),
+                            vec!(CardSquareType::Fill),
                         )),
                     }),
                     ("card_4".to_owned(), Card {
@@ -122,8 +122,8 @@ pub mod tests {
                         season: 1,
                         special_cost: 3,
                         squares: Matrix::new(vec!(
-                            vec!(CST::Fill, CST::Fill),
-                            vec!(CST::Special, CST::Empty),
+                            vec!(CardSquareType::Fill, CardSquareType::Fill),
+                            vec!(CardSquareType::Special, CardSquareType::Empty),
                         )),
                     }),
                 ])
