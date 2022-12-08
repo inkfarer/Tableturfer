@@ -28,7 +28,12 @@
                 class="text-center"
             >
                 <p>{{ $t('room.errorOccurred') }}</p>
-                <TtButton @click="leaveRoom">{{ $t('room.backHome') }}</TtButton>
+                <TtButton
+                    inline
+                    @click="leaveRoom"
+                >
+                    {{ $t('room.backHome') }}
+                </TtButton>
             </div>
             <div
                 v-else-if="!isLoading && !isError"

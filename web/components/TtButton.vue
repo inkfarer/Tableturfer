@@ -1,7 +1,7 @@
 <template>
     <a
         class="button"
-        :class="{ disabled: props.disabled }"
+        :class="{ disabled: props.disabled, inline: props.inline }"
         href="javascript:void(0);"
         @click="onClick"
     >
@@ -14,6 +14,10 @@ const emit = defineEmits(['click']);
 
 const props = defineProps({
     disabled: {
+        type: Boolean,
+        default: false
+    },
+    inline: {
         type: Boolean,
         default: false
     }
@@ -55,6 +59,10 @@ function onClick() {
     &.disabled {
         color: #999;
         cursor: initial;
+    }
+
+    &.inline {
+        display: inline-block;
     }
 }
 </style>
