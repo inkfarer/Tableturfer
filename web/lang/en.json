@@ -42,6 +42,6 @@
         "guestUser": "Guest #{number}"
     },
     "footer": {
-        "text": "tblturf.ink is created by inkfarer."
+        "beforeCreatedBy": "tblturf.ink is created by "
     }
 }

@@ -10,3 +10,11 @@ body {
 p {
     font-size: 1.15em;
 }
+
+a {
+    color: $accent;
+
+    &:active {
+        color: $accent-active;
+    }
+}

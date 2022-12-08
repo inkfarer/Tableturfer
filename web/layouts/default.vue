@@ -8,7 +8,7 @@
             <slot />
         </main>
         <footer>
-            {{ $t('footer.text') }}
+            {{ $t('footer.beforeCreatedBy') }} <NuxtLink to="https://twitter.com/inkfarer">inkfarer</NuxtLink>.
         </footer>
     </div>
 </template>
