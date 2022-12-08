@@ -4,7 +4,7 @@
             v-for="card in deckStore.availableCards"
             :key="`card_${card}`"
             :name="card"
-            @click="setActiveCard(card)"
+            @click="selectCard(card)"
         />
         <TtToggleButton
             :model-value="activeCardStore.pass"
@@ -28,15 +28,26 @@ import { CardMap } from '~/helpers/Cards';
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
 import { useDeckStore } from '~/stores/DeckStore';
 import GameCardPreview from '~/components/game/GameCardPreview.vue';
+import { useNuxtApp } from '#imports';
 
 const activeCardStore = useActiveCardStore();
 const deckStore = useDeckStore();
+const { $socket } = useNuxtApp();
 
-const setActiveCard = (card: string | null) => {
-    if (card != null && activeCardStore.activeCard?.name === card) {
-        activeCardStore.setActiveCard(null);
+const selectCard = (card: string) => {
+    if (activeCardStore.pass) {
+        activeCardStore.setActiveCard(CardMap.get(card) ?? null);
+        $socket.send('ProposeMove', {
+            type: 'Pass',
+            cardName: card
+        });
+        activeCardStore.locked = true;
     } else {
-        activeCardStore.setActiveCard(card == null ? null : CardMap.get(card) ?? null);
+        if (card != null && activeCardStore.activeCard?.name === card) {
+            activeCardStore.setActiveCard(null);
+        } else {
+            activeCardStore.setActiveCard(CardMap.get(card) ?? null);
+        }
     }
 };
 </script>

@@ -56,24 +56,17 @@ function returnToRoom() {
 }
 
 function placeCard() {
-    if (activeCardStore.activeCard == null || roomStore.playerTeam == null) {
+    if (activeCardStore.activeCard == null || roomStore.playerTeam == null || activeCardStore.pass) {
         return;
     }
 
-    if (!activeCardStore.pass) {
-        $socket.send('ProposeMove', {
-            type: 'PlaceCard',
-            cardName: activeCardStore.activeCard.name,
-            position: activeCardStore.position,
-            rotation: activeCardStore.rotation,
-            special: activeCardStore.special
-        });
-    } else {
-        $socket.send('ProposeMove', {
-            type: 'Pass',
-            cardName: activeCardStore.activeCard.name
-        });
-    }
+    $socket.send('ProposeMove', {
+        type: 'PlaceCard',
+        cardName: activeCardStore.activeCard.name,
+        position: activeCardStore.position,
+        rotation: activeCardStore.rotation,
+        special: activeCardStore.special
+    });
     activeCardStore.locked = true;
 }
 </script>

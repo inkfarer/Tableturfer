@@ -1,6 +1,6 @@
 <template>
     <TtButton
-        :disabled="activeCardStore.locked"
+        :disabled="disabled"
         @click="emit('click')"
     >
         <Icon
@@ -16,6 +16,7 @@
 <script lang="ts" setup>
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
 import { PropType } from 'vue';
+import { computed } from '#imports';
 
 const emit = defineEmits(['click']);
 
@@ -31,4 +32,5 @@ const props = defineProps({
 });
 
 const activeCardStore = useActiveCardStore();
+const disabled = computed(() => activeCardStore.locked || activeCardStore.pass);
 </script>
