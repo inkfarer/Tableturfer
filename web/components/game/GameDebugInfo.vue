@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="debug-info">
         <div>
             active card: {{ activeCardStore.activeCard?.name ?? 'None' }}
         </div>
@@ -44,3 +44,14 @@ const gameBoardStore = useGameBoardStore();
 const roomStore = useRoomStore();
 const deckStore = useDeckStore();
 </script>
+
+<style lang="scss" scoped>
+.debug-info {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0.5;
+    pointer-events: none;
+}
+</style>

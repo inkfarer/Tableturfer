@@ -32,6 +32,12 @@
             "deckNotChosen": "Deck not chosen!"
         }
     },
+    "game": {
+        "pass": "Pass",
+        "special": "Special ON!",
+        "placeCard": "Place card",
+        "turnsRemaining": "Turns left"
+    },
     "user": {
         "guestUser": "Guest #{number}"
     },

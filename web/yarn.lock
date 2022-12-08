@@ -441,6 +441,18 @@
   resolved "https://registry.npmjs.org/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
+"@iconify/types@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@iconify/types/-/types-2.0.0.tgz#ab0e9ea681d6c8a1214f30cd741fe3a20cc57f57"
+  integrity sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==
+
+"@iconify/vue@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@iconify/vue/-/vue-4.0.1.tgz#d7e3dbf3f3c79b6105c03fa0ec933eb573d073e7"
+  integrity sha512-k4VwcSQpGqJpoyqENRRviFuXlVcquLvQ6BKLNJ6o2amZo7u+3HyALSO79Xyz7Sg68szQGstOk6weaKUF0DJbog==
+  dependencies:
+    "@iconify/types" "^2.0.0"
+
 "@intlify/bundle-utils@^3.4.0":
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/@intlify/bundle-utils/-/bundle-utils-3.4.0.tgz#72558611f4b223a6791f591363dc48a4bcacdf70"
@@ -5138,6 +5150,14 @@ nuxi@3.0.0:
   integrity sha512-VWh1kKFffxD2yadZWcQSd6eTf9okXRr7d3HsjLiI4B3Q1/8iKdIUiodGo7X71OZ+gPVnX6Oh/XFzcb7mr+8TbQ==
   optionalDependencies:
     fsevents "~2.3.2"
+
+nuxt-icon@^0.1.8:
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/nuxt-icon/-/nuxt-icon-0.1.8.tgz#9df26856bf5ff05685989f95bbbe52fe5ee7887a"
+  integrity sha512-oPFlLOZCy80MN+hf49+mBkOIHWVF3sOqZREQZw3qD0N6wGlR15QeRQtKQC8qGeQcc+xvpLQm0GvrdJ8FxFOPYg==
+  dependencies:
+    "@iconify/vue" "^4.0.1"
+    "@nuxt/kit" "^3.0.0"
 
 nuxt@^3.0.0:
   version "3.0.0"

@@ -121,3 +121,10 @@ export function count2D<T>(array: T[][], predicate: (item: T, position: Position
 export function fill2D<T>(width: number, height: number, value: T): T[][] {
     return Array.from({ length: height }, () => Array.from({ length: width }, () => value));
 }
+
+export function getSize(array: unknown[][]): { width: number, height: number } {
+    return {
+        height: array?.length ?? 0,
+        width: array?.[0]?.length ?? 0
+    };
+}

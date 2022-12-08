@@ -173,6 +173,18 @@ export const useActiveCardStore = defineStore('activeCard', {
         },
         resetGame() {
             this.$reset();
+        },
+        setSpecial(special: boolean) {
+            if (special) {
+                this.pass = false;
+            }
+            this.special = special;
+        },
+        setPass(pass: boolean) {
+            if (pass) {
+                this.special = false;
+            }
+            this.pass = pass;
         }
     }
 });

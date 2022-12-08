@@ -1,43 +1,49 @@
 <template>
     <div class="game-stage-layout">
         <div class="side-section">
-            <GameCardSelector class="top-margin" />
-            <button @click="leaveRoom">LEAVE</button>
+            <GameCardSelector class="card-selector" />
         </div>
-        <GameBoard class="game-board" />
+        <div class="main-section">
+            <GamePlayerStatus class="player-status" />
+            <GameBoard class="game-board" />
+            <GameCardActionKeys class="action-keys" />
+        </div>
         <div class="side-section">
-            <GameDebugInfo />
-            <GameCardActionKeys class="top-margin" />
+
         </div>
     </div>
 </template>
 
-<script lang="ts" setup>
-import { navigateTo } from '#app';
-import { useNuxtApp } from '#imports';
-
-const { $socket } = useNuxtApp();
-
-async function leaveRoom() {
-    $socket.disconnect();
-    await navigateTo('/');
-}
-</script>
-
 <style lang="scss">
 .game-stage-layout {
-    max-width: 1000px;
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 10px;
+    grid-template-columns: 2fr auto 1fr;
+    gap: 16px;
 }
 
 .game-board {
     z-index: -1;
 }
 
+.main-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.player-status {
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.action-keys {
+    margin-top: 16px;
+}
+
 .side-section {
     z-index: 2;
+    display: flex;
+    align-items: center;
 }
 
 .top-margin {
