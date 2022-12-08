@@ -8,6 +8,7 @@ import { defineStore } from 'pinia';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { MapSquareType } from '~/types/MapSquareType';
 import { getRotationOffset, withinBoardBounds } from '~/helpers/ActiveCardHelper';
+import cloneDeep from 'lodash/cloneDeep';
 
 interface ActiveCardStore {
     activeCard: ActiveCard | null
@@ -88,7 +89,7 @@ export const useActiveCardStore = defineStore('activeCard', {
                 updatePosition([]);
                 this.activeCard = card;
             } else {
-                const normalizedSquares = card.squares;
+                const normalizedSquares = cloneDeep(card.squares);
                 const origin = updatePosition(normalizedSquares);
 
                 this.activeCard = {

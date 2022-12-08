@@ -178,7 +178,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
                     if (card == null) {
                         throw new Error(`Unknown card "${move.cardName}"`);
                     }
-                    const normalizedSquares = rotateClockwiseBy(card.squares, move.rotation);
+                    const normalizedSquares = rotateClockwiseBy(cloneDeep(card.squares), move.rotation);
 
                     return {
                         ...move,
