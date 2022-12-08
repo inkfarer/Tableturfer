@@ -9,6 +9,9 @@ After adding the required Splatoon data to the `input` directory, the project fo
 ```
 .
 ├── input
+│   ├── Mals
+│   │   ├── EUen.Product[...].sarc.zs
+│   │   └── [Lang].Product.[Version].sarc.zs
 │   ├── maps
 │   │   └── ... (These files are created manually.)
 │   └── RSDB
@@ -32,3 +35,9 @@ source directories.
 `cargo run --bin maps`
 
 Parses and compresses maps (`maps/*.json`) into a single JSON file. 
+
+### lang
+
+`cargo run --bin lang`
+
+Parses translation files (`Mals/*.sarc.zs`) and places them in the correct location.
