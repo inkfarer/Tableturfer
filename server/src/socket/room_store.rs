@@ -199,7 +199,7 @@ impl Room {
         let sender = self.sender.clone();
         let result = game.propose_move(team.clone(), player_move);
         if result.is_ok() {
-            sender.send(RoomEvent::MoveReceived(team)).ok();
+            sender.send(RoomEvent::MoveReceived { team, remaining_turns: game.remaining_turns }).ok();
 
             if game.all_players_have_moved() {
                 let moves = game.apply_moves();

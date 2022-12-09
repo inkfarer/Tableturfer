@@ -1,14 +1,11 @@
 <template>
-    <div
-        class="card-preview"
-        :class="{ active: activeCardStore.activeCard?.name === cardData?.name, locked: activeCardStore.locked }"
-    >
+    <div class="card-preview">
         <div class="card-name">
             {{ cardData == null ? '???' : $t(`game.card.${cardData.name}`) }}
         </div>
         <CardSquarePreview
             :squares="cardData?.squares ?? []"
-            :team="roomStore.playerTeam"
+            :team="props.team"
         />
         <div class="cost">
             <div class="square-count">
@@ -18,7 +15,7 @@
                 <CardSquare
                     v-for="point in cardData?.specialCost ?? 0"
                     :key="`special-cost-point_${point}`"
-                    :team="roomStore.playerTeam"
+                    :team="props.team"
                     :square="CardSquareType.FILL"
                 />
             </div>
@@ -27,27 +24,26 @@
 </template>
 
 <script lang="ts" setup>
+import { ComputedRef, PropType } from 'vue';
+import { Card } from '~/types/Card';
 import { computed } from '#imports';
 import { CardMap } from '~/helpers/Cards';
-import { ComputedRef } from 'vue';
-import { Card } from '~/types/Card';
 import { count2D } from '~/helpers/ArrayHelper';
 import { CardSquareType } from '~/types/CardSquareType';
-import CardSquare from '~/components/CardSquare.vue';
-import { useRoomStore } from '~/stores/RoomStore';
-import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { PlayerTeam } from '~/types/PlayerTeam';
 
 const props = defineProps({
     name: {
-        type: String,
-        required: true
+        type: String as PropType<string | null>,
+        default: null
+    },
+    team: {
+        type: String as PropType<PlayerTeam>,
+        default: PlayerTeam.ALPHA
     }
 });
 
-const roomStore = useRoomStore();
-const activeCardStore = useActiveCardStore();
-
-const cardData: ComputedRef<Card | undefined> = computed(() => CardMap.get(props.name));
+const cardData: ComputedRef<Card | undefined> = computed(() => props.name == null ? undefined : CardMap.get(props.name));
 const squareCount = computed(() => {
     if (cardData.value == null) {
         return 0;
@@ -61,25 +57,8 @@ const squareCount = computed(() => {
 .card-preview {
     padding: 4px;
     border: 2px solid $accent;
-    background-color: $accent-a10;
+    background-color: #1B1B1B;
     text-align: center;
-    transition: background-color $default-transition-duration;
-
-    &.active {
-        background-color: $accent-a35;
-    }
-
-    &:not(.locked) {
-        cursor: pointer;
-
-        &:hover {
-            background-color: $accent-a50;
-        }
-
-        &:active {
-            background-color: $accent-a75;
-        }
-    }
 
     > .card-name {
         font-size: 1.25em;

@@ -11,7 +11,7 @@ export interface RoomEventMap {
     MapChange: string
     OpponentChange: string | null
     StartGame: never
-    MoveReceived: PlayerTeam
+    MoveReceived: { team: PlayerTeam, remainingTurns: number }
     MovesApplied: TeamMap<PlayerMove>
     HandAssigned: string[]
     NextCardDrawn: { newCard: string, replacing: string }

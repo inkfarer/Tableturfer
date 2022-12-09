@@ -3,7 +3,7 @@
         class="game-stage-layout"
         :class="{ passing: activeCardStore.pass }"
     >
-        <div class="side-section">
+        <div class="side-section card-selector-section">
             <GameCardSelector class="card-selector" />
         </div>
         <div class="main-section">
@@ -17,8 +17,9 @@
                 <GameResult v-else />
             </div>
         </div>
-        <div class="side-section">
-
+        <div class="side-section move-previews">
+            <GameMovePreview team="Alpha" />
+            <GameMovePreview team="Bravo" />
         </div>
     </div>
 </template>
@@ -26,6 +27,7 @@
 <script lang="ts" setup>
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
 import { useRoomStore } from '~/stores/RoomStore';
+import GameMovePreview from '~/components/game/GameMovePreview.vue';
 
 const activeCardStore = useActiveCardStore();
 const roomStore = useRoomStore();
@@ -34,7 +36,7 @@ const roomStore = useRoomStore();
 <style lang="scss">
 .game-stage-layout {
     display: grid;
-    grid-template-columns: 2fr auto 1fr;
+    grid-template-columns: 2fr auto 1.25fr;
     gap: 16px;
 
     &.passing {
@@ -68,8 +70,21 @@ const roomStore = useRoomStore();
 
 .side-section {
     z-index: 2;
-    display: flex;
-    align-items: center;
+
+    &.card-selector-section{
+        display: flex;
+        align-items: center;
+    }
+
+    &.move-previews {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        > *:not(:first-child) {
+            margin-top: 8px;
+        }
+    }
 }
 
 .top-margin {

@@ -18,7 +18,7 @@
                     v-for="(square, x) in row"
                     :key="`square_${x}_${y}`"
                     :square="square"
-                    :team="roomStore.playerTeam"
+                    :team="props.team"
                 />
             </div>
         </div>
@@ -28,17 +28,19 @@
 <script lang="ts" setup>
 import { CardSquareType } from '~/types/CardSquareType';
 import { PropType } from 'vue';
-import { useRoomStore } from '~/stores/RoomStore';
 import Constants from '~/data/Constants';
 import { computed } from '#imports';
 import { getSize } from '~/helpers/ArrayHelper';
 import CardSquare from '~/components/CardSquare.vue';
-
-const roomStore = useRoomStore();
+import { PlayerTeam } from '~/types/PlayerTeam';
 
 const props = defineProps({
     squares: {
         type: Array as PropType<Array<Array<CardSquareType>>>,
+        required: true
+    },
+    team: {
+        type: String as PropType<PlayerTeam>,
         required: true
     }
 });

@@ -143,7 +143,7 @@ pub struct GameState {
     special_points: HashMap<PlayerTeam, usize>,
     used_special_points: HashMap<PlayerTeam, usize>,
     decks: HashMap<PlayerTeam, PlayerDeck>,
-    remaining_turns: usize,
+    pub remaining_turns: usize,
 
     square_provider: Arc<dyn CardProvider + Send + Sync>,
     move_validator: Arc<dyn MoveValidator + Send + Sync>,

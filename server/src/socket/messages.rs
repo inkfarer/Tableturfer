@@ -76,7 +76,8 @@ pub enum RoomEvent {
     OpponentChange(Option<Uuid>),
     MapChange(String),
     StartGame,
-    MoveReceived(PlayerTeam),
+    #[serde(rename_all = "camelCase")]
+    MoveReceived { team: PlayerTeam, remaining_turns: usize },
     MovesApplied(HashMap<PlayerTeam, PlayerMove>),
     HandAssigned(IndexSet<String>),
     #[serde(rename_all = "camelCase")]

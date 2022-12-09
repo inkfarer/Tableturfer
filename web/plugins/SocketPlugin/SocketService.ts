@@ -6,6 +6,7 @@ import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { useDeckStore } from '~/stores/DeckStore';
 import { navigateTo } from '#imports';
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { useMoveStore } from '~/stores/MoveStore';
 
 export class SocketService {
     private ws: WebSocket | null;
@@ -146,14 +147,14 @@ export class SocketService {
                 useRoomStore().started = true;
                 break;
             case 'MoveReceived':
-                // todo
-                console.log(`Player of team ${event.detail} has made a move`);
+                // It is likely that the client may receive 'MoveReceived' and 'MovesApplied' out of order, so
+                // we send over which turn the move was for to prevent incorrect state
+                if (useRoomStore().remainingTurns === event.detail.remainingTurns) {
+                    useMoveStore().nextMoveCompleted[event.detail.team] = true;
+                }
                 break;
             case 'MovesApplied':
-                useActiveCardStore().onNewMove();
-                useGameBoardStore().applyMoves(event.detail);
-                useDeckStore().setUsedCards(event.detail);
-                useRoomStore().remainingTurns--;
+                useMoveStore().applyMoves(event.detail);
                 break;
             case 'HandAssigned':
                 useDeckStore().availableCards = event.detail;
