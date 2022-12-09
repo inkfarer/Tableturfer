@@ -1,7 +1,10 @@
 <template>
     <div
         class="overlay-wrapper"
-        :class="{ open: props.modelValue }"
+        :class="{
+            open: props.modelValue,
+            'hide-background': props.hideBackground
+        }"
         @click.exact="close"
     >
         <div class="overlay">
@@ -15,13 +18,23 @@ const props = defineProps({
     modelValue: {
         type: Boolean,
         required: true
+    },
+    closable: {
+        type: Boolean,
+        default: false
+    },
+    hideBackground: {
+        type: Boolean,
+        default: false
     }
 });
 
 const emit = defineEmits(['update:modelValue']);
 
 function close() {
-    emit('update:modelValue', false);
+    if (props.closable) {
+        emit('update:modelValue', false);
+    }
 }
 </script>
 
@@ -39,6 +52,10 @@ function close() {
     transition: opacity 250ms;
     flex-direction: column;
     justify-content: center;
+
+    &.hide-background {
+        background-color: rgba(18, 18, 18, 0.99);
+    }
 
     &.open {
         opacity: 1;

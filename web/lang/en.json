@@ -37,7 +37,11 @@
         "special": "Special ON!",
         "placeCard": "Place card",
         "turnsRemaining": "Turns left",
-        "returnToRoom": "Back to room"
+        "returnToRoom": "Back to room",
+        "error": {
+            "communicationError": "A communication error has occurred.",
+            "backHome": "Back to main page"
+        }
     },
     "user": {
         "guestUser": "Guest #{number}"

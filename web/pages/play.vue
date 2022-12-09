@@ -1,6 +1,7 @@
 <template>
     <div class="game-wrapper">
         <Game />
+        <GameCriticalErrorOverlay />
     </div>
 </template>
 
