@@ -21,7 +21,7 @@ const props = defineProps({
     },
     closable: {
         type: Boolean,
-        default: false
+        default: true
     },
     hideBackground: {
         type: Boolean,
