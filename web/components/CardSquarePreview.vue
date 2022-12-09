@@ -40,8 +40,8 @@ const props = defineProps({
         required: true
     },
     team: {
-        type: String as PropType<PlayerTeam>,
-        required: true
+        type: String as PropType<PlayerTeam | null>,
+        default: PlayerTeam.ALPHA
     }
 });
 

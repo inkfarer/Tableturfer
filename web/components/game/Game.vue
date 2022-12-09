@@ -18,8 +18,8 @@
             </div>
         </div>
         <div class="side-section move-previews">
-            <GameMovePreview team="Alpha" />
-            <GameMovePreview team="Bravo" />
+            <GameMovePreview :team="PlayerTeam.ALPHA" />
+            <GameMovePreview :team="PlayerTeam.BRAVO" />
         </div>
     </div>
 </template>
@@ -28,6 +28,7 @@
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
 import { useRoomStore } from '~/stores/RoomStore';
 import GameMovePreview from '~/components/game/GameMovePreview.vue';
+import { PlayerTeam } from '~/types/PlayerTeam';
 
 const activeCardStore = useActiveCardStore();
 const roomStore = useRoomStore();
