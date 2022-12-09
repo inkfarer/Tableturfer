@@ -1,7 +1,7 @@
 import { SocketUser } from '~/types/socket/SocketEvent';
 import { AnyMessage } from '~/types/socket/EventHelper';
 import { PlayerMove } from '~/types/socket/SocketCommon';
-import { PlayerTeam } from '~/types/PlayerTeam';
+import { PlayerTeam, TeamMap } from '~/types/PlayerTeam';
 
 export interface RoomEventMap {
     UserJoin: { id: string, user: SocketUser }
@@ -12,9 +12,10 @@ export interface RoomEventMap {
     OpponentChange: string | null
     StartGame: never
     MoveReceived: PlayerTeam
-    MovesApplied: { [team in PlayerTeam]: PlayerMove }
+    MovesApplied: TeamMap<PlayerMove>
     HandAssigned: string[]
     NextCardDrawn: { newCard: string, replacing: string }
+    EndGame: { score: TeamMap<number> }
     ReturnToRoom: never
 }
 

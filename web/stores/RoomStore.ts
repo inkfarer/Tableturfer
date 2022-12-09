@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { SocketMessageMap, SocketUser } from '~/types/socket/SocketEvent';
-import { PlayerTeam } from '~/types/PlayerTeam';
+import { PlayerTeam, TeamMap } from '~/types/PlayerTeam';
 import { TURN_COUNT } from '~/data/Constants';
 
 interface RoomStore {
@@ -10,7 +10,9 @@ interface RoomStore {
     opponent: string | null
     users: Record<string, SocketUser>
     started: boolean
+    completed: boolean
     remainingTurns: number
+    score: TeamMap<number> | null
 }
 
 export const useRoomStore = defineStore('room', {
@@ -21,7 +23,9 @@ export const useRoomStore = defineStore('room', {
         opponent: null,
         users: {},
         started: false,
-        remainingTurns: TURN_COUNT
+        completed: false,
+        remainingTurns: TURN_COUNT,
+        score: null
     }),
     getters: {
         isRoomOwner: state => state.id === state.owner,
@@ -37,8 +41,7 @@ export const useRoomStore = defineStore('room', {
             } else {
                 return null;
             }
-        },
-        completed: state => state.remainingTurns <= 0
+        }
     },
     actions: {
         joinRoom(message: SocketMessageMap['Welcome']) {
@@ -57,6 +60,8 @@ export const useRoomStore = defineStore('room', {
         },
         resetGame() {
             this.started = false;
+            this.completed = false;
+            this.score = null;
             this.remainingTurns = TURN_COUNT;
         },
         leaveRoom() {

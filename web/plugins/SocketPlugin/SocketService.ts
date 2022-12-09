@@ -170,6 +170,12 @@ export class SocketService {
                 await navigateTo(`/room/${roomStore.roomCode}`);
                 break;
             }
+            case 'EndGame': {
+                const roomStore = useRoomStore();
+                roomStore.completed = true;
+                roomStore.score = event.detail.score;
+                break;
+            }
         }
     }
 

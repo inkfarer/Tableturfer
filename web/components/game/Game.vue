@@ -9,7 +9,13 @@
         <div class="main-section">
             <GamePlayerStatus class="player-status" />
             <GameBoard class="game-board" />
-            <GameCardActionKeys class="action-keys" />
+            <div class="below-board">
+                <GameCardActionKeys
+                    v-if="!roomStore.completed"
+                    class="action-keys"
+                />
+                <GameResult v-else />
+            </div>
         </div>
         <div class="side-section">
 
@@ -19,8 +25,10 @@
 
 <script lang="ts" setup>
 import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { useRoomStore } from '~/stores/RoomStore';
 
 const activeCardStore = useActiveCardStore();
+const roomStore = useRoomStore();
 </script>
 
 <style lang="scss">
@@ -36,15 +44,17 @@ const activeCardStore = useActiveCardStore();
     }
 }
 
-.game-board {
-    z-index: -1;
-    transition: opacity $default-transition-duration;
-}
-
-.main-section {
+.below-board {
+    margin-top: 8px;
+    min-height: 175px;
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+.game-board {
+    z-index: -1;
+    transition: opacity $default-transition-duration;
 }
 
 .player-status {

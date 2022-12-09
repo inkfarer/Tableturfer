@@ -32,12 +32,6 @@
                 :text="$t('game.placeCard')"
                 @click="placeCard"
             />
-            <TtButton
-                v-if="roomStore.completed && roomStore.isRoomOwner"
-                @click="returnToRoom"
-            >
-                {{ $t('game.returnToRoom') }}
-            </TtButton>
         </div>
     </div>
 </template>
@@ -50,10 +44,6 @@ import { useRoomStore } from '~/stores/RoomStore';
 const activeCardStore = useActiveCardStore();
 const roomStore = useRoomStore();
 const { $socket } = useNuxtApp();
-
-function returnToRoom() {
-    $socket.send('ReturnToRoom');
-}
 
 function placeCard() {
     if (activeCardStore.activeCard == null || roomStore.playerTeam == null || activeCardStore.pass) {
