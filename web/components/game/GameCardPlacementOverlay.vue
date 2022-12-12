@@ -27,12 +27,12 @@
 
 <script lang="ts" setup>
 import Constants from '~/data/Constants';
-import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { computed } from '#imports';
 import { useRoomStore } from '~/stores/RoomStore';
 
-const activeCardStore = useActiveCardStore();
+const activeCardStore = useCurrentMoveStore();
 const gameBoardStore = useGameBoardStore();
 const roomStore = useRoomStore();
 

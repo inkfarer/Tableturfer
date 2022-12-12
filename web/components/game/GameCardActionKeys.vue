@@ -37,11 +37,11 @@
 </template>
 
 <script lang="ts" setup>
-import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 import { useNuxtApp } from '#imports';
 import { useRoomStore } from '~/stores/RoomStore';
 
-const activeCardStore = useActiveCardStore();
+const activeCardStore = useCurrentMoveStore();
 const roomStore = useRoomStore();
 const { $socket } = useNuxtApp();
 

@@ -25,12 +25,12 @@
 </template>
 
 <script lang="ts" setup>
-import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 import { useRoomStore } from '~/stores/RoomStore';
 import GameMovePreview from '~/components/game/GameMovePreview.vue';
 import { PlayerTeam } from '~/types/PlayerTeam';
 
-const activeCardStore = useActiveCardStore();
+const activeCardStore = useCurrentMoveStore();
 const roomStore = useRoomStore();
 </script>
 

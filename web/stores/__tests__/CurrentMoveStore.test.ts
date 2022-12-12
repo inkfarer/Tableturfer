@@ -1,6 +1,6 @@
 import { setActivePinia } from 'pinia';
 import { createTestingPinia } from '@pinia/testing';
-import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 import { MapSquareType as MST } from '~/types/MapSquareType';
 import { CardRotation } from '~/types/CardRotation';
 import { CardSquareType as CST } from '~/types/CardSquareType';
@@ -11,7 +11,7 @@ import Mock = jest.Mock;
 
 jest.mock('~/helpers/ActiveCardHelper');
 
-describe('ActiveCardStore', () => {
+describe('CurrentMoveStore', () => {
     beforeEach(() => {
         setActivePinia(createTestingPinia({
             stubActions: false
@@ -26,7 +26,7 @@ describe('ActiveCardStore', () => {
                 [180, 4, 3],
                 [270, 3, 4]
             ])('returns the expected card size when the rotation is %d', (rotation, height, width) => {
-                const store = useActiveCardStore();
+                const store = useCurrentMoveStore();
                 // @ts-ignore
                 store.activeCard = {
                     squares: [
@@ -51,7 +51,7 @@ describe('ActiveCardStore', () => {
             });
 
             it('handles switching from no card being selected', () => {
-                const store = useActiveCardStore();
+                const store = useCurrentMoveStore();
                 store.rotation = 90;
                 store.activeCard = null;
                 store.position = { x: 3, y: 2 };
@@ -100,7 +100,7 @@ describe('ActiveCardStore', () => {
             });
 
             it('handles switching between cards', () => {
-                const store = useActiveCardStore();
+                const store = useCurrentMoveStore();
                 // @ts-ignore
                 store.activeCard = {
                     origin: { x: 1, y: 3 }
@@ -156,7 +156,7 @@ describe('ActiveCardStore', () => {
             });
 
             it('handles clearing the currently selected card', () => {
-                const store = useActiveCardStore();
+                const store = useCurrentMoveStore();
                 // @ts-ignore
                 store.activeCard = {
                     origin: { x: 2, y: 1 }
@@ -188,7 +188,7 @@ describe('ActiveCardStore', () => {
                 [180, 270],
                 [270, 0]
             ])('rotates the card from %d degrees to %d degrees', (originalRotation, expectedRotation) => {
-                const store = useActiveCardStore();
+                const store = useCurrentMoveStore();
                 // @ts-ignore
                 store.activeCard = {
                     squares: [
@@ -222,7 +222,7 @@ describe('ActiveCardStore', () => {
             });
 
             it('does nothing if no card is active', () => {
-                const store = useActiveCardStore();
+                const store = useCurrentMoveStore();
                 store.activeCard = null;
                 store.rotation = 0;
                 store.position = { x: 0, y: 0 };
@@ -243,7 +243,7 @@ describe('ActiveCardStore', () => {
                 [180, 90],
                 [270, 180]
             ])('rotates the card from %d degrees to %d degrees', (originalRotation, expectedRotation) => {
-                const store = useActiveCardStore();
+                const store = useCurrentMoveStore();
                 // @ts-ignore
                 store.activeCard = {
                     squares: [
@@ -277,7 +277,7 @@ describe('ActiveCardStore', () => {
             });
 
             it('does nothing if no card is active', () => {
-                const store = useActiveCardStore();
+                const store = useCurrentMoveStore();
                 store.activeCard = null;
                 store.rotation = 0;
                 store.position = { x: 0, y: 0 };
@@ -293,7 +293,7 @@ describe('ActiveCardStore', () => {
 
         describe('setPositionFromCardOrigin', () => {
             it('updates the card\'s position, accounting for its origin point', () => {
-                const store = useActiveCardStore();
+                const store = useCurrentMoveStore();
                 // @ts-ignore
                 store.activeCard = {
                     origin: {
@@ -318,7 +318,7 @@ describe('ActiveCardStore', () => {
             });
 
             it('updates the position when no card is selected', () => {
-                const store = useActiveCardStore();
+                const store = useCurrentMoveStore();
                 // @ts-ignore
                 store.activeCard = null;
                 store.position = {
@@ -345,19 +345,19 @@ describe('ActiveCardStore', () => {
                     [MST.DISABLED, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY]
                 ];
-                const activeCardStore = useActiveCardStore();
+                const currentMoveStore = useCurrentMoveStore();
                 // @ts-ignore
-                activeCardStore.activeCard = {
+                currentMoveStore.activeCard = {
                     squares: [
                         [CST.FILL, CST.FILL],
                         [CST.SPECIAL, CST.FILL]
                     ]
                 };
-                activeCardStore.position = { x: 1, y: 0 };
+                currentMoveStore.position = { x: 1, y: 0 };
 
-                activeCardStore.applyDeltaIfPossible({ x: -1, y: 0 });
+                currentMoveStore.applyDeltaIfPossible({ x: -1, y: 0 });
 
-                expect(activeCardStore.position).toEqual({ x: 0, y: 0 });
+                expect(currentMoveStore.position).toEqual({ x: 0, y: 0 });
             });
 
             it('does not change the position when trying to move the card out of bounds', () => {
@@ -366,19 +366,19 @@ describe('ActiveCardStore', () => {
                     [MST.DISABLED, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY]
                 ];
-                const activeCardStore = useActiveCardStore();
+                const currentMoveStore = useCurrentMoveStore();
                 // @ts-ignore
-                activeCardStore.activeCard = {
+                currentMoveStore.activeCard = {
                     squares: [
                         [CST.FILL, CST.FILL],
                         [CST.SPECIAL, CST.EMPTY]
                     ]
                 };
-                activeCardStore.position = { x: 0, y: 0 };
+                currentMoveStore.position = { x: 0, y: 0 };
 
-                activeCardStore.applyDeltaIfPossible({ x: -1, y: 0 });
+                currentMoveStore.applyDeltaIfPossible({ x: -1, y: 0 });
 
-                expect(activeCardStore.position).toEqual({ x: 0, y: 0 });
+                expect(currentMoveStore.position).toEqual({ x: 0, y: 0 });
             });
 
             it('allows moving cards outside bounds as long as no new squares are moved outside the play area', () => {
@@ -391,9 +391,9 @@ describe('ActiveCardStore', () => {
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY],
                     [MST.EMPTY, MST.EMPTY, MST.EMPTY]
                 ];
-                const activeCardStore = useActiveCardStore();
+                const currentMoveStore = useCurrentMoveStore();
                 // @ts-ignore
-                activeCardStore.activeCard = {
+                currentMoveStore.activeCard = {
                     squares: [
                         [CST.FILL, CST.FILL, CST.FILL],
                         [CST.EMPTY, CST.EMPTY, CST.FILL],
@@ -401,28 +401,28 @@ describe('ActiveCardStore', () => {
                         [CST.FILL, CST.FILL, CST.FILL]
                     ]
                 };
-                activeCardStore.position = { x: -2, y: 0 };
+                currentMoveStore.position = { x: -2, y: 0 };
 
-                activeCardStore.applyDeltaIfPossible({ x: 0, y: 1 });
-                expect(activeCardStore.position).toEqual({ x: -2, y: 1 });
+                currentMoveStore.applyDeltaIfPossible({ x: 0, y: 1 });
+                expect(currentMoveStore.position).toEqual({ x: -2, y: 1 });
 
-                activeCardStore.applyDeltaIfPossible({ x: 0, y: 1 });
-                expect(activeCardStore.position).toEqual({ x: -2, y: 2 });
+                currentMoveStore.applyDeltaIfPossible({ x: 0, y: 1 });
+                expect(currentMoveStore.position).toEqual({ x: -2, y: 2 });
 
-                activeCardStore.applyDeltaIfPossible({ x: 0, y: 1 });
-                expect(activeCardStore.position).toEqual({ x: -2, y: 2 });
+                currentMoveStore.applyDeltaIfPossible({ x: 0, y: 1 });
+                expect(currentMoveStore.position).toEqual({ x: -2, y: 2 });
 
-                activeCardStore.applyDeltaIfPossible({ x: -1, y: 0 });
-                expect(activeCardStore.position).toEqual({ x: -2, y: 2 });
+                currentMoveStore.applyDeltaIfPossible({ x: -1, y: 0 });
+                expect(currentMoveStore.position).toEqual({ x: -2, y: 2 });
 
-                activeCardStore.applyDeltaIfPossible({ x: 1, y: 0 });
-                expect(activeCardStore.position).toEqual({ x: -1, y: 2 });
+                currentMoveStore.applyDeltaIfPossible({ x: 1, y: 0 });
+                expect(currentMoveStore.position).toEqual({ x: -1, y: 2 });
             });
         });
 
         describe('moveUp', () => {
             it('moves the card upward', () => {
-                const store = useActiveCardStore();
+                const store = useCurrentMoveStore();
                 jest.spyOn(store, 'applyDeltaIfPossible').mockReturnValue();
 
                 store.moveUp();
@@ -433,7 +433,7 @@ describe('ActiveCardStore', () => {
 
         describe('moveDown', () => {
             it('moves the card downward', () => {
-                const store = useActiveCardStore();
+                const store = useCurrentMoveStore();
                 jest.spyOn(store, 'applyDeltaIfPossible').mockReturnValue();
 
                 store.moveDown();
@@ -444,7 +444,7 @@ describe('ActiveCardStore', () => {
 
         describe('moveLeft', () => {
             it('moves the card to the left', () => {
-                const store = useActiveCardStore();
+                const store = useCurrentMoveStore();
                 jest.spyOn(store, 'applyDeltaIfPossible').mockReturnValue();
 
                 store.moveLeft();
@@ -455,7 +455,7 @@ describe('ActiveCardStore', () => {
 
         describe('moveRight', () => {
             it('moves the card to the right', () => {
-                const store = useActiveCardStore();
+                const store = useCurrentMoveStore();
                 jest.spyOn(store, 'applyDeltaIfPossible').mockReturnValue();
 
                 store.moveRight();

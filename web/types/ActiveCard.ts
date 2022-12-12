@@ -1,14 +1,6 @@
-import { CardRarity } from '~/types/CardRarity';
-import { CardSquareType } from '~/types/CardSquareType';
 import { Position } from '~/types/Position';
+import { Card } from '~/types/Card';
 
-export interface ActiveCard {
-    category: string
-    name: string
-    number: number
-    rarity: CardRarity
-    season: number
-    specialCost: number
-    squares: Array<Array<CardSquareType>>
+export interface ActiveCard extends Card {
     origin: Position
 }

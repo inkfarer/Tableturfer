@@ -10,7 +10,7 @@ import { MapSquareType } from '~/types/MapSquareType';
 import { getRotationOffset, withinBoardBounds } from '~/helpers/ActiveCardHelper';
 import cloneDeep from 'lodash/cloneDeep';
 
-interface ActiveCardStore {
+interface CurrentMoveStore {
     activeCard: ActiveCard | null
     position: Position
     rotation: CardRotation
@@ -24,8 +24,8 @@ export interface CardSize {
     width: number
 }
 
-export const useActiveCardStore = defineStore('activeCard', {
-    state: (): ActiveCardStore => ({
+export const useCurrentMoveStore = defineStore('currentMove', {
+    state: (): CurrentMoveStore => ({
         activeCard: null,
         position: {
             x: 0,

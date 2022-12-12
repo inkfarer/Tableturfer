@@ -2,7 +2,7 @@ import { setActivePinia } from 'pinia';
 import { MapSquareType, MapSquareType as MST } from '~/types/MapSquareType';
 import { CardSquareType as CST } from '~/types/CardSquareType';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
-import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 import { createTestingPinia } from '@pinia/testing';
 import { PlayerTeam } from '~/types/PlayerTeam';
 import { useRoomStore } from '~/stores/RoomStore';
@@ -66,7 +66,7 @@ describe('GameBoardStore', () => {
 
             beforeEach(() => {
                 useGameBoardStore().board = cloneDeep(board);
-                useActiveCardStore().special = false;
+                useCurrentMoveStore().special = false;
             });
 
             it('returns false if the board has not been initialized', () => {
@@ -161,7 +161,7 @@ describe('GameBoardStore', () => {
                     { x: 3, y: 1 },
                     { x: 3, y: 3 }
                 ])('returns false if doing a special attack next to tiles that aren\'t special squares ($x, $y)', ({ x, y }) => {
-                    useActiveCardStore().special = true;
+                    useCurrentMoveStore().special = true;
 
                     expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
                 });
@@ -170,7 +170,7 @@ describe('GameBoardStore', () => {
                     MST.ACTIVE_SPECIAL_ALPHA,
                     MST.INACTIVE_SPECIAL_ALPHA
                 ])('returns true if doing a special attack next to the player\'s special squares (%#)', specialSquare => {
-                    useActiveCardStore().special = true;
+                    useCurrentMoveStore().special = true;
                     const store = useGameBoardStore();
                     store.board![1][1] = specialSquare;
                     store.board![1][2] = MST.FILL_ALPHA;
@@ -205,7 +205,7 @@ describe('GameBoardStore', () => {
                     { x: 3, y: 1 },
                     { x: 3, y: 3 }
                 ])('returns false if doing a special attack next to tiles that aren\'t special squares ($x, $y)', ({ x, y }) => {
-                    useActiveCardStore().special = true;
+                    useCurrentMoveStore().special = true;
 
                     expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
                 });
@@ -214,7 +214,7 @@ describe('GameBoardStore', () => {
                     MST.ACTIVE_SPECIAL_BRAVO,
                     MST.INACTIVE_SPECIAL_BRAVO
                 ])('returns true if doing a special attack next to the player\'s special squares (%#)', specialSquare => {
-                    useActiveCardStore().special = true;
+                    useCurrentMoveStore().special = true;
                     const store = useGameBoardStore();
                     store.board![1][1] = specialSquare;
                     store.board![1][2] = MST.FILL_ALPHA;
@@ -312,7 +312,7 @@ describe('GameBoardStore', () => {
             ])('updates the position of the active card to the location of the starting square for team %s', (team, expectedX, expectedY) => {
                 // @ts-ignore
                 useRoomStore().playerTeam = team;
-                const activeCardStore = useActiveCardStore();
+                const activeCardStore = useCurrentMoveStore();
                 jest.spyOn(activeCardStore, 'setPositionFromCardOrigin');
                 const gameBoardStore = useGameBoardStore();
                 const squares = [

@@ -25,12 +25,12 @@
 
 <script lang="ts" setup>
 import { CardMap } from '~/helpers/Cards';
-import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 import { useDeckStore } from '~/stores/DeckStore';
 import GameCardPreview from '~/components/game/GameCardPreview.vue';
 import { useNuxtApp } from '#imports';
 
-const activeCardStore = useActiveCardStore();
+const activeCardStore = useCurrentMoveStore();
 const deckStore = useDeckStore();
 const { $socket } = useNuxtApp();
 

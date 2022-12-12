@@ -1,7 +1,7 @@
 import { PlayerTeam, TeamMap } from '~/types/PlayerTeam';
 import { PlayerMove } from '~/types/socket/SocketCommon';
 import { defineStore } from 'pinia';
-import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { useDeckStore } from '~/stores/DeckStore';
 import { useRoomStore } from '~/stores/RoomStore';
@@ -30,7 +30,7 @@ export const useMoveStore = defineStore('move', {
             };
             this.lastMoves = moves;
 
-            useActiveCardStore().onNewMove();
+            useCurrentMoveStore().onNewMove();
             useGameBoardStore().applyMoves(moves);
             useDeckStore().setUsedCards(moves);
             useRoomStore().remainingTurns--;

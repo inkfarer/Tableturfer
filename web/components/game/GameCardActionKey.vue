@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 import { PropType } from 'vue';
 import { computed } from '#imports';
 
@@ -31,6 +31,6 @@ const props = defineProps({
     }
 });
 
-const activeCardStore = useActiveCardStore();
+const activeCardStore = useCurrentMoveStore();
 const disabled = computed(() => activeCardStore.locked || activeCardStore.pass);
 </script>

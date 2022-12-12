@@ -1,4 +1,4 @@
-import { CardSize } from '~/stores/ActiveCardStore';
+import { CardSize } from '~/stores/CurrentMoveStore';
 import { CardRotation } from '~/types/CardRotation';
 import { Position } from '~/types/Position';
 import { CardSquareType } from '~/types/CardSquareType';

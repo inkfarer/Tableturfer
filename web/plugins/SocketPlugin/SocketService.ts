@@ -5,7 +5,7 @@ import { SocketActionMap } from '~/types/socket/SocketAction';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { useDeckStore } from '~/stores/DeckStore';
 import { navigateTo } from '#imports';
-import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 import { useMoveStore } from '~/stores/MoveStore';
 
 export class SocketService {
@@ -118,7 +118,7 @@ export class SocketService {
                 }
 
                 if (msg.detail.code === 'GameError' && msg.detail.detail.code === 'InvalidMove') {
-                    useActiveCardStore().locked = false;
+                    useCurrentMoveStore().locked = false;
                 }
 
                 break;
@@ -163,7 +163,7 @@ export class SocketService {
                 useDeckStore().replaceCard(event.detail.replacing, event.detail.newCard);
                 break;
             case 'ReturnToRoom': {
-                useActiveCardStore().resetGame();
+                useCurrentMoveStore().resetGame();
                 useDeckStore().resetGame();
                 useGameBoardStore().resetBoard();
                 const roomStore = useRoomStore();

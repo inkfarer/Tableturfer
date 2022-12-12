@@ -35,7 +35,7 @@ import { count2D } from '~/helpers/ArrayHelper';
 import { CardSquareType } from '~/types/CardSquareType';
 import CardSquare from '~/components/CardSquare.vue';
 import { useRoomStore } from '~/stores/RoomStore';
-import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 
 const props = defineProps({
     name: {
@@ -45,7 +45,7 @@ const props = defineProps({
 });
 
 const roomStore = useRoomStore();
-const activeCardStore = useActiveCardStore();
+const activeCardStore = useCurrentMoveStore();
 
 const cardData: ComputedRef<Card | undefined> = computed(() => CardMap.get(props.name));
 const squareCount = computed(() => {

@@ -34,11 +34,11 @@
 </template>
 
 <script lang="ts" setup>
-import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { useRoomStore } from '~/stores/RoomStore';
 
-const activeCardStore = useActiveCardStore();
+const activeCardStore = useCurrentMoveStore();
 const gameBoardStore = useGameBoardStore();
 const roomStore = useRoomStore();
 </script>

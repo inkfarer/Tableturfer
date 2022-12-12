@@ -28,9 +28,9 @@
 <script lang="ts" setup>
 import Constants from '~/data/Constants';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
-import { useActiveCardStore } from '~/stores/ActiveCardStore';
+import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 
-const activeCardStore = useActiveCardStore();
+const activeCardStore = useCurrentMoveStore();
 const gameBoardStore = useGameBoardStore();
 </script>
 

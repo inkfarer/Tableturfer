@@ -11,7 +11,7 @@ import {
     slice2D,
     some2D
 } from '~/helpers/ArrayHelper';
-import { CardSize, useActiveCardStore } from '~/stores/ActiveCardStore';
+import { CardSize, useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 import { Position } from '~/types/Position';
 import { CardSquareType } from '~/types/CardSquareType';
 import cloneDeep from 'lodash/cloneDeep';
@@ -69,7 +69,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
                     return false;
                 }
 
-                const isSpecial = useActiveCardStore().special;
+                const isSpecial = useCurrentMoveStore().special;
 
                 const acceptedNearbyBoardSquares = team === PlayerTeam.ALPHA
                     ? [MST.INACTIVE_SPECIAL_ALPHA, MST.ACTIVE_SPECIAL_ALPHA]
@@ -163,7 +163,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
                         ? MST.INACTIVE_SPECIAL_ALPHA
                         : MST.INACTIVE_SPECIAL_BRAVO));
                 if (startSquarePosition != null) {
-                    const activeCardStore = useActiveCardStore();
+                    const activeCardStore = useCurrentMoveStore();
                     activeCardStore.setPositionFromCardOrigin(startSquarePosition);
                 }
             }
