@@ -46,6 +46,11 @@
     "user": {
         "guestUser": "Guest #{number}"
     },
+    "deckList": {
+        "loading": "Loading...",
+        "localStorageMessage": "For the time being, your decks will be stored inside your browser. Please note that because of this, clearing site data for tblturf.ink may erase your saved decks.",
+        "createNew": "Create a new deck"
+    },
     "footer": {
         "beforeCreatedBy": "tblturf.ink is created by ",
         "versionInfo": {
