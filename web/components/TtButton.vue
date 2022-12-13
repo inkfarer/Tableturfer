@@ -1,8 +1,12 @@
 <template>
     <a
         class="button"
-        :class="{ disabled: props.disabled, inline: props.inline }"
-        href="javascript:void(0);"
+        :class="{
+            disabled: props.disabled,
+            inline: props.inline,
+            [`theme-${props.theme}`]: true
+        }"
+        :href="props.href"
         @click="onClick"
     >
         <slot />
@@ -12,20 +16,23 @@
 <script lang="ts" setup>
 const emit = defineEmits(['click']);
 
-const props = defineProps({
-    disabled: {
-        type: Boolean,
-        default: false
-    },
-    inline: {
-        type: Boolean,
-        default: false
-    }
+interface TtButtonProps {
+    disabled?: boolean
+    inline?: boolean
+    href?: string
+    theme?: 'primary' | 'secondary'
+}
+
+const props = withDefaults(defineProps<TtButtonProps>(), {
+    disabled: false,
+    inline: false,
+    href: 'javascript:void(0);',
+    theme: 'primary'
 });
 
-function onClick() {
+function onClick(event: MouseEvent) {
     if (!props.disabled) {
-        emit('click');
+        emit('click', event);
     }
 }
 </script>
@@ -33,26 +40,47 @@ function onClick() {
 <style lang="scss" scoped>
 .button {
     display: block;
-    color: white;
     text-decoration: none;
-    font-size: 1.5em;
-    font-weight: 600;
-    background-color: rgba(0, 0, 0, 0.4);
-    padding: 10px 15px;
     transition: color $default-transition-duration, background-color $default-transition-duration;
     text-align: center;
     cursor: pointer;
     user-select: none;
 
-    &:not(.disabled) {
-        &:hover {
-            background-color: $accent;
-            color: #222;
-        }
+    &.theme-primary {
+        font-size: 1.5em;
+        font-weight: 600;
+        background-color: rgba(0, 0, 0, 0.4);
+        color: white;
+        padding: 10px 15px;
 
-        &:active {
-            background-color: $accent-active;
-            color: #222;
+        &:not(.disabled) {
+            &:hover {
+                background-color: $accent;
+                color: #222;
+            }
+
+            &:active {
+                background-color: $accent-active;
+                color: #222;
+            }
+        }
+    }
+
+    &.theme-secondary {
+        font-size: 1.1em;
+        font-weight: 400;
+        color: $accent;
+        padding: 8px 12px;
+        border-radius: 8px;
+
+        &:not(.disabled) {
+            &:hover {
+                background-color: $accent-a10;
+            }
+
+            &:active {
+                background-color: $accent-a20;
+            }
         }
     }
 
