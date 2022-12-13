@@ -1,9 +1,13 @@
 <template>
     <div class="game-card-selector">
-        <GameCardPreview
+        <Card
             v-for="card in deckStore.availableCards"
             :key="`card_${card}`"
             :name="card"
+            :active="activeCardStore.activeCard?.name === card"
+            :clickable="!activeCardStore.locked"
+            :team="roomStore.playerTeam"
+            theme="details"
             @click="selectCard(card)"
         />
         <TtToggleButton
@@ -27,9 +31,10 @@
 import { CardMap } from '~/helpers/Cards';
 import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 import { useDeckStore } from '~/stores/DeckStore';
-import GameCardPreview from '~/components/game/GameCardPreview.vue';
 import { useNuxtApp } from '#imports';
+import { useRoomStore } from '~/stores/RoomStore';
 
+const roomStore = useRoomStore();
 const activeCardStore = useCurrentMoveStore();
 const deckStore = useDeckStore();
 const { $socket } = useNuxtApp();

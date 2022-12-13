@@ -6,7 +6,7 @@
             :class="`team-${props.team}`"
             :style="{ opacity: moveStore.nextMoveCompleted[props.team] ? 1 : 0 }"
         />
-        <CardPreview
+        <Card
             :team="props.team"
             :name="move?.cardName"
             :style="{ opacity: moveVisible ? 1 : 0 }"

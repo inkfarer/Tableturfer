@@ -1,5 +1,13 @@
 <template>
-    <div class="card-preview">
+    <div
+        class="card-preview"
+        :class="{
+            [`theme-${props.theme}`]: true,
+            active,
+            clickable
+        }"
+        @click.prevent="handleClick"
+    >
         <div class="card-name">
             {{ cardData == null ? '???' : $t(`game.card.${cardData.name}`) }}
         </div>
@@ -32,6 +40,8 @@ import { count2D } from '~/helpers/ArrayHelper';
 import { CardSquareType } from '~/types/CardSquareType';
 import { PlayerTeam } from '~/types/PlayerTeam';
 
+const emit = defineEmits(['click']);
+
 const props = defineProps({
     name: {
         type: String as PropType<string | null>,
@@ -40,6 +50,18 @@ const props = defineProps({
     team: {
         type: String as PropType<PlayerTeam>,
         default: PlayerTeam.ALPHA
+    },
+    theme: {
+        type: String as PropType<'card' | 'details'>,
+        default: 'card'
+    },
+    active: {
+        type: Boolean,
+        default: false
+    },
+    clickable: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -51,14 +73,44 @@ const squareCount = computed(() => {
 
     return count2D(cardData.value?.squares, item => item !== CardSquareType.EMPTY);
 });
+
+function handleClick() {
+    if (props.clickable) {
+        emit('click');
+    }
+}
 </script>
 
 <style lang="scss" scoped>
 .card-preview {
     padding: 4px;
     border: 2px solid $accent;
-    background-color: #1B1B1B;
     text-align: center;
+    transition: background-color $default-transition-duration;
+
+    &.theme-details {
+        background-color: $accent-a10;
+
+        &.active {
+            background-color: $accent-a35;
+        }
+
+        &.clickable {
+            cursor: pointer;
+
+            &:hover {
+                background-color: $accent-a50;
+            }
+
+            &:active {
+                background-color: $accent-a75;
+            }
+        }
+    }
+
+    &.theme-card {
+        background-color: #1B1B1B;
+    }
 
     > .card-name {
         font-size: 1.25em;
