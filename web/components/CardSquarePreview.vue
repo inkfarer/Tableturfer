@@ -6,21 +6,23 @@
                 transform: `translate(${offset.x}, ${offset.y})`
             }"
         >
-            <div
-                v-for="(row, y) in props.squares"
-                :key="`square-row_${y}`"
-                class="square-row"
-                :style="{
-                    width: `${size.width / Constants.CARD_GRID_SIZE * 100}%`
-                }"
-            >
-                <CardSquare
-                    v-for="(square, x) in row"
-                    :key="`square_${x}_${y}`"
-                    :square="square"
-                    :team="props.team"
-                />
-            </div>
+            <ClientOnly>
+                <div
+                    v-for="(row, y) in props.squares"
+                    :key="`square-row_${y}`"
+                    class="square-row"
+                    :style="{
+                        width: `${size.width / Constants.CARD_GRID_SIZE * 100}%`
+                    }"
+                >
+                    <CardSquare
+                        v-for="(square, x) in row"
+                        :key="`square_${x}_${y}`"
+                        :square="square"
+                        :team="props.team"
+                    />
+                </div>
+            </ClientOnly>
         </div>
     </div>
 </template>
