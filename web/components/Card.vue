@@ -48,7 +48,7 @@ const props = defineProps({
         default: null
     },
     team: {
-        type: String as PropType<PlayerTeam>,
+        type: String as PropType<PlayerTeam | null>,
         default: PlayerTeam.ALPHA
     },
     theme: {
