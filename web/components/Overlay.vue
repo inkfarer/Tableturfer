@@ -5,7 +5,7 @@
             open: props.modelValue,
             'hide-background': props.hideBackground
         }"
-        @click.exact="close"
+        @click.self="close"
     >
         <div class="overlay">
             <slot />
