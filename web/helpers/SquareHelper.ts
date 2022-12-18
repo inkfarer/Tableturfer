@@ -1,6 +1,7 @@
 import { CardSquareType } from '~/types/CardSquareType';
 import { MapSquareType } from '~/types/MapSquareType';
 import { PlayerTeam } from '~/types/PlayerTeam';
+import { count2D } from '~/helpers/ArrayHelper';
 
 export function mapSquareFromCardSquare(square: CardSquareType, team: PlayerTeam): MapSquareType {
     switch (square) {
@@ -35,4 +36,8 @@ export function isSpecialSquare(square: MapSquareType): boolean {
         || square === MapSquareType.INACTIVE_SPECIAL_BRAVO
         || square === MapSquareType.ACTIVE_SPECIAL_ALPHA
         || square === MapSquareType.ACTIVE_SPECIAL_BRAVO;
+}
+
+export function countCardSquares(squares: CardSquareType[][]): number {
+    return count2D(squares, item => item !== CardSquareType.EMPTY);
 }

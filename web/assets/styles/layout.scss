@@ -8,3 +8,28 @@
 .text-center {
     text-align: center;
 }
+
+$layout-multipliers: 1, 2, 3, 4;
+
+@each $margin in $layout-multipliers {
+    .mt-#{$margin}x {
+        margin-top: #{8 * $margin}px;
+    }
+    .mb-#{$margin}x {
+        margin-bottom: #{8 * $margin}px;
+    }
+    .ml-#{$margin}x {
+        margin-left: #{8 * $margin}px;
+    }
+    .mr-#{$margin}x {
+        margin-right: #{8 * $margin}px;
+    }
+    .mx-#{$margin}x {
+        margin-right: #{8 * $margin}px;
+        margin-left: #{8 * $margin}px;
+    }
+    .my-#{$margin}x {
+        margin-top: #{8 * $margin}px;
+        margin-bottom: #{8 * $margin}px;
+    }
+}

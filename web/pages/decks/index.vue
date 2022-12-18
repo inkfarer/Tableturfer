@@ -8,11 +8,11 @@
         <div class="width-cap">
             <Alert
                 theme="info"
-                class="local-storage-message"
+                class="my-2x"
             >
                 {{ $t('deckList.localStorageMessage') }}
             </Alert>
-            <div class="toolbar">
+            <TtToolbar class="mb-2x">
                 <TtLinkButton
                     to="/decks/new"
                     inline
@@ -20,7 +20,7 @@
                 >
                     <Icon name="fa6-solid:plus" /> {{ $t('deckList.createNew') }}
                 </TtLinkButton>
-            </div>
+            </TtToolbar>
             <p
                 v-if="deckListStore.decks == null"
                 class="text-center"
@@ -51,15 +51,3 @@ onMounted(() => {
     deckListStore.load();
 });
 </script>
-
-<style lang="scss" scoped>
-.local-storage-message {
-    margin: 16px 0;
-}
-
-.toolbar {
-    border-bottom: 2px solid $accent;
-    padding-bottom: 6px;
-    margin-bottom: 16px;
-}
-</style>

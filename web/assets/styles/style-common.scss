@@ -5,6 +5,12 @@ body {
     font-family: 'Roboto Flex', sans-serif;
     font-weight: 400;
     background-color: #1B1B1B;
+    color: white;
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #444 transparent;
 }
 
 p {

@@ -37,7 +37,6 @@ const config = useRuntimeConfig();
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    color: white;
 }
 
 header {
@@ -51,6 +50,8 @@ header {
 main {
     flex-grow: 1;
     border-top: 2px solid $accent;
+    display: flex;
+    flex-direction: column;
 }
 
 footer {

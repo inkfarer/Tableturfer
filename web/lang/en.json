@@ -51,6 +51,15 @@
         "localStorageMessage": "For the time being, your decks will be stored inside your browser. Please note that because of this, clearing site data for tblturf.ink may erase your saved decks.",
         "createNew": "Create a new deck"
     },
+    "newDeck": {
+        "defaultName": "New Deck"
+    },
+    "deckEditor": {
+        "deckName": "Deck name",
+        "squareCount": "Total card squares",
+        "back": "Go back",
+        "save": "Save changes"
+    },
     "footer": {
         "beforeCreatedBy": "tblturf.ink is created by ",
         "versionInfo": {
