@@ -11,7 +11,7 @@
             <TtButton
                 inline
                 theme="secondary"
-                :disabled="changesSaved"
+                :disabled="changesSaved || !hasName"
                 @click="emit('save')"
             >
                 <Icon name="fa6-regular:floppy-disk" /> {{ $t('deckEditor.save') }}
@@ -67,8 +67,7 @@ import { CardMap } from '~/helpers/Cards';
 import { countCardSquares } from '~/helpers/SquareHelper';
 import { useDeckListStore } from '~/stores/DeckListStore';
 import isEqual from 'lodash/isEqual';
-
-// todo: validate if saving should be allowed
+import { isBlank } from '~/helpers/StringHelper';
 
 const emit = defineEmits<{
     (e: 'update:modelValue', value: Deck): void
@@ -119,6 +118,8 @@ const changesSaved = computed(() => {
     const savedDeck = deckListStore.decks[props.modelValue.id];
     return isEqual(savedDeck, props.modelValue);
 });
+
+const hasName = computed(() => !isBlank(props.modelValue.name));
 </script>
 
 <style lang="scss" scoped>
