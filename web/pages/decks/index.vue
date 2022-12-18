@@ -2,7 +2,7 @@
     <NuxtLayout name="default">
         <template #header>
             <div class="width-cap">
-                <h1>Decks</h1>
+                <h1>{{ $t('deckList.header') }}</h1>
             </div>
         </template>
         <div class="width-cap">
