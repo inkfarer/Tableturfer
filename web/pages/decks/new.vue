@@ -19,7 +19,7 @@ definePageMeta({
 
 const deck = useState<Deck>('newDeck', () => ({
     id: null,
-    name: i18n.t('newDeck.defaultName'),
+    name: i18n.t('deckName.defaultName'),
     cards: new Array(DECK_SIZE).fill(null)
 }));
 

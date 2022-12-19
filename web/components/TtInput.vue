@@ -12,9 +12,10 @@
 import { computed } from '#imports';
 
 const props = withDefaults(defineProps<{
-    modelValue: string | null
+    modelValue?: string | null
     label?: string
 }>(), {
+    modelValue: null,
     label: ''
 });
 

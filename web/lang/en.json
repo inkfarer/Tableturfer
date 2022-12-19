@@ -50,10 +50,21 @@
         "header": "Decks",
         "loading": "Loading...",
         "localStorageMessage": "For the time being, your decks will be stored inside your browser. Please note that because of this, clearing site data for tblturf.ink may erase your saved decks.",
-        "createNew": "Create a new deck"
+        "createNew": "Create a new deck",
+        "deckAction": {
+            "remove": "Delete",
+            "edit": "Edit",
+            "rename": "Rename",
+            "copy": "Copy"
+        },
+        "renameOverlay": {
+            "deckName": "Deck name",
+            "save": "Save"
+        }
     },
-    "newDeck": {
-        "defaultName": "New Deck"
+    "deckName": {
+        "defaultName": "New Deck",
+        "copyName": "{name} (Copy)"
     },
     "deckEditor": {
         "deckName": "Deck name",
