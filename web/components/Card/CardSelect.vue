@@ -1,5 +1,8 @@
 <template>
-    <div class="card-select">
+    <div
+        class="card-select"
+        :class="{ disabled }"
+    >
         <Card
             v-for="card in cards"
             :key="`card_${card}`"
@@ -47,5 +50,10 @@ const cards = Array.from(CardMap.values())
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 8px;
+    transition: opacity $default-transition-duration;
+
+    &.disabled {
+        opacity: 0.5;
+    }
 }
 </style>
