@@ -8,7 +8,7 @@
 <script lang="ts" setup>
 import { definePageMeta, useI18n, useState } from '#imports';
 import { DECK_SIZE } from '~/data/Constants';
-import { Deck } from '~/types/DeckList';
+import { NewDeck } from '~/types/DeckList';
 import { useDeckListStore } from '~/stores/DeckListStore';
 
 const i18n = useI18n();
@@ -17,7 +17,7 @@ definePageMeta({
     layout: false
 });
 
-const deck = useState<Deck>('newDeck', () => ({
+const deck = useState<NewDeck>('newDeck', () => ({
     id: null,
     name: i18n.t('deckName.defaultName'),
     cards: new Array(DECK_SIZE).fill(null)

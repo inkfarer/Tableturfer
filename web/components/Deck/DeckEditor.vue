@@ -60,7 +60,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Deck } from '~/types/DeckList';
+import { NewDeck } from '~/types/DeckList';
 import { computed, ref } from '#imports';
 import cloneDeep from 'lodash/cloneDeep';
 import { CardMap } from '~/helpers/Cards';
@@ -70,17 +70,17 @@ import isEqual from 'lodash/isEqual';
 import { isBlank } from '~/helpers/StringHelper';
 
 const emit = defineEmits<{
-    (e: 'update:modelValue', value: Deck): void
+    (e: 'update:modelValue', value: NewDeck): void
     (e: 'save'): void
 }>();
 const props = defineProps<{
-    modelValue: Deck
+    modelValue: NewDeck
 }>();
 const model = computed({
     get() {
         return props.modelValue;
     },
-    set(value: Deck) {
+    set(value: NewDeck) {
         emit('update:modelValue', value);
     }
 });
