@@ -40,7 +40,7 @@ impl SocketActionHandler {
                             let team = self.team(room);
                             room.propose_move(team.unwrap(), player_move).await
                         },
-                        SocketAction::SetDeck(deck) => room.set_deck(self.id, deck),
+                        SocketAction::SetDeck { id, cards } => room.set_deck(self.id, id, cards),
                         SocketAction::ReturnToRoom => {
                             room.return_to_room();
                             Ok(())

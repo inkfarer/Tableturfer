@@ -26,7 +26,7 @@ pub enum SocketAction {
     SetMap(String),
     StartGame,
     ProposeMove(PlayerMove),
-    SetDeck(IndexSet<String>),
+    SetDeck { id: String, cards: IndexSet<String> },
     ReturnToRoom,
 }
 
@@ -42,7 +42,7 @@ impl SocketAction {
 
     pub fn is_player_action(&self) -> bool {
         match self {
-            SocketAction::SetDeck(_) => true,
+            SocketAction::SetDeck { id: _, cards: _ } => true,
             SocketAction::ProposeMove(_) => true,
             _ => false,
         }

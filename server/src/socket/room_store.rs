@@ -18,10 +18,16 @@ use crate::socket::SocketSender;
 const ROOM_CODE_SIZE: usize = 4;
 
 #[derive(Clone, Debug, Serialize)]
+pub struct RoomUserDeck {
+    pub id: String,
+    pub cards: IndexSet<String>,
+}
+
+#[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RoomUser {
     pub joined_at: DateTime<Utc>,
-    pub deck: Option<IndexSet<String>>
+    pub deck: Option<RoomUserDeck>,
 }
 
 impl RoomUser {
@@ -150,7 +156,7 @@ impl Room {
                 self.card_provider.clone(),
                 Arc::new(MoveValidatorImpl::new(self.card_provider.clone())),
                 players.into_iter().map(|(team, player)| {
-                    (team, player.deck.as_ref().unwrap().clone())
+                    (team, player.deck.as_ref().unwrap().cards.clone())
                 }).collect()
             );
             self.sender.send(RoomEvent::StartGame).ok();
@@ -175,7 +181,7 @@ impl Room {
         result
     }
 
-    pub fn set_deck(&mut self, id: Uuid, deck: IndexSet<String>) -> Result<(), SocketError> {
+    pub fn set_deck(&mut self, id: Uuid, deck_id: String, deck: IndexSet<String>) -> Result<(), SocketError> {
         if self.game_started() {
             Err(SocketError::RoomStarted)
         } else if deck.len() != DECK_SIZE {
@@ -184,7 +190,7 @@ impl Room {
             Err(SocketError::GameError(GameError::CardNotFound))
         } else {
             self.modify_user(id, |user| {
-                user.deck = Some(deck);
+                user.deck = Some(RoomUserDeck { id: deck_id, cards: deck });
             });
             Ok(())
         }
