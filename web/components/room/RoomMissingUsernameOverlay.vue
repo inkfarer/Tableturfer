@@ -11,7 +11,7 @@
         <TtButton
             :disabled="!usernameValid"
             class="mt-1x"
-            @click="emit('connect')"
+            @click="onContinue"
         >
             {{ $t('room.noUsername.continue') }}
         </TtButton>
@@ -20,6 +20,7 @@
 
 <script lang="ts" setup>
 import { ref } from '#imports';
+import { saveUsername } from '~/utils/UseUsername';
 
 const usernameValid = ref(false);
 const props = defineProps<{
@@ -27,4 +28,9 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(['connect']);
+
+function onContinue() {
+    saveUsername();
+    emit('connect');
+}
 </script>

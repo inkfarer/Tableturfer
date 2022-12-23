@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { readFromLocalStorage, saveToLocalStorage } from '~/helpers/LocalStorageHelper';
+import { readObjectFromLocalStorage, saveToLocalStorage } from '~/helpers/LocalStorageHelper';
 import { Deck, NewDeck } from '~/types/DeckList';
 import { v4 as uuidv4 } from 'uuid';
 import cloneDeep from 'lodash/cloneDeep';
@@ -21,7 +21,7 @@ export const useDeckListStore = defineStore('deckList', {
     },
     actions: {
         load() {
-            this.decks = readFromLocalStorage('deckList') ?? {};
+            this.decks = readObjectFromLocalStorage('deckList') ?? {};
         },
         upsert(deck: NewDeck): string {
             if (this.decks == null) {

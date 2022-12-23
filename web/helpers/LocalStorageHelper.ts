@@ -1,6 +1,15 @@
-import { LocalStorageItemMap } from '~/types/LocalStorage';
+import {
+    LocalStorageDataMap,
+    LocalStorageKeys,
+    LocalStorageObjectMap,
+    LocalStorageStrings
+} from '~/types/LocalStorage';
 
-export function readFromLocalStorage<T extends keyof LocalStorageItemMap>(key: T): LocalStorageItemMap[T] | null {
+export function readStringFromLocalStorage(key: LocalStorageStrings): string | null {
+    return window.localStorage.getItem(key);
+}
+
+export function readObjectFromLocalStorage<T extends keyof LocalStorageObjectMap>(key: T): LocalStorageObjectMap[T] | null {
     const rawData = window.localStorage.getItem(key);
     if (rawData == null) {
         return null;
@@ -17,6 +26,7 @@ export function readFromLocalStorage<T extends keyof LocalStorageItemMap>(key: T
     }
 }
 
-export function saveToLocalStorage<T extends keyof LocalStorageItemMap>(key: T, data: LocalStorageItemMap[T]) {
-    window.localStorage.setItem(key, JSON.stringify(data));
+export function saveToLocalStorage<T extends LocalStorageKeys>(key: T, data: LocalStorageDataMap[T]) {
+    const normalizedData = typeof data === 'string' ? data : JSON.stringify(data);
+    window.localStorage.setItem(key, normalizedData);
 }

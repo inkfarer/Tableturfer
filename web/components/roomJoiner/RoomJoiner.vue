@@ -33,15 +33,18 @@
 
 <script lang="ts" setup>
 import { navigateTo, ref, computed } from '#imports';
+import { saveUsername } from '~/utils/UseUsername';
 
 const roomCode = ref('');
 const nameIsValid = ref(false);
 
 async function createRoom() {
+    saveUsername();
     await navigateTo('/room/new');
 }
 
 async function joinRoom() {
+    saveUsername();
     await navigateTo(`/room/${roomCode.value}`);
 }
 
