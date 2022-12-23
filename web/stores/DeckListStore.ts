@@ -3,6 +3,7 @@ import { readFromLocalStorage, saveToLocalStorage } from '~/helpers/LocalStorage
 import { Deck, NewDeck } from '~/types/DeckList';
 import { v4 as uuidv4 } from 'uuid';
 import cloneDeep from 'lodash/cloneDeep';
+import { createDefaultDeck, DEFAULT_DECK_ID } from '~/data/DefaultDeck';
 
 interface DeckListStore {
     decks: Record<string, Deck> | null
@@ -12,6 +13,12 @@ export const useDeckListStore = defineStore('deckList', {
     state: (): DeckListStore => ({
         decks: null
     }),
+    getters: {
+        findWithDefault() {
+            return (id: string): Deck | undefined =>
+                id === DEFAULT_DECK_ID ? createDefaultDeck(this.$i18n) : this.decks?.[id];
+        }
+    },
     actions: {
         load() {
             this.decks = readFromLocalStorage('deckList') ?? {};
@@ -35,7 +42,7 @@ export const useDeckListStore = defineStore('deckList', {
                 throw new Error('Deck list not loaded');
             }
 
-            const deck = this.decks[id];
+            const deck = this.findWithDefault(id);
             if (deck == null) {
                 throw new Error(`Deck ${id} not found`);
             }

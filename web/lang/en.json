@@ -63,6 +63,7 @@
         }
     },
     "deckName": {
+        "defaultDeck": "Default Deck",
         "defaultName": "New Deck",
         "copyName": "{name} (Copy)"
     },

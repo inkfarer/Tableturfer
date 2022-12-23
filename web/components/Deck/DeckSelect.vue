@@ -1,7 +1,7 @@
 <template>
     <div class="deck-select">
         <div
-            v-for="deck in deckListStore.decks"
+            v-for="deck in decks"
             :key="`deck_${deck.id}`"
             class="deck"
             :class="{
@@ -16,16 +16,23 @@
 
 <script lang="ts" setup>
 import { useDeckListStore } from '~/stores/DeckListStore';
+import { computed, useI18n } from '#imports';
+import { createDefaultDeck, DEFAULT_DECK_ID } from '~/data/DefaultDeck';
 
 const emit = defineEmits<{
     (e: 'update:modelValue', value: string): void
 }>();
-
 const props = defineProps<{
     modelValue: string | null
 }>();
 
+const i18n = useI18n();
+
 const deckListStore = useDeckListStore();
+const decks = computed(() => ({
+    [DEFAULT_DECK_ID]: createDefaultDeck(i18n),
+    ...deckListStore.decks
+}));
 </script>
 
 <style lang="scss" scoped>

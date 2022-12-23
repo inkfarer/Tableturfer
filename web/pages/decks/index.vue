@@ -48,14 +48,14 @@
                 <div class="deck-options">
                     <TtButton
                         class="mb-2x"
-                        :disabled="selectedDeck == null"
+                        :disabled="selectedDeck == null || defaultDeckSelected"
                         @click="editSelected"
                     >
                         {{ $t('deckList.deckAction.edit') }}
                     </TtButton>
                     <TtButton
                         class="mb-1x"
-                        :disabled="selectedDeck == null"
+                        :disabled="selectedDeck == null || defaultDeckSelected"
                         @click="renameSelected"
                     >
                         {{ $t('deckList.deckAction.rename') }}
@@ -68,7 +68,7 @@
                         {{ $t('deckList.deckAction.copy') }}
                     </TtButton>
                     <TtButton
-                        :disabled="selectedDeck == null"
+                        :disabled="selectedDeck == null || defaultDeckSelected"
                         @click="removeSelected"
                     >
                         {{ $t('deckList.deckAction.remove') }}
@@ -83,6 +83,7 @@
 import { computed, definePageMeta, onMounted, ref, useRouter } from '#imports';
 import { useDeckListStore } from '~/stores/DeckListStore';
 import { isBlank } from '~/helpers/StringHelper';
+import { DEFAULT_DECK_ID } from '~/data/DefaultDeck';
 
 definePageMeta({
     layout: false
@@ -91,6 +92,7 @@ definePageMeta({
 const router = useRouter();
 const deckListStore = useDeckListStore();
 const selectedDeck = ref<string | null>(null);
+const defaultDeckSelected = computed(() => selectedDeck.value === DEFAULT_DECK_ID);
 
 const openRenameOverlay = ref(false);
 const deckName = ref<string | undefined>();
