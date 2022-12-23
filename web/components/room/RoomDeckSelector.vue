@@ -43,8 +43,4 @@ defineExpose({
     width: 600px;
     max-width: 90vw;
 }
-
-h2 {
-
-}
 </style>
