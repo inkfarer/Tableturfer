@@ -26,13 +26,15 @@ pub struct RoomUserDeck {
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RoomUser {
+    pub username: String,
     pub joined_at: DateTime<Utc>,
     pub deck: Option<RoomUserDeck>,
 }
 
 impl RoomUser {
-    fn new() -> Self {
+    fn new(username: &str) -> Self {
         RoomUser {
+            username: username.to_owned(),
             joined_at: Utc::now(),
             deck: None,
         }
@@ -55,12 +57,12 @@ pub struct Room {
 }
 
 impl Room {
-    fn new(owner_id: Uuid, owner_channel: SocketSender) -> Self {
+    fn new(owner_id: Uuid, owner_channel: SocketSender, owner_username: &str) -> Self {
         Room {
             sender: broadcast::channel(100).0,
             owner_id,
             opponent_id: None,
-            users: HashMap::from([(owner_id, RoomUser::new())]),
+            users: HashMap::from([(owner_id, RoomUser::new(owner_username))]),
             user_channels: HashMap::from([(owner_id, owner_channel)]),
             map: DEFAULT_GAME_MAP.to_string(),
             game_state: None,
@@ -69,8 +71,8 @@ impl Room {
         }
     }
 
-    fn add_user(&mut self, id: Uuid, channel: SocketSender) {
-        let user = RoomUser::new();
+    fn add_user(&mut self, id: Uuid, username: &str, channel: SocketSender) {
+        let user = RoomUser::new(username);
 
         self.users.insert(id, user.clone());
         self.user_channels.insert(id, channel);
@@ -264,7 +266,7 @@ pub struct SocketRoomStore {
 }
 
 impl SocketRoomStore {
-    pub fn create(&mut self, conn_id: Uuid, conn_channel: SocketSender) -> (String, Room) {
+    pub fn create(&mut self, conn_id: Uuid, username: &str, conn_channel: SocketSender) -> (String, Room) {
         log::debug!("Connection {conn_id} is creating a new room");
         let mut room_code = Self::generate_room_code();
 
@@ -272,7 +274,7 @@ impl SocketRoomStore {
             room_code = Self::generate_room_code();
         }
 
-        let room = Room::new(conn_id, conn_channel);
+        let room = Room::new(conn_id, conn_channel, username);
 
         log::debug!("Connection {conn_id} joins room {room_code}");
         self.rooms.insert(room_code.to_owned(), room.clone());
@@ -284,11 +286,11 @@ impl SocketRoomStore {
         Alphanumeric.sample_string(&mut rand::thread_rng(), ROOM_CODE_SIZE).to_uppercase()
     }
 
-    pub fn get_and_join_if_exists(&mut self, room_code: &str, conn_id: Uuid, conn_channel: SocketSender) -> Option<Room> {
+    pub fn get_and_join_if_exists(&mut self, room_code: &str, conn_id: Uuid, username: &str, conn_channel: SocketSender) -> Option<Room> {
         log::debug!("Connection {conn_id} attempts to join room {room_code}");
         match self.rooms.get_mut(room_code) {
             Some(room) => {
-                room.add_user(conn_id, conn_channel);
+                room.add_user(conn_id, username, conn_channel);
 
                 Some(room.clone())
             }

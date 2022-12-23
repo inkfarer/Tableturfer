@@ -1,7 +1,7 @@
 <template>
     <div class="player-status">
         <div>
-            Player 1
+            {{ roomStore.ownerUser?.username }}
             <GamePlayerSpecialCount :team="PlayerTeam.ALPHA" />
         </div>
         <div class="turn-counter">
@@ -9,7 +9,7 @@
             <div class="turn-count-number">{{ roomStore.remainingTurns }}</div>
         </div>
         <div>
-            Player 2
+            {{ roomStore.opponentUser?.username }}
             <GamePlayerSpecialCount :team="PlayerTeam.BRAVO" />
         </div>
     </div>

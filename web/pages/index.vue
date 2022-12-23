@@ -46,7 +46,7 @@ definePageMeta({
         display: none;
     }
 
-    .room-joiner {
+    .room-joiner-wrapper {
         margin: 0 45px 25px;
     }
 }

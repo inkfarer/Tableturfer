@@ -40,6 +40,7 @@ export interface SocketUserDeck {
 }
 
 export interface SocketUser {
+    username: string
     joinedAt: string
     deck: SocketUserDeck | null
 }

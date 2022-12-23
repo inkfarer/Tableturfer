@@ -10,7 +10,8 @@
     },
     "roomJoiner": {
         "newRoom": "Create a new room",
-        "joinRoom": "Join room"
+        "joinRoom": "Join room",
+        "username": "Name"
     },
     "room": {
         "loading": "Loading...",
@@ -33,6 +34,10 @@
         },
         "deckSelect": {
             "title": "Choose a deck"
+        },
+        "noUsername": {
+            "title": "Please choose an username.",
+            "continue": "Join room"
         }
     },
     "game": {
@@ -45,9 +50,6 @@
             "communicationError": "A communication error has occurred.",
             "backHome": "Back to main page"
         }
-    },
-    "user": {
-        "guestUser": "Guest #{number}"
     },
     "deckList": {
         "header": "Decks",

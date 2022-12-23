@@ -15,6 +15,10 @@
             </div>
         </template>
         <div class="width-cap room">
+            <RoomMissingUsernameOverlay
+                :visible="showUsernameOverlay"
+                @connect="connectAfterMissingUsername"
+            />
             <div
                 v-if="!isLoading && isError"
                 class="text-center"
@@ -44,11 +48,13 @@
 </template>
 
 <script lang="ts" setup>
-import { definePageMeta, onMounted, ref, useNuxtApp, useRoute, useState, watch } from '#imports';
+import { definePageMeta, onMounted, ref, useNuxtApp, useRoute, watch } from '#imports';
 import { navigateTo } from '#app';
 import { useRoomStore } from '~/stores/RoomStore';
 import { useDeckListStore } from '~/stores/DeckListStore';
 import { isBlank } from '~/helpers/StringHelper';
+import RoomMissingUsernameOverlay from '~/components/room/RoomMissingUsernameOverlay.vue';
+import { useUsername } from '~/utils/UseUsername';
 
 // Override the default page key so changing the room code in the URL (For example, /room/new -> /room/ASDF) doesn't make this component reload
 definePageMeta({
@@ -59,14 +65,18 @@ definePageMeta({
 const roomStore = useRoomStore();
 const deckListStore = useDeckListStore();
 
+const username = useUsername();
+const showUsernameOverlay = ref(isBlank(username.value));
+
+const route = useRoute();
 const { $socket } = useNuxtApp();
 const isLoading = ref(true);
 const isError = ref(false);
 
 onMounted(() => {
     // todo: it might be easier to initiate the ws connection (therefore getting a room code) __before__ directing users to this page
-    watch(() => useRoute().params.code as string, async (newValue) => {
-        if (newValue.toUpperCase() === roomStore.roomCode && $socket.isOpen()) {
+    watch(() => route.params.code as string, async (newValue) => {
+        if (isBlank(username.value) || (newValue.toUpperCase() === roomStore.roomCode && $socket.isOpen())) {
             isLoading.value = false;
             return;
         }
@@ -89,7 +99,7 @@ async function connect(roomCode: string) {
     isError.value = false;
 
     try {
-        roomStore.roomCode = await $socket.connect(roomCode.toLowerCase() === 'new' ? undefined : roomCode);
+        roomStore.roomCode = await $socket.connect(roomCode.toLowerCase() === 'new' ? undefined : roomCode, username.value);
         if (roomStore.roomCode !== roomCode.toUpperCase()) {
             await navigateTo(`/room/${roomStore.roomCode}`, { replace: true });
         }
@@ -99,6 +109,11 @@ async function connect(roomCode: string) {
     } finally {
         isLoading.value = false;
     }
+}
+
+async function connectAfterMissingUsername() {
+    await connect(route.params.code as string);
+    showUsernameOverlay.value = false;
 }
 
 async function leaveRoom() {

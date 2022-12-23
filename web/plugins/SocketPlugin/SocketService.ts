@@ -21,14 +21,20 @@ export class SocketService {
         return this.ws != null && (this.ws?.readyState === WebSocket.OPEN || this.ws?.readyState === WebSocket.CONNECTING);
     }
 
-    async connect(roomCode?: string): Promise<string> {
+    async connect(roomCode: string | undefined, username: string): Promise<string> {
         if (this.isOpen()) {
             throw new Error('Websocket is already open');
         }
 
         return new Promise((resolve, reject) => {
             try {
-                this.ws = new WebSocket(roomCode == null ? this.url : `${this.url}?room=${encodeURIComponent(roomCode)}`);
+                const url = new URL(this.url);
+                if (roomCode != null) {
+                    url.searchParams.set('room', roomCode);
+                }
+                url.searchParams.set('username', username);
+
+                this.ws = new WebSocket(url.toString());
             } catch (e) {
                 return reject(e);
             }

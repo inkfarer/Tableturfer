@@ -22,6 +22,7 @@ use crate::socket::room_store::Room;
 #[derive(Debug, Deserialize)]
 pub struct SocketRouteParams {
     room: Option<String>,
+    username: Option<String>,
 }
 
 pub type SocketSender = mpsc::Sender<SocketEvent>;
@@ -36,10 +37,19 @@ pub struct SocketHandler {
 
 impl SocketHandler {
     pub async fn request_handler(ws: WebSocketUpgrade, State(state): State<Arc<AppState>>, Query(params): Query<SocketRouteParams>) -> impl IntoResponse {
-        ws.on_upgrade(move |socket| Self::try_init(socket, params.room, state))
+        ws.on_upgrade(move |socket| Self::try_init(socket, params, state))
     }
 
-    async fn try_init(socket: WebSocket, room_code: Option<String>, state: Arc<AppState>) {
+    fn username_is_valid(username: Option<String>) -> bool {
+        if username.is_none() {
+            return false
+        }
+
+        let username = username.unwrap();
+        !username.is_empty() && username.len() <= 25
+    }
+
+    async fn try_init(socket: WebSocket, query: SocketRouteParams, state: Arc<AppState>) {
         // Split the stream so we can create two separate tasks for getting data to and from the socket
         let (mut sender, receiver) = socket.split();
         let id = Uuid::new_v4();
@@ -47,7 +57,15 @@ impl SocketHandler {
         // here that as many separate threads can send messages into as needed
         let socket_channel = mpsc::channel(8);
 
-        let (room_code, room) = Self::get_and_join_room(id, state.clone(), room_code, socket_channel.0.clone()).await;
+        if !Self::username_is_valid(query.username.clone()) {
+            log::debug!("Rejecting WS connection as for having an invalid username");
+            sender.send(Message::Close(Some(SocketCloseCode::InvalidUsername.into()))).await.unwrap();
+            return;
+        }
+
+        let username = query.username.unwrap();
+
+        let (room_code, room) = Self::get_and_join_room(id, &username, state.clone(), query.room, socket_channel.0.clone()).await;
         if room.is_none() {
             log::debug!("Rejecting WS connection as it attempted to join a non-existent room");
             sender.send(Message::Close(Some(SocketCloseCode::RoomNotFound(room_code).into()))).await.unwrap();
@@ -67,6 +85,7 @@ impl SocketHandler {
 
     async fn get_and_join_room(
         id: Uuid,
+        username: &str,
         state: Arc<AppState>,
         room_code: Option<String>,
         event_sender: SocketSender
@@ -77,10 +96,10 @@ impl SocketHandler {
         match room_code {
             Some(room_code) => {
                 let room_code = room_code.to_uppercase();
-                (room_code.to_owned(), room_store.get_and_join_if_exists(&room_code, id, event_sender))
+                (room_code.to_owned(), room_store.get_and_join_if_exists(&room_code, id, username, event_sender))
             }
             None => {
-                let (room_code, room) = room_store.create(id.clone(), event_sender);
+                let (room_code, room) = room_store.create(id.clone(), username, event_sender);
                 (room_code, Some(room))
             }
         }

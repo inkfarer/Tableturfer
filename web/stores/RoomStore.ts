@@ -41,6 +41,20 @@ export const useRoomStore = defineStore('room', {
             } else {
                 return null;
             }
+        },
+        ownerUser: (state): SocketUser | null => {
+            if (state.users == null || state.owner == null) {
+                return null;
+            }
+
+            return state.users[state.owner] ?? null;
+        },
+        opponentUser: (state): SocketUser | null => {
+            if (state.users == null || state.opponent == null) {
+                return null;
+            }
+
+            return state.users[state.opponent] ?? null;
         }
     },
     actions: {

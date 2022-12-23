@@ -24,10 +24,10 @@
                 It's a draw!
             </template>
             <template v-else-if="roomStore.score.Alpha > roomStore.score.Bravo">
-                Alpha team wins!
+                {{ roomStore.ownerUser?.username ?? 'Alpha team' }} wins!
             </template>
             <template v-else>
-                Bravo team wins!
+                {{ roomStore.opponentUser?.username ?? 'Bravo team' }} wins!
             </template>
         </div>
         <TtButton

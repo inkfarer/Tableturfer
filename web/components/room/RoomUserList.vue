@@ -1,11 +1,11 @@
 <template>
     <div>
         <div
-            v-for="(user, id, index) in roomStore.users"
+            v-for="(user, id) in roomStore.users"
             :key="id"
             class="user"
         >
-            {{ $t('user.guestUser', { number: index + 1 }) }}
+            {{ user.username }}
             <div class="extra">
                 <div class="role">
                     <template v-if="roomStore.owner === id">
