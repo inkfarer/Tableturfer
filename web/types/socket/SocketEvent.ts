@@ -34,9 +34,14 @@ export interface SocketErrorMap {
 
 export type AnySocketError = AnyError<SocketErrorMap>;
 
+export interface SocketUserDeck {
+    id: string
+    cards: string
+}
+
 export interface SocketUser {
     joinedAt: string
-    deck: string[] | null
+    deck: SocketUserDeck | null
 }
 
 export interface SocketMessageMap {

@@ -2,16 +2,15 @@ import { defineStore } from 'pinia';
 import { useRoomStore } from '~/stores/RoomStore';
 import { PlayerTeam } from '~/types/PlayerTeam';
 import { RoomEventMap } from '~/types/socket/RoomEvent';
+import { useDeckListStore } from '~/stores/DeckListStore';
 
 interface DeckStore {
-    deckName: string | null
     availableCards: string[]
     usedCards: { [key in PlayerTeam]: Set<string> }
 }
 
 export const useDeckStore = defineStore('deck', {
     state: (): DeckStore => ({
-        deckName: null,
         availableCards: [],
         usedCards: {
             [PlayerTeam.ALPHA]: new Set(),
@@ -21,11 +20,21 @@ export const useDeckStore = defineStore('deck', {
     getters: {
         deck() {
             const roomStore = useRoomStore();
+            const deckListStore = useDeckListStore();
             if (roomStore.id == null) {
                 return null;
             }
 
-            return roomStore.users[roomStore.id]?.deck;
+            const deck = roomStore.users[roomStore.id]?.deck;
+            if (deck == null) {
+                return null;
+            }
+
+            const localDeck = deckListStore.findWithDefault(deck.id);
+            return {
+                ...localDeck,
+                cards: deck.cards
+            };
         },
         opponentDeck() {
             const roomStore = useRoomStore();

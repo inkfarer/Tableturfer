@@ -4,6 +4,6 @@ export interface SocketActionMap {
     SetMap: string
     StartGame: never
     ProposeMove: PlayerMove
-    SetDeck: string[]
+    SetDeck: { id: string, cards: string[] }
     ReturnToRoom: never
 }

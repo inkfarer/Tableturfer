@@ -30,6 +30,9 @@
         },
         "userError": {
             "deckNotChosen": "Deck not chosen!"
+        },
+        "deckSelect": {
+            "title": "Choose a deck"
         }
     },
     "game": {

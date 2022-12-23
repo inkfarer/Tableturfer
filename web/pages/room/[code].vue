@@ -45,7 +45,7 @@
                     </DataRow>
                     <template v-if="roomStore.isOpponent || roomStore.isRoomOwner">
                         <DataRow :label="$t('room.deckName')">
-                            {{ formatMissingValue(deckStore.deckName) }}
+                            {{ formatMissingValue(deckStore.deck?.name) }}
                         </DataRow>
                     </template>
                     <TtButton
@@ -86,6 +86,7 @@ import { useDeckStore } from '~/stores/DeckStore';
 import { formatMissingValue } from '#imports';
 import { RoomDeckSelector, RoomMapSelector } from '#components';
 import { ComponentPublicInstance } from 'vue';
+import { useDeckListStore } from '~/stores/DeckListStore';
 
 // Override the default page key so changing the room code in the URL (For example, /room/new -> /room/ASDF) doesn't make this component reload
 definePageMeta({
@@ -96,6 +97,8 @@ definePageMeta({
 const deckStore = useDeckStore();
 const gameBoardStore = useGameBoardStore();
 const roomStore = useRoomStore();
+const deckListStore = useDeckListStore();
+
 const { $socket } = useNuxtApp();
 const isLoading = ref(true);
 const isError = ref(false);
@@ -132,6 +135,8 @@ onMounted(() => {
             await navigateTo('/play');
         }
     }, { immediate: true });
+
+    deckListStore.load();
 });
 
 async function leaveRoom() {

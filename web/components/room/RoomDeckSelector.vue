@@ -1,15 +1,18 @@
 <template>
     <Overlay v-model="isOpen">
-        <div class="deck-selector">
-            <TtButton @click="setDeck(defaultDeck, 'default')">use default deck</TtButton>
-            <TtButton @click="setDeck(testDeck, 'testDeck')">use other deck</TtButton>
-        </div>
+        <h2 class="text-center mt-1x">{{ $t('room.deckSelect.title') }}</h2>
+        <DeckSelect
+            :model-value="null"
+            hide-unfinished-decks
+            class="deck-selector"
+            @update:model-value="setDeck($event)"
+        />
     </Overlay>
 </template>
 
 <script lang="ts" setup>
 import { ref, useNuxtApp } from '#imports';
-import { useDeckStore } from '~/stores/DeckStore';
+import { useDeckListStore } from '~/stores/DeckListStore';
 
 const isOpen = ref(false);
 
@@ -17,48 +20,16 @@ function open() {
     isOpen.value = true;
 }
 
-const defaultDeck = [
-    'ShooterNormal00',
-    'BlasterMiddle00',
-    'RollerNormal00',
-    'ChargerNormal00',
-    'SpinnerStandard00',
-    'SlosherStrong00',
-    'ManeuverNormal00',
-    'StringerNormal00',
-    'SaberLight00',
-    'BombSplash',
-    'Denchinamazu',
-    'TakoDozer',
-    'Shake',
-    'Batoroika',
-    'Mother'
-];
-
-const testDeck = [
-    'ShooterBlaze00',
-    'SlosherBathtub00',
-    'Spiky',
-    'Sutakoraa',
-    'Taihou',
-    'Yashiganisan',
-    'Aori',
-    'BombCurling',
-    'ChargerNormal00',
-    'HeroShooter',
-    'Hotaru',
-    'Ironic',
-    'Iruka',
-    'Jetpack',
-    'Judgekun'
-];
-
-const deckStore = useDeckStore();
+const deckListStore = useDeckListStore();
 const { $socket } = useNuxtApp();
 
-function setDeck(deck: string[], name: string) {
-    deckStore.deckName = name;
-    $socket.send('SetDeck', deck);
+function setDeck(id: string) {
+    const selectedDeck = deckListStore.findWithDefault(id);
+    if (selectedDeck == null) {
+        throw new Error(`Could not find deck "${id}"`);
+    }
+
+    $socket.send('SetDeck', { id, cards: selectedDeck.cards });
     isOpen.value = false;
 }
 
@@ -69,10 +40,11 @@ defineExpose({
 
 <style lang="scss" scoped>
 .deck-selector {
-    .button {
-        &:not(:last-child) {
-            margin-bottom: 8px;
-        }
-    }
+    width: 600px;
+    max-width: 90vw;
+}
+
+h2 {
+
 }
 </style>

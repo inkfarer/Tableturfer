@@ -22,17 +22,26 @@ import { createDefaultDeck, DEFAULT_DECK_ID } from '~/data/DefaultDeck';
 const emit = defineEmits<{
     (e: 'update:modelValue', value: string): void
 }>();
-const props = defineProps<{
+const props = withDefaults(defineProps<{
     modelValue: string | null
-}>();
+    hideUnfinishedDecks?: boolean
+}>(), {
+    hideUnfinishedDecks: false
+});
 
 const i18n = useI18n();
 
 const deckListStore = useDeckListStore();
-const decks = computed(() => ({
-    [DEFAULT_DECK_ID]: createDefaultDeck(i18n),
-    ...deckListStore.decks
-}));
+const decks = computed(() => {
+    const decks = props.hideUnfinishedDecks
+        ? Object.fromEntries(Object.entries(deckListStore.decks ?? {}).filter(([, value]) => value.cards.every(card => card != null)))
+        : deckListStore.decks;
+
+    return ({
+        [DEFAULT_DECK_ID]: createDefaultDeck(i18n),
+        ...decks
+    });
+});
 </script>
 
 <style lang="scss" scoped>
