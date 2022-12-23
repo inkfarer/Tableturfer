@@ -1,0 +1,21 @@
+<template>
+    <DataRow :label="$t('room.mapName')">
+        {{ $t(`game.map.${gameBoardStore.name}`) }}
+    </DataRow>
+    <template v-if="roomStore.isOpponent || roomStore.isRoomOwner">
+        <DataRow :label="$t('room.deckName')">
+            {{ formatMissingValue(deckStore.deck?.name) }}
+        </DataRow>
+    </template>
+</template>
+
+<script lang="ts" setup>
+import { formatMissingValue } from '#imports';
+import { useGameBoardStore } from '~/stores/GameBoardStore';
+import { useRoomStore } from '~/stores/RoomStore';
+import { useDeckStore } from '~/stores/DeckStore';
+
+const gameBoardStore = useGameBoardStore();
+const roomStore = useRoomStore();
+const deckStore = useDeckStore();
+</script>
