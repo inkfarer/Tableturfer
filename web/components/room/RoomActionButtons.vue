@@ -12,14 +12,20 @@
         <TtButton
             v-if="roomStore.isRoomOwner"
             class="mb-1x"
-            @click="$refs.mapSelector.open()"
+            @click="
+                // @ts-ignore
+                $refs.mapSelector.open()
+            "
         >
             {{ $t('room.setMap') }}
         </TtButton>
         <TtButton
             v-if="roomStore.isOpponent || roomStore.isRoomOwner"
             class="mb-1x"
-            @click="$refs.deckSelector.open()"
+            @click="
+                // @ts-ignore
+                $refs.deckSelector.open()
+            "
         >
             {{ $t('room.setDeck') }}
         </TtButton>
