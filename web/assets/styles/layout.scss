@@ -5,6 +5,13 @@
     max-width: 1024px;
 }
 
+@include media-breakpoint-down(sm) {
+    .width-cap {
+        padding: 0 8px;
+        width: calc(100% - 16px);
+    }
+}
+
 .text-center {
     text-align: center;
 }

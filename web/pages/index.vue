@@ -57,8 +57,9 @@ definePageMeta({
             display: initial;
         }
 
-        .room-joiner {
-            margin: 0 15px 25px;
+        .room-joiner-wrapper {
+            width: initial;
+            margin: 0 auto 16px;
         }
     }
 }
