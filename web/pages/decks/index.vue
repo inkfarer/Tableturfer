@@ -5,8 +5,12 @@
                 <h1>{{ $t('deckList.header') }}</h1>
             </div>
         </template>
-        <Overlay v-model="openRenameOverlay">
+        <Overlay
+            v-model="openRenameOverlay"
+            bottom-sheet
+        >
             <TtInput
+                ref="deckNameInput"
                 v-model="deckName"
                 :label="$t('deckList.renameOverlay.deckName')"
             />
@@ -44,36 +48,45 @@
                 v-else
                 class="deck-list-layout"
             >
-                <DeckSelect v-model="selectedDeck" />
-                <div class="deck-options">
-                    <TtButton
-                        class="mb-2x"
-                        :disabled="selectedDeck == null || defaultDeckSelected"
-                        @click="editSelected"
-                    >
-                        {{ $t('deckList.deckAction.edit') }}
-                    </TtButton>
-                    <TtButton
-                        class="mb-1x"
-                        :disabled="selectedDeck == null || defaultDeckSelected"
-                        @click="renameSelected"
-                    >
-                        {{ $t('deckList.deckAction.rename') }}
-                    </TtButton>
-                    <TtButton
-                        class="mb-1x"
-                        :disabled="selectedDeck == null"
-                        @click="copySelected"
-                    >
-                        {{ $t('deckList.deckAction.copy') }}
-                    </TtButton>
-                    <TtButton
-                        :disabled="selectedDeck == null || defaultDeckSelected"
-                        @click="removeSelected"
-                    >
-                        {{ $t('deckList.deckAction.remove') }}
-                    </TtButton>
-                </div>
+                <DeckSelect
+                    v-model="selectedDeck"
+                    @update:model-value="showOptions = true"
+                />
+                <Overlay
+                    v-model="showOptions"
+                    mobile-only
+                    bottom-sheet
+                >
+                    <div class="deck-options">
+                        <TtButton
+                            class="mb-2x"
+                            :disabled="selectedDeck == null || defaultDeckSelected"
+                            @click="editSelected"
+                        >
+                            {{ $t('deckList.deckAction.edit') }}
+                        </TtButton>
+                        <TtButton
+                            class="mb-1x"
+                            :disabled="selectedDeck == null || defaultDeckSelected"
+                            @click="renameSelected"
+                        >
+                            {{ $t('deckList.deckAction.rename') }}
+                        </TtButton>
+                        <TtButton
+                            class="mb-1x"
+                            :disabled="selectedDeck == null"
+                            @click="copySelected"
+                        >
+                            {{ $t('deckList.deckAction.copy') }}
+                        </TtButton>
+                        <TtButton
+                            :disabled="selectedDeck == null || defaultDeckSelected"
+                            @click="removeSelected"
+                        >
+                            {{ $t('deckList.deckAction.remove') }}
+                        </TtButton>
+                    </div>
+                </Overlay>
             </div>
         </div>
     </NuxtLayout>
@@ -84,16 +97,20 @@ import { computed, definePageMeta, onMounted, ref, useRouter } from '#imports';
 import { useDeckListStore } from '~/stores/DeckListStore';
 import { isBlank } from '~/helpers/StringHelper';
 import { DEFAULT_DECK_ID } from '~/data/DefaultDeck';
+import { ComponentPublicInstance } from 'vue';
+import TtInput from '~/components/Tt/TtInput.vue';
 
 definePageMeta({
     layout: false
 });
 
+const showOptions = ref(false);
 const router = useRouter();
 const deckListStore = useDeckListStore();
 const selectedDeck = ref<string | null>(null);
 const defaultDeckSelected = computed(() => selectedDeck.value === DEFAULT_DECK_ID);
 
+const deckNameInput = ref<ComponentPublicInstance<typeof TtInput> | null>();
 const openRenameOverlay = ref(false);
 const deckName = ref<string | undefined>();
 const allowRename = computed(() => !isBlank(deckName.value));
@@ -107,12 +124,14 @@ function removeSelected() {
         deckListStore.remove(selectedDeck.value);
         deckListStore.save();
     }
+    showOptions.value = false;
 }
 
 function editSelected() {
     if (selectedDeck.value != null) {
         router.push(`/decks/${selectedDeck.value}/edit`);
     }
+    showOptions.value = false;
 }
 
 function copySelected() {
@@ -120,13 +139,16 @@ function copySelected() {
         selectedDeck.value = deckListStore.copy(selectedDeck.value);
         deckListStore.save();
     }
+    showOptions.value = false;
 }
 
 function renameSelected() {
     if (selectedDeck.value != null) {
         deckName.value = deckListStore.decks?.[selectedDeck.value]?.name;
         openRenameOverlay.value = true;
+        deckNameInput.value?.focus();
     }
+    showOptions.value = false;
 }
 
 function applyRename() {
@@ -148,11 +170,19 @@ function applyRename() {
     grid-template-columns: 2.2fr 1fr;
     gap: 16px;
     align-items: start;
+}
 
-    > .deck-options {
+@include media-breakpoint-up(md) {
+    .deck-list-layout .deck-options {
         background-color: #262626;
         border-radius: 8px;
         padding: 8px 16px;
+    }
+}
+
+@include media-breakpoint-down(md) {
+    .deck-list-layout {
+        grid-template-columns: 1fr;
     }
 }
 </style>

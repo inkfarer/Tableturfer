@@ -47,7 +47,7 @@ const decks = computed(() => {
 <style lang="scss" scoped>
 .deck-select {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(225px, auto));
     gap: 8px;
 
     > .deck {

@@ -9,6 +9,7 @@
         <div class="text-input-wrapper">
             <input
                 :id="`input_${uuid}`"
+                ref="input"
                 v-model="model"
                 type="text"
             >
@@ -23,7 +24,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, inject } from '#imports';
+import { computed, inject, ref } from '#imports';
 import { ValidatorMap, VALIDATOR_INJECTION_KEY } from '~/utils/Validator';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -55,6 +56,15 @@ const uuid = uuidv4();
 const validators = inject<ValidatorMap | null>(VALIDATOR_INJECTION_KEY, null);
 const validator = computed(() => props.name == null || validators == null ? null : validators[props.name]);
 const isValid = computed(() => !validator.value ? true : validator.value?.isValid ?? true);
+const input = ref<HTMLInputElement | null>();
+
+function focus() {
+    input.value?.focus();
+}
+
+defineExpose({
+    focus
+});
 </script>
 
 <style lang="scss" scoped>
