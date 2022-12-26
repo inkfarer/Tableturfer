@@ -47,9 +47,10 @@ function close() {
     height: 100vh;
     width: 100vw;
     background-color: rgba(0, 0, 0, 0.5);
-    display: none;
+    display: flex;
+    pointer-events: none;
     opacity: 0;
-    transition: opacity 250ms;
+    transition: opacity $default-transition-duration;
     flex-direction: column;
     justify-content: center;
 
@@ -59,7 +60,7 @@ function close() {
 
     &.open {
         opacity: 1;
-        display: flex;
+        pointer-events: auto;
     }
 
     > .overlay {
