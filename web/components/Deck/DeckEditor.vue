@@ -135,7 +135,10 @@ const hasName = computed(() => !isBlank(props.modelValue.name));
 
 <style lang="scss" scoped>
 .deck-editor {
-    max-height: 100vh;
+    position: fixed;
+    left: 0;
+    right: 0;
+    max-height: 100%;
     padding: 0 20px;
     margin: 0 auto;
     max-width: 1440px;
