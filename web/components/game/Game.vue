@@ -71,6 +71,7 @@ const roomStore = useRoomStore();
     height: 70%;
     width: 100%;
     max-height: 60vh;
+    flex-shrink: 0;
 }
 
 .player-status {

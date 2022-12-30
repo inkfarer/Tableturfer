@@ -15,7 +15,7 @@
 <script lang="ts" setup>
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
-import { computed, onMounted, ref, watch } from '#imports';
+import { computed, onMounted, onUnmounted, ref, watch } from '#imports';
 import { forEach2D, getSize } from '~/helpers/ArrayHelper';
 import { MapSquareType } from '~/types/MapSquareType';
 import { CardSquareType } from '~/types/CardSquareType';
@@ -27,6 +27,7 @@ const activeCardStore = useCurrentMoveStore();
 const gameBoardStore = useGameBoardStore();
 const roomStore = useRoomStore();
 const gameBoardCanvas = ref<HTMLCanvasElement | null>(null);
+const resizeObserver = ref<ResizeObserver | null>(null);
 
 const placeable = computed(() => {
     if (activeCardStore.activeCard == null) {
@@ -157,7 +158,10 @@ onMounted(() => {
         throw new Error('GameBoard is missing canvas');
     }
 
-    new ResizeObserver(() =>
+    if (resizeObserver.value) {
+        resizeObserver.value.disconnect();
+    }
+    resizeObserver.value = new ResizeObserver(() =>
         redraw(
             canvas,
             gameBoardStore.board,
@@ -165,8 +169,8 @@ onMounted(() => {
             activeCardStore.position,
             roomStore.playerTeam,
             activeCardStore.special,
-            activeCardStore.pass)
-    ).observe(canvas);
+            activeCardStore.pass));
+    resizeObserver.value.observe(canvas);
 
     watch(() => [activeCardStore.activeCard?.squares, activeCardStore.position, activeCardStore.special, activeCardStore.pass] as [CardSquareType[][], Position, boolean, boolean],
         ([newSquares, newPosition, special, pass]) => {
@@ -199,15 +203,22 @@ onMounted(() => {
             activeCardStore.pass);
     });
 });
+
+onUnmounted(() => {
+    if (resizeObserver.value) {
+        resizeObserver.value.disconnect();
+    }
+});
 </script>
 
 <style lang="scss">
 .board {
     position: relative;
-    height: max-content;
 }
 
 .game-board-canvas {
+    box-sizing: border-box;
+    position: absolute;
     width: 100%;
     height: 100%;
 }
