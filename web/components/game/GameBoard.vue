@@ -47,14 +47,18 @@ function redraw(
     passing: boolean
 ) {
     const ctx = canvas.getContext('2d'),
+        pixelRatio = window.devicePixelRatio,
         width = canvas.clientWidth,
         height = canvas.clientHeight;
+    const dpiWidth = Math.round(pixelRatio * width);
+    const dpiHeight = Math.round(pixelRatio * height);
     if (ctx == null) {
         throw new Error('Failed to access canvas drawing context');
     }
 
-    canvas.width = width;
-    canvas.height = height;
+    canvas.width = dpiWidth;
+    canvas.height = dpiHeight;
+    ctx.scale(pixelRatio, pixelRatio);
 
     if (board == null) {
         return;
@@ -62,8 +66,8 @@ function redraw(
 
     const strokeSize = 1;
     const boardSize = getSize(board);
-    const squareSize = Math.floor(Math.min((height - strokeSize * 2) / boardSize.height, width / boardSize.width));
-    const offset = Math.floor(Math.abs(width - height) / 2);
+    const squareSize = Math.min((height - strokeSize * 2) / boardSize.height, width / boardSize.width);
+    const offset = Math.abs(width - height) / 2;
     const offsetX = width > height ? offset : 0;
     const offsetY = width < height ? offset : 0;
 
