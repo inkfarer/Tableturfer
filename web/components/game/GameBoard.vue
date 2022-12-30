@@ -6,6 +6,7 @@
         }"
     >
         <GameCardPlacementOverlay />
+        <GameBaseBoardDisplay />
         <div
             v-for="(row, rowIndex) in gameBoardStore.board"
             :key="`row_${rowIndex}`"
@@ -56,11 +57,6 @@ const gameBoardStore = useGameBoardStore();
 
 .square {
     box-sizing: border-box;
-
-    &.map-square_1 {
-        background-color: #171717;
-        border: 1px solid #393939;
-    }
 
     &.map-square_2 {
         background-color: #EC9009;

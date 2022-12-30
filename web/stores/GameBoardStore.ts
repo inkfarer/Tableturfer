@@ -26,6 +26,7 @@ import { GameMapMap } from '~/helpers/Maps';
 interface GameBoardStore {
     name: string
     board: MST[][] | null
+    baseBoard: MST[][] | null
     usedSpecialPoints: { [key in PlayerTeam]: number }
 }
 
@@ -33,6 +34,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
     state: (): GameBoardStore => ({
         name: 'unknown',
         board: null,
+        baseBoard: null,
         usedSpecialPoints: {
             [PlayerTeam.ALPHA]: 0,
             [PlayerTeam.BRAVO]: 0
@@ -153,7 +155,8 @@ export const useGameBoardStore = defineStore('gameBoard', {
         },
         setBoard(map: GameMap) {
             this.name = map.name;
-            this.board = map.squares;
+            this.board = cloneDeep(map.squares);
+            this.baseBoard = cloneDeep(map.squares);
             this.usedSpecialPoints = { [PlayerTeam.ALPHA]: 0, [PlayerTeam.BRAVO]: 0 };
 
             const playerTeam = useRoomStore().playerTeam;
