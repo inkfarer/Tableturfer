@@ -57,6 +57,7 @@ const gameBoardStore = useGameBoardStore();
 
 .square {
     box-sizing: border-box;
+    transition: opacity 250ms;
 
     &.map-square_2 {
         background-color: #EC9009;
