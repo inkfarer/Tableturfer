@@ -37,8 +37,13 @@ const roomStore = useRoomStore();
 <style lang="scss">
 .game-stage-layout {
     display: grid;
-    grid-template-columns: 2fr auto 1.25fr;
+    grid-template-columns: 2fr 4fr 1.25fr;
     gap: 16px;
+
+    margin: 0 auto;
+    padding: 20px;
+    width: calc(100% - 40px);
+    max-width: 1200px;
 
     &.passing {
         .game-board {
@@ -55,9 +60,17 @@ const roomStore = useRoomStore();
     align-items: center;
 }
 
+.main-section {
+    display: flex;
+    flex-direction: column;
+}
+
 .game-board {
     z-index: -1;
     transition: opacity $default-transition-duration;
+    height: 70%;
+    width: 100%;
+    max-height: 60vh;
 }
 
 .player-status {
