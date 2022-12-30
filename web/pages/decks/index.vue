@@ -46,7 +46,7 @@
             </p>
             <div
                 v-else
-                class="deck-list-layout"
+                class="deck-list-layout mb-2x"
             >
                 <DeckSelect
                     v-model="selectedDeck"
