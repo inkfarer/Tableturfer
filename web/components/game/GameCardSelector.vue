@@ -7,12 +7,14 @@
             :active="activeCardStore.activeCard?.name === card"
             :clickable="!activeCardStore.locked"
             :team="roomStore.playerTeam"
-            theme="details"
+            theme="miniature"
+            class="card"
             @click="selectCard(card)"
         />
         <TtToggleButton
             :model-value="activeCardStore.pass"
             :disabled="activeCardStore.locked"
+            class="action-button"
             @update:model-value="activeCardStore.setPass($event)"
         >
             {{ $t('game.pass') }}
@@ -20,6 +22,7 @@
         <TtToggleButton
             :model-value="activeCardStore.special"
             :disabled="activeCardStore.locked"
+            class="action-button"
             @update:model-value="activeCardStore.setSpecial($event)"
         >
             {{ $t('game.special') }}
@@ -62,5 +65,30 @@ const selectCard = (card: string) => {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
+
+    //> .card {
+    //    aspect-ratio: 3 / 4;
+    //}
+}
+
+@include media-breakpoint-down(lg) {
+    .game-card-selector {
+        grid-template-columns: repeat(4, 1fr);
+
+        > .card {
+            //min-height: 100px;
+        }
+    }
+
+    .action-button {
+        grid-column: span 2;
+        height: max-content;
+    }
+}
+
+@include media-breakpoint-down(sm) {
+    .action-button {
+        font-size: 1em !important;
+    }
 }
 </style>

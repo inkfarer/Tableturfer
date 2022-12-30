@@ -68,7 +68,7 @@ const props = defineProps({
         default: PlayerTeam.ALPHA
     },
     theme: {
-        type: String as PropType<'card' | 'details'>,
+        type: String as PropType<'card' | 'details' | 'miniature'>,
         default: 'card'
     },
     active: {
@@ -157,7 +157,7 @@ function handleClick() {
         }
     }
 
-    &.theme-details {
+    &.theme-details, &.theme-miniature {
         background-color: $accent-a10;
 
         &.active {
@@ -227,6 +227,14 @@ function handleClick() {
             grid-template-columns: repeat(auto-fit, 20px);
             gap: 4px;
             margin-left: 4px;
+        }
+    }
+}
+
+@include media-breakpoint-down(md) {
+    .card-preview.theme-miniature {
+        > .cost {
+            display: none;
         }
     }
 }

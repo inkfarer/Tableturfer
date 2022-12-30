@@ -40,10 +40,14 @@ const roomStore = useRoomStore();
     grid-template-columns: 2fr 4fr 1.25fr;
     gap: 16px;
 
+    position: fixed;
     margin: 0 auto;
-    padding: 20px;
-    width: calc(100% - 40px);
+    left: 0;
+    right: 0;
     max-width: 1200px;
+    padding: 20px;
+    height: calc(100% - 40px);
+    overflow-y: auto;
 
     &.passing {
         .game-board {
@@ -53,11 +57,7 @@ const roomStore = useRoomStore();
 }
 
 .below-board {
-    margin-top: 8px;
-    min-height: 175px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    text-align: center;
 }
 
 .main-section {
@@ -66,12 +66,10 @@ const roomStore = useRoomStore();
 }
 
 .game-board {
-    z-index: -1;
     transition: opacity $default-transition-duration;
-    height: 70%;
+    height: 100%;
     width: 100%;
-    max-height: 60vh;
-    flex-shrink: 0;
+    min-height: 150px;
 }
 
 .player-status {
@@ -86,7 +84,7 @@ const roomStore = useRoomStore();
 .side-section {
     z-index: 2;
 
-    &.card-selector-section{
+    &.card-selector-section {
         display: flex;
         align-items: center;
     }
@@ -102,7 +100,25 @@ const roomStore = useRoomStore();
     }
 }
 
-.top-margin {
-    margin-top: 10px;
+@include media-breakpoint-down(lg) {
+    .game-stage-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
+        padding-top: 10px;
+    }
+
+    .card-selector-section {
+        display: initial !important;
+        order: 1;
+
+        > .card-selector {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+    }
+
+    .move-previews {
+        display: none !important;
+    }
 }
 </style>

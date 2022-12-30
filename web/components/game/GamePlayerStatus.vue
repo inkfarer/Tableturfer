@@ -30,6 +30,12 @@ const roomStore = useRoomStore();
     font-size: 1.1em;
     font-weight: 500;
 
+    > * {
+        flex-basis: 33%;
+        flex-shrink: 0;
+        flex-grow: 0;
+    }
+
     > *:last-child {
         text-align: right;
     }
