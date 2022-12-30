@@ -6,22 +6,24 @@
             transform: `translate(${Constants.BOARD_SQUARE_SIZE_PX * activeCardStore.position.x}px, ${Constants.BOARD_SQUARE_SIZE_PX * activeCardStore.position.y}px)`
         }"
     >
-        <div
-            v-for="(row, rowIndex) in activeCardStore.activeCard?.squares ?? []"
-            :key="`row_${rowIndex}`"
-            class="square-row"
-        >
+        <ClientOnly>
             <div
-                v-for="(square, squareIndex) in row"
-                :key="`square_${rowIndex}_${squareIndex}`"
-                :class="`card-square_${square}`"
-                class="square"
-                :style="{
-                    height: `${Constants.BOARD_SQUARE_SIZE_PX}px`,
-                    width: `${Constants.BOARD_SQUARE_SIZE_PX}px`
-                }"
-            />
-        </div>
+                v-for="(row, rowIndex) in activeCardStore.activeCard?.squares ?? []"
+                :key="`row_${rowIndex}`"
+                class="square-row"
+            >
+                <div
+                    v-for="(square, squareIndex) in row"
+                    :key="`square_${rowIndex}_${squareIndex}`"
+                    :class="`card-square_${square}`"
+                    class="square"
+                    :style="{
+                        height: `${Constants.BOARD_SQUARE_SIZE_PX}px`,
+                        width: `${Constants.BOARD_SQUARE_SIZE_PX}px`
+                    }"
+                />
+            </div>
+        </ClientOnly>
     </div>
 </template>
 
