@@ -132,9 +132,9 @@ function getCardFill(square: CardSquareType, team: PlayerTeam): string {
 function getMapFill(square: MapSquareType): string {
     switch (square) {
         case MapSquareType.ACTIVE_SPECIAL_ALPHA:
-            return '#A4FFFB';
-        case MapSquareType.ACTIVE_SPECIAL_BRAVO:
             return '#FFBC5A';
+        case MapSquareType.ACTIVE_SPECIAL_BRAVO:
+            return '#A4FFFB';
         case MapSquareType.FILL_ALPHA:
             return '#E9FF0F';
         case MapSquareType.FILL_BRAVO:
