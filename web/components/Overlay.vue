@@ -62,6 +62,9 @@ function close() {
         background-color: #262626;
         border: 2px solid $accent;
         min-width: 200px;
+        display: block;
+        max-height: 80%;
+        overflow-y: auto;
     }
 }
 
@@ -70,6 +73,7 @@ function close() {
 }
 
 .overlay-wrapper {
+    display: contents;
     background-color: rgba(0, 0, 0, 0.5);
     transition: opacity $default-transition-duration;
 
@@ -80,6 +84,10 @@ function close() {
     &.open {
         opacity: 1;
         pointer-events: auto;
+    }
+
+    > .overlay {
+        display: contents;
     }
 }
 
@@ -103,6 +111,7 @@ function close() {
                 padding: 12px 8px;
                 transform: translateY(25px);
                 background-color: #262626;
+                margin-top: 50%;
             }
         }
     }

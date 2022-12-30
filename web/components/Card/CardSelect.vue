@@ -48,7 +48,7 @@ const cards = Array.from(CardMap.values())
 <style lang="scss" scoped>
 .card-select {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(125px, auto));
     gap: 8px;
     transition: opacity $default-transition-duration;
 

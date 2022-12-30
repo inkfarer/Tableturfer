@@ -1,6 +1,6 @@
 <template>
     <div class="deck-editor">
-        <TtToolbar class="my-2x">
+        <TtToolbar class="my-2x toolbar">
             <TtButton
                 inline
                 theme="secondary"
@@ -17,44 +17,53 @@
                 <Icon name="fa6-regular:floppy-disk" /> {{ $t('deckEditor.save') }}
             </TtButton>
         </TtToolbar>
-        <div class="details mb-2x mx-4x">
-            <TtInput
-                v-model="model.name"
-                :label="$t('deckEditor.deckName')"
-            />
-            <div>
-                <DataRow :label="$t('deckEditor.squareCount')">
-                    {{ squareCount }}
-                </DataRow>
-            </div>
-        </div>
         <div class="card-view">
-            <div class="deck-view">
-                <template
-                    v-for="(card, index) in props.modelValue.cards"
-                    :key="`card_${index}`"
-                >
-                    <Card
-                        clickable
-                        theme="details"
-                        :name="card"
-                        :active="selectedCardIndex === index"
-                        @click="selectedCardIndex = index"
+            <div>
+                <div class="details mb-2x mx-4x">
+                    <TtInput
+                        v-model="model.name"
+                        :label="$t('deckEditor.deckName')"
+                    />
+                    <div>
+                        <DataRow :label="$t('deckEditor.squareCount')">
+                            {{ squareCount }}
+                        </DataRow>
+                    </div>
+                </div>
+
+                <div class="deck-view">
+                    <template
+                        v-for="(card, index) in props.modelValue.cards"
+                        :key="`card_${index}`"
                     >
-                        <template #placeholder>
-                            <div class="placeholder-icon">
-                                <Icon name="mdi:plus-circle-outline" />
-                            </div>
-                        </template>
-                    </Card>
-                </template>
+                        <Card
+                            clickable
+                            theme="details"
+                            :name="card"
+                            :active="selectedCardIndex === index"
+                            @click="selectedCardIndex = index; cardSelectOpen = true"
+                        >
+                            <template #placeholder>
+                                <div class="placeholder-icon">
+                                    <Icon name="mdi:plus-circle-outline" />
+                                </div>
+                            </template>
+                        </Card>
+                    </template>
+                </div>
             </div>
-            <CardSelect
-                :model-value="selectedCardIndex == null ? null : props.modelValue.cards[selectedCardIndex]"
-                :disabled="selectedCardIndex == null"
-                :disabled-items="modelValue.cards"
-                @update:model-value="onCardSelect"
-            />
+            <Overlay
+                v-model="cardSelectOpen"
+                mobile-only
+                bottom-sheet
+            >
+                <CardSelect
+                    :model-value="selectedCardIndex == null ? null : props.modelValue.cards[selectedCardIndex]"
+                    :disabled="selectedCardIndex == null"
+                    :disabled-items="modelValue.cards"
+                    @update:model-value="onCardSelect"
+                />
+            </Overlay>
         </div>
     </div>
 </template>
@@ -85,6 +94,7 @@ const model = computed({
     }
 });
 
+const cardSelectOpen = ref(false);
 const selectedCardIndex = ref<number | null>(null);
 function onCardSelect(card: string) {
     if (selectedCardIndex.value == null) {
@@ -94,6 +104,7 @@ function onCardSelect(card: string) {
     const newCards = cloneDeep(props.modelValue.cards);
     newCards[selectedCardIndex.value] = card;
     model.value.cards = newCards;
+    cardSelectOpen.value = false;
 }
 
 const squareCount = computed(() => model.value.cards.reduce((result, card) => {
@@ -133,8 +144,12 @@ const hasName = computed(() => !isBlank(props.modelValue.name));
 
     .details {
         display: grid;
-        grid-template-columns: 2fr 1fr;
         gap: 16px;
+        padding-top: 8px;
+    }
+
+    .toolbar {
+        margin-bottom: 0;
     }
 }
 
@@ -143,19 +158,18 @@ const hasName = computed(() => !isBlank(props.modelValue.name));
     grid-template-columns: 2fr 3fr;
     gap: 32px;
     overflow: hidden;
-    border-top: 2px solid $accent;
 
     > * {
         padding-top: 8px;
+        overflow-y: auto;
     }
 }
 
 .deck-view {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(125px, auto));
     grid-auto-rows: min-content;
     gap: 8px;
-    overflow-y: auto;
 
     > * {
         aspect-ratio: 0.75;
@@ -174,5 +188,12 @@ const hasName = computed(() => !isBlank(props.modelValue.name));
 
 .card-select {
     overflow-y: auto;
+    padding-top: 8px;
+}
+
+@include media-breakpoint-down(md) {
+    .card-view {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
