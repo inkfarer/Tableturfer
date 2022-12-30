@@ -170,20 +170,15 @@ const hasName = computed(() => !isBlank(props.modelValue.name));
 
 .deck-view {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(125px, auto));
+    grid-template-columns: repeat(auto-fit, minmax(max(145px, 100%/4), 1fr));
     grid-auto-rows: min-content;
     gap: 8px;
 
     > * {
-        aspect-ratio: 0.75;
+
     }
 
     .placeholder-icon {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         font-size: 3em;
         opacity: 0.5;
     }
@@ -194,7 +189,17 @@ const hasName = computed(() => !isBlank(props.modelValue.name));
     padding-top: 8px;
 }
 
+@include media-breakpoint-down(lg) {
+    .card-view {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
 @include media-breakpoint-down(md) {
+    .deck-editor {
+        padding: 0 10px;
+    }
+
     .card-view {
         grid-template-columns: 1fr;
     }

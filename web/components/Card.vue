@@ -1,15 +1,26 @@
 <template>
     <div
-        v-if="cardData != null"
         class="card-preview"
         :class="{
             [`theme-${props.theme}`]: true,
+            'missing-card-data': cardData == null,
             active,
             clickable,
             disabled
         }"
         @click.prevent="handleClick"
     >
+        <div
+            v-if="cardData == null"
+            class="card-placeholder"
+            :class="{
+                active,
+                clickable
+            }"
+        >
+            <slot name="placeholder" />
+        </div>
+
         <div
             v-if="props.theme === 'card'"
             class="card-name"
@@ -33,17 +44,6 @@
                 />
             </div>
         </div>
-    </div>
-    <div
-        v-else
-        class="card-placeholder"
-        :class="{
-            active,
-            clickable
-        }"
-        @click.prevent="handleClick"
-    >
-        <slot name="placeholder" />
     </div>
 </template>
 
@@ -103,12 +103,18 @@ function handleClick() {
 
 <style lang="scss" scoped>
 .card-placeholder {
+    position: absolute;
+    height: 100%;
+    width: 100%;
     background-color: rgba(0, 0, 0, 0.4);
     border-radius: 8px;
     border-style: solid;
     border-color: $accent;
     border-width: 0;
     box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition:
         background-color $default-transition-duration,
         border-radius 250ms,
@@ -134,11 +140,22 @@ function handleClick() {
 }
 
 .card-preview {
+    position: relative;
     padding: 4px;
     border: 2px solid $accent;
     box-sizing: border-box;
     text-align: center;
     transition: background-color $default-transition-duration, filter $default-transition-duration;
+
+    &.missing-card-data {
+        padding: 0;
+        border-width: 0;
+        background-color: transparent !important;
+
+        .card-name, .card-square-preview, .cost {
+            visibility: hidden;
+        }
+    }
 
     &.theme-details {
         background-color: $accent-a10;
