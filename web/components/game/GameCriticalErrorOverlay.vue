@@ -37,7 +37,8 @@ async function returnHome() {
 <style lang="scss">
 .critical-error-overlay {
     .overlay {
-        min-width: 450px !important;
+        width: 450px !important;
+        max-width: 85%;
         text-align: center;
     }
 }
