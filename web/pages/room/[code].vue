@@ -123,6 +123,12 @@ async function leaveRoom() {
 </script>
 
 <style lang="scss" scoped>
+@include media-breakpoint-down(md) {
+    .room-layout {
+        grid-template-columns: 1fr !important;
+    }
+}
+
 .room-code-display {
     text-align: center;
 
@@ -141,22 +147,12 @@ async function leaveRoom() {
 
 .room {
     margin-top: 20px;
+    margin-bottom: 20px;
 
     .room-layout {
-        display: flex;
-
-        > *:nth-child(1) {
-            width: 35%;
-            margin-right: 16px;
-
-            .button {
-                margin-top: 10px;
-            }
-        }
-
-        > *:nth-child(2) {
-            width: 65%;
-        }
+        display: grid;
+        gap: 16px;
+        grid-template-columns: 2fr 3fr;
     }
 }
 </style>

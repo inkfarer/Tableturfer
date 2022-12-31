@@ -8,10 +8,12 @@
         ref="mapSelector"
     />
 
-    <div v-bind="$attrs">
+    <div
+        v-bind="$attrs"
+        class="room-action-buttons"
+    >
         <TtButton
             v-if="roomStore.isRoomOwner"
-            class="mb-1x"
             @click="
                 // @ts-ignore
                 $refs.mapSelector.open()
@@ -21,7 +23,6 @@
         </TtButton>
         <TtButton
             v-if="roomStore.isOpponent || roomStore.isRoomOwner"
-            class="mb-1x"
             @click="
                 // @ts-ignore
                 $refs.deckSelector.open()
@@ -30,7 +31,6 @@
             {{ $t('room.setDeck') }}
         </TtButton>
         <TtButton
-            class="mb-1x"
             @click="leaveRoom"
         >
             {{ $t('room.leave') }}
@@ -68,3 +68,16 @@ function startGame() {
     $socket.send('StartGame');
 }
 </script>
+
+<style lang="scss" scoped>
+.room-action-buttons {
+    display: grid;
+    gap: 8px;
+}
+
+@include media-breakpoint-only(sm) {
+    .room-action-buttons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>

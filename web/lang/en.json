@@ -24,6 +24,7 @@
         "setDeck": "Change deck",
         "startGame": "Start the game!",
         "leave": "Leave room",
+        "userListTitle": "Users",
         "userRole": {
             "owner": "Room Owner",
             "opponent": "Opponent",
