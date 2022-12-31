@@ -67,9 +67,12 @@ function redraw(
     const strokeSize = 1;
     const boardSize = getSize(board);
     const squareSize = Math.min((height - strokeSize * 2) / boardSize.height, width / boardSize.width);
-    const offset = Math.abs(width - height) / 2;
-    const offsetX = width > height ? offset : 0;
-    const offsetY = width < height ? offset : 0;
+    const boardSizePx = {
+        width: boardSize.width * squareSize,
+        height: boardSize.height * squareSize
+    };
+    const offsetX = (width - boardSizePx.width) / 2;
+    const offsetY = (height - boardSizePx.height) / 2;
 
     forEach2D(board, (item, position) => {
         if (item === MapSquareType.DISABLED) {
