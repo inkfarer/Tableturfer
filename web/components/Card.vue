@@ -147,6 +147,17 @@ function handleClick() {
     text-align: center;
     transition: background-color $default-transition-duration, filter $default-transition-duration;
 
+    &:before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: $page-background;
+        z-index: -1;
+    }
+
     &.missing-card-data {
         padding: 0;
         border-width: 0;

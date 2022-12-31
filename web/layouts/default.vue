@@ -58,7 +58,7 @@ footer {
     border-top: 2px solid $accent;
     text-align: center;
     padding: 15px 0;
-    background-color: #171717;
+    background-color: $page-background;
 
     > .version-info {
         font-size: 0.75em;
