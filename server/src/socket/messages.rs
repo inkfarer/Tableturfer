@@ -25,6 +25,7 @@ pub enum SocketError {
 pub enum SocketAction {
     SetMap(String),
     StartGame,
+    RequestRedraw,
     ProposeMove(PlayerMove),
     SetDeck { id: String, cards: IndexSet<String> },
     ReturnToRoom,
@@ -44,6 +45,7 @@ impl SocketAction {
         match self {
             SocketAction::SetDeck { id: _, cards: _ } => true,
             SocketAction::ProposeMove(_) => true,
+            SocketAction::RequestRedraw => true,
             _ => false,
         }
     }

@@ -27,6 +27,7 @@ pub enum GameError {
     MapNotFound,
     IncorrectDeckSize,
     GameEnded,
+    RedrawNotPermitted,
 }
 
 #[derive(Clone, Copy, Debug, Serialize_repr, Deserialize_repr, Eq, PartialEq)]
@@ -77,6 +78,7 @@ pub struct PlayerDeck {
     pub cards: IndexSet<String>,
     pub used_cards: IndexSet<String>,
     pub current_hand: IndexSet<String>,
+    redrawn: bool,
 }
 
 impl PlayerDeck {
@@ -85,6 +87,7 @@ impl PlayerDeck {
             cards,
             used_cards: IndexSet::new(),
             current_hand: IndexSet::new(),
+            redrawn: false,
         }
     }
 
@@ -105,6 +108,16 @@ impl PlayerDeck {
             .collect();
 
         &self.current_hand
+    }
+
+    pub fn redraw(&mut self) -> Option<&IndexSet<String>> {
+        if self.redrawn {
+            None
+        } else {
+            self.redrawn = true;
+
+            Some(self.assign_cards())
+        }
     }
 
     pub fn draw_new_card(&mut self, card_to_replace: &str) -> Option<String> {
@@ -191,6 +204,14 @@ impl GameState {
 
     pub fn assign_initial_hands(&mut self) -> HashMap<PlayerTeam, IndexSet<String>> {
         self.decks.iter_mut().map(|(team, deck)| (team.clone(), deck.assign_cards().clone())).collect()
+    }
+
+    pub fn request_redraw(&mut self, team: PlayerTeam) -> Result<&IndexSet<String>, GameError> {
+        if self.remaining_turns != TURN_COUNT {
+            return Err(GameError::RedrawNotPermitted);
+        }
+
+        self.decks.get_mut(&team).unwrap().redraw().map_or(Err(GameError::RedrawNotPermitted), |result| Ok(result))
     }
 
     pub fn propose_move(&mut self, team: PlayerTeam, player_move: PlayerMove) -> Result<(), GameError> {

@@ -36,6 +36,10 @@ impl SocketActionHandler {
                     match action {
                         SocketAction::SetMap(map) => room.set_map(map),
                         SocketAction::StartGame => room.start_game().await,
+                        SocketAction::RequestRedraw => {
+                            let team = self.team(room);
+                            room.request_redraw(team.unwrap()).await
+                        },
                         SocketAction::ProposeMove(player_move) => {
                             let team = self.team(room);
                             room.propose_move(team.unwrap(), player_move).await

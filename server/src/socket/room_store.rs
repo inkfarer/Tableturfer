@@ -198,6 +198,23 @@ impl Room {
         }
     }
 
+    pub async fn request_redraw(&mut self, team: PlayerTeam) -> Result<(), SocketError> {
+        if self.game_state.is_none() {
+            return Err(SocketError::RoomNotStarted);
+        }
+
+        let game = self.game_state.as_mut().unwrap();
+        let result = game.request_redraw(team.clone());
+        match result {
+            Ok(hand) => {
+                let event_hand = hand.clone();
+                self.send_to_player(team, SocketEvent::RoomEvent(RoomEvent::HandAssigned(event_hand))).await;
+                Ok(())
+            }
+            Err(e) => Err(SocketError::GameError(e))
+        }
+    }
+
     pub async fn propose_move(&mut self, team: PlayerTeam, player_move: PlayerMove) -> Result<(), SocketError> {
         if self.game_state.is_none() {
             return Err(SocketError::RoomNotStarted);
