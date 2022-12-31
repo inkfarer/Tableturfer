@@ -8,17 +8,40 @@
             <slot />
         </main>
         <footer>
-            <div>{{ $t('footer.beforeCreatedBy') }} <NuxtLink to="https://twitter.com/inkfarer">inkfarer</NuxtLink>.</div>
+            <i18n-t
+                keypath="footer.createdBy"
+                tag="div"
+            >
+                <NuxtLink to="https://twitter.com/inkfarer">inkfarer</NuxtLink>
+            </i18n-t>
             <div
                 class="version-info"
                 :class="{ 'is-prod': isProd }"
             >
-                <template v-if="isProd">
-                    {{ `${$t('footer.versionInfo.appName')} ${$t('footer.versionInfo.commitAndDate', { commit: config.public.commitHash, date: formatDate(config.public.buildDate) })}` }}
-                </template>
-                <template v-else>
-                    {{ $t('footer.versionInfo.appName') }} <span class="dev-mode">{{ $t('footer.versionInfo.devBuild') }}</span>
-                </template>
+                <i18n-t keypath="footer.appInfo.template">
+                    <template #name>
+                        <NuxtLink :to="config.public.repositoryUrl">{{ $t('footer.appInfo.name') }}</NuxtLink>
+                    </template>
+                    <template #details>
+                        <i18n-t
+                            v-if="isProd"
+                            keypath="footer.appInfo.buildInfo"
+                        >
+                            <template #commit>
+                                <NuxtLink :to="`${config.public.repositoryUrl}/commit/${config.public.commitHash}`">{{ config.public.commitHash }}</NuxtLink>
+                            </template>
+                            <template #date>
+                                {{ formatDate(config.public.buildDate) }}
+                            </template>
+                        </i18n-t>
+                        <span
+                            v-else
+                            class="dev-mode"
+                        >
+                            {{ $t('footer.appInfo.devBuild') }}
+                        </span>
+                    </template>
+                </i18n-t>
             </div>
         </footer>
     </div>
@@ -63,6 +86,15 @@ footer {
     > .version-info {
         font-size: 0.75em;
         margin-top: 4px;
+
+        a {
+            color: white;
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
 
         &.is-prod {
             opacity: 0.5;

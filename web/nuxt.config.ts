@@ -49,7 +49,8 @@ export default defineNuxtConfig({
         public: {
             socketUrl: 'ws://192.168.1.232:8080/ws',
             commitHash: gitInfo.hash,
-            buildDate: new Date().getTime()
+            buildDate: new Date().getTime(),
+            repositoryUrl: 'https://github.com/inkfarer/Tableturfer'
         }
     }
 });
