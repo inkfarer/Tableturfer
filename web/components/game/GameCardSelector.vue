@@ -1,5 +1,6 @@
 <template>
     <div class="game-card-selector">
+        <GameRedrawMessage />
         <Card
             :name="longPressedCard"
             :team="roomStore.playerTeam"
@@ -23,7 +24,7 @@
         />
         <TtToggleButton
             :model-value="activeCardStore.pass"
-            :disabled="activeCardStore.locked"
+            :disabled="activeCardStore.locked || !roomStore.redrawCompleted"
             class="action-button"
             @update:model-value="activeCardStore.setPass($event)"
         >
@@ -31,7 +32,7 @@
         </TtToggleButton>
         <TtToggleButton
             :model-value="activeCardStore.special"
-            :disabled="activeCardStore.locked"
+            :disabled="activeCardStore.locked || !roomStore.redrawCompleted"
             class="action-button"
             @update:model-value="activeCardStore.setSpecial($event)"
         >
@@ -89,6 +90,13 @@ function onCardLongPress(card: string) {
     display: none;
 }
 
+.redraw-message-body {
+    position: absolute;
+    left: 110%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
 @include media-breakpoint-down(lg) {
     .game-card-selector {
         grid-template-columns: repeat(4, 1fr);
@@ -97,6 +105,13 @@ function onCardLongPress(card: string) {
     .action-button {
         grid-column: span 2;
         height: max-content;
+    }
+
+    .redraw-message-body {
+        bottom: 120%;
+        top: unset;
+        left: 50%;
+        transform: translateX(-50%);
     }
 }
 

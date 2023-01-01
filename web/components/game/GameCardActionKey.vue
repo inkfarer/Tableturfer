@@ -17,6 +17,7 @@
 import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 import { PropType } from 'vue';
 import { computed } from '#imports';
+import { useRoomStore } from '~/stores/RoomStore';
 
 const emit = defineEmits(['click']);
 
@@ -32,5 +33,6 @@ const props = defineProps({
 });
 
 const activeCardStore = useCurrentMoveStore();
-const disabled = computed(() => activeCardStore.locked || activeCardStore.pass);
+const roomStore = useRoomStore();
+const disabled = computed(() => activeCardStore.locked || activeCardStore.pass || !roomStore.redrawCompleted);
 </script>

@@ -13,6 +13,7 @@ interface RoomStore {
     completed: boolean
     remainingTurns: number
     score: TeamMap<number> | null
+    redrawCompleted: boolean
 }
 
 export const useRoomStore = defineStore('room', {
@@ -25,7 +26,8 @@ export const useRoomStore = defineStore('room', {
         started: false,
         completed: false,
         remainingTurns: TURN_COUNT,
-        score: null
+        score: null,
+        redrawCompleted: false
     }),
     getters: {
         isRoomOwner: state => state.id === state.owner,

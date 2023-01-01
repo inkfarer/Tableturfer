@@ -9,9 +9,9 @@
         }"
         @click.self="close"
     >
-        <div class="overlay">
+        <OverlayBody class="overlay">
             <slot />
-        </div>
+        </OverlayBody>
     </div>
 </template>
 
@@ -54,18 +54,6 @@ function close() {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-
-    > .overlay {
-        margin: 0 auto;
-        padding: 10px;
-        border-radius: 16px;
-        background-color: #262626;
-        border: 2px solid $accent;
-        min-width: 200px;
-        display: block;
-        max-height: 80%;
-        overflow-y: auto;
-    }
 }
 
 .overlay-wrapper:not(.mobile-only) {
@@ -86,7 +74,7 @@ function close() {
         pointer-events: auto;
     }
 
-    > .overlay {
+    &.mobile-only > .overlay {
         display: contents;
     }
 }
@@ -101,6 +89,7 @@ function close() {
             }
 
             > .overlay {
+                display: initial;
                 border-bottom: 0;
                 transition: transform 250ms;
                 position: absolute;

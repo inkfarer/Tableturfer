@@ -50,6 +50,12 @@
         "error": {
             "communicationError": "A communication error has occurred.",
             "backHome": "Back to main page"
+        },
+        "redrawMessage": {
+            "title": "Redraw this hand?",
+            "mobileCardPreviewHint": "Hint: Tap and hold on a card to view more details.",
+            "decline": "Keep",
+            "confirm": "Redraw!"
         }
     },
     "deckList": {
