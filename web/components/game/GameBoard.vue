@@ -88,15 +88,22 @@ function redraw(
         ctx.lineWidth = strokeSize;
         ctx.fillRect(x, y, squareSize, squareSize);
         ctx.strokeRect(x + (strokeSize / 2), y + (strokeSize / 2), squareSize - strokeSize, squareSize - strokeSize);
+    });
 
-        if (item !== MapSquareType.EMPTY) {
-            if (specialActive && (item === MapSquareType.FILL_ALPHA || item === MapSquareType.FILL_BRAVO)) {
-                ctx.globalAlpha = 0.2;
-            }
-
-            ctx.fillStyle = getMapFill(item);
-            ctx.fillRect(x, y, squareSize, squareSize);
+    forEach2D(board, (item, position) => {
+        if (item === MapSquareType.DISABLED || item === MapSquareType.EMPTY) {
+            return;
         }
+
+        const x = squareSize * position.x + offsetX;
+        const y = squareSize * position.y + offsetY;
+
+        if (specialActive && (item === MapSquareType.FILL_ALPHA || item === MapSquareType.FILL_BRAVO)) {
+            ctx.globalAlpha = 0.2;
+        }
+
+        ctx.fillStyle = getMapFill(item);
+        ctx.fillRect(x, y, squareSize, squareSize);
     });
 
     if (!passing && activeCard != null && playerTeam != null) {
