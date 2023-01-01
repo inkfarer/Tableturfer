@@ -207,7 +207,7 @@ impl GameState {
     }
 
     pub fn request_redraw(&mut self, team: PlayerTeam) -> Result<&IndexSet<String>, GameError> {
-        if self.remaining_turns != TURN_COUNT {
+        if self.remaining_turns != TURN_COUNT || self.next_moves.contains_key(&team) {
             return Err(GameError::RedrawNotPermitted);
         }
 
