@@ -6,13 +6,13 @@
         <CardSquare
             v-for="point in availableSpecial"
             :key="`available-point_${point}`"
-            :square="CardSquareType.FILL"
+            :square="CardSquareType.SPECIAL"
             :team="props.team"
         />
         <CardSquare
             v-for="point in gameBoardStore.usedSpecialPoints[props.team]"
             :key="`used-point_${point}`"
-            :square="CardSquareType.FILL"
+            :square="CardSquareType.SPECIAL"
             :team="props.team"
             class="used-point"
         />

@@ -22,12 +22,19 @@ import { CardSquareType } from '~/types/CardSquareType';
 import { Position } from '~/types/Position';
 import { PlayerTeam } from '~/types/PlayerTeam';
 import { useRoomStore } from '~/stores/RoomStore';
+import { createImage } from '~/utils/ImageUtil';
 
 const activeCardStore = useCurrentMoveStore();
 const gameBoardStore = useGameBoardStore();
 const roomStore = useRoomStore();
 const gameBoardCanvas = ref<HTMLCanvasElement | null>(null);
 const resizeObserver = ref<ResizeObserver | null>(null);
+
+const imgFillAlpha = createImage('/img/squares/1x/fill-alpha.webp');
+const imgFillBravo = createImage('/img/squares/1x/fill-bravo.webp');
+const imgSpecialAlpha = createImage('/img/squares/1x/special-alpha.webp');
+const imgSpecialBravo = createImage('/img/squares/1x/special-bravo.webp');
+const imgNeutral = createImage('/img/squares/1x/neutral.webp');
 
 const placeable = computed(() => {
     if (activeCardStore.activeCard == null) {
@@ -83,7 +90,7 @@ function redraw(
         const y = squareSize * position.y + offsetY;
 
         ctx.globalAlpha = 1;
-        ctx.fillStyle = getMapFill(MapSquareType.EMPTY);
+        ctx.fillStyle = '#171717';
         ctx.strokeStyle = '#393939';
         ctx.lineWidth = strokeSize;
         ctx.fillRect(x, y, squareSize, squareSize);
@@ -95,6 +102,11 @@ function redraw(
             return;
         }
 
+        const img = getSquareSprite(item);
+        if (img == null) {
+            return;
+        }
+
         const x = squareSize * position.x + offsetX;
         const y = squareSize * position.y + offsetY;
 
@@ -102,8 +114,7 @@ function redraw(
             ctx.globalAlpha = 0.2;
         }
 
-        ctx.fillStyle = getMapFill(item);
-        ctx.fillRect(x, y, squareSize, squareSize);
+        ctx.drawImage(img, x, y, squareSize, squareSize);
     });
 
     if (!passing && activeCard != null && playerTeam != null) {
@@ -143,26 +154,22 @@ function getCardFill(square: CardSquareType, team: PlayerTeam): string {
     }
 }
 
-function getMapFill(square: MapSquareType): string {
+function getSquareSprite(square: MapSquareType): HTMLImageElement | null {
     switch (square) {
-        case MapSquareType.ACTIVE_SPECIAL_ALPHA:
-            return '#FFBC5A';
-        case MapSquareType.ACTIVE_SPECIAL_BRAVO:
-            return '#A4FFFB';
         case MapSquareType.FILL_ALPHA:
-            return '#E9FF0F';
+            return imgFillAlpha;
         case MapSquareType.FILL_BRAVO:
-            return '#4B50F3';
+            return imgFillBravo;
+        case MapSquareType.ACTIVE_SPECIAL_ALPHA:
         case MapSquareType.INACTIVE_SPECIAL_ALPHA:
-            return '#EC9009';
+            return imgSpecialAlpha;
+        case MapSquareType.ACTIVE_SPECIAL_BRAVO:
         case MapSquareType.INACTIVE_SPECIAL_BRAVO:
-            return '#15E3DB';
+            return imgSpecialBravo;
         case MapSquareType.NEUTRAL:
-            return '#aaa';
-        case MapSquareType.EMPTY:
-            return '#171717';
+            return imgNeutral;
         default:
-            return 'transparent';
+            return null;
     }
 }
 

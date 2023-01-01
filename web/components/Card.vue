@@ -40,7 +40,7 @@
                     v-for="point in cardData?.specialCost ?? 0"
                     :key="`special-cost-point_${point}`"
                     :team="props.team"
-                    :square="CardSquareType.FILL"
+                    :square="CardSquareType.SPECIAL"
                 />
             </div>
         </div>

@@ -26,24 +26,25 @@ const props = defineProps({
 .square {
     aspect-ratio: 1 / 1;
     width: 100%;
+    background-size: 100%;
 
     &.team_Alpha {
         &.type_1 {
-            background-color: #E9FF0F;
+            background-image: url('/img/squares/1x/fill-alpha.webp');
         }
 
         &.type_2 {
-            background-color: rgba(236, 144, 9, 1);
+            background-image: url('/img/squares/1x/special-alpha.webp');
         }
     }
 
     &.team_Bravo {
         &.type_1 {
-            background-color: rgba(75, 80, 243, 1);
+            background-image: url('/img/squares/1x/fill-bravo.webp');
         }
 
         &.type_2 {
-            background-color: rgba(21, 227, 219, 1);
+            background-image: url('/img/squares/1x/special-bravo.webp');
         }
     }
 }
