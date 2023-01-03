@@ -30,12 +30,6 @@ const roomStore = useRoomStore();
 const gameBoardCanvas = ref<HTMLCanvasElement | null>(null);
 const resizeObserver = ref<ResizeObserver | null>(null);
 
-const imgFillAlpha = createImage('/img/squares/1x/fill-alpha.webp');
-const imgFillBravo = createImage('/img/squares/1x/fill-bravo.webp');
-const imgSpecialAlpha = createImage('/img/squares/1x/special-alpha.webp');
-const imgSpecialBravo = createImage('/img/squares/1x/special-bravo.webp');
-const imgNeutral = createImage('/img/squares/1x/neutral.webp');
-
 const placeable = computed(() => {
     if (activeCardStore.activeCard == null) {
         return false;
@@ -44,136 +38,142 @@ const placeable = computed(() => {
     return gameBoardStore.isPlaceable(activeCardStore.position, activeCardStore.activeCard.squares);
 });
 
-function redraw(
-    canvas: HTMLCanvasElement,
-    board: MapSquareType[][] | null,
-    activeCard: CardSquareType[][] | null,
-    activeCardPosition: Position,
-    playerTeam: PlayerTeam | null,
-    specialActive: boolean,
-    passing: boolean
-) {
-    const ctx = canvas.getContext('2d'),
-        pixelRatio = window.devicePixelRatio,
-        width = canvas.clientWidth,
-        height = canvas.clientHeight;
-    const dpiWidth = Math.round(pixelRatio * width);
-    const dpiHeight = Math.round(pixelRatio * height);
-    if (ctx == null) {
-        throw new Error('Failed to access canvas drawing context');
-    }
+onMounted(() => {
+    const imgFillAlpha = createImage('/img/squares/1x/fill-alpha.webp');
+    const imgFillBravo = createImage('/img/squares/1x/fill-bravo.webp');
+    const imgSpecialAlpha = createImage('/img/squares/1x/special-alpha.webp');
+    const imgSpecialBravo = createImage('/img/squares/1x/special-bravo.webp');
+    const imgNeutral = createImage('/img/squares/1x/neutral.webp');
 
-    canvas.width = dpiWidth;
-    canvas.height = dpiHeight;
-    ctx.scale(pixelRatio, pixelRatio);
+    function redraw(
+        canvas: HTMLCanvasElement,
+        board: MapSquareType[][] | null,
+        activeCard: CardSquareType[][] | null,
+        activeCardPosition: Position,
+        playerTeam: PlayerTeam | null,
+        specialActive: boolean,
+        passing: boolean
+    ) {
+        const ctx = canvas.getContext('2d'),
+            pixelRatio = window.devicePixelRatio,
+            width = canvas.clientWidth,
+            height = canvas.clientHeight;
+        const dpiWidth = Math.round(pixelRatio * width);
+        const dpiHeight = Math.round(pixelRatio * height);
+        if (ctx == null) {
+            throw new Error('Failed to access canvas drawing context');
+        }
 
-    if (board == null) {
-        return;
-    }
+        canvas.width = dpiWidth;
+        canvas.height = dpiHeight;
+        ctx.scale(pixelRatio, pixelRatio);
 
-    const strokeSize = 1;
-    const boardSize = getSize(board);
-    const squareSize = Math.min((height - strokeSize * 2) / boardSize.height, width / boardSize.width);
-    const boardSizePx = {
-        width: boardSize.width * squareSize,
-        height: boardSize.height * squareSize
-    };
-    const offsetX = (width - boardSizePx.width) / 2;
-    const offsetY = (height - boardSizePx.height) / 2;
-
-    forEach2D(board, (item, position) => {
-        if (item === MapSquareType.DISABLED) {
+        if (board == null) {
             return;
         }
 
-        const x = squareSize * position.x + offsetX;
-        const y = squareSize * position.y + offsetY;
+        const strokeSize = 1;
+        const boardSize = getSize(board);
+        const squareSize = Math.min((height - strokeSize * 2) / boardSize.height, width / boardSize.width);
+        const boardSizePx = {
+            width: boardSize.width * squareSize,
+            height: boardSize.height * squareSize
+        };
+        const offsetX = (width - boardSizePx.width) / 2;
+        const offsetY = (height - boardSizePx.height) / 2;
 
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = '#171717';
-        ctx.strokeStyle = '#393939';
-        ctx.lineWidth = strokeSize;
-        ctx.fillRect(x, y, squareSize, squareSize);
-        ctx.strokeRect(x + (strokeSize / 2), y + (strokeSize / 2), squareSize - strokeSize, squareSize - strokeSize);
-    });
-
-    forEach2D(board, (item, position) => {
-        if (item === MapSquareType.DISABLED || item === MapSquareType.EMPTY) {
-            return;
-        }
-
-        const img = getSquareSprite(item);
-        if (img == null) {
-            return;
-        }
-
-        const x = squareSize * position.x + offsetX;
-        const y = squareSize * position.y + offsetY;
-
-        if (specialActive && (item === MapSquareType.FILL_ALPHA || item === MapSquareType.FILL_BRAVO)) {
-            ctx.globalAlpha = 0.2;
-        }
-
-        ctx.drawImage(img, x, y, squareSize, squareSize);
-    });
-
-    if (!passing && activeCard != null && playerTeam != null) {
-        forEach2D(activeCard, (item, position) => {
-            if (item === CardSquareType.EMPTY) {
+        forEach2D(board, (item, position) => {
+            if (item === MapSquareType.DISABLED) {
                 return;
             }
 
-            const x = squareSize * (position.x + activeCardPosition.x) + offsetX;
-            const y = squareSize * (position.y + activeCardPosition.y) + offsetY;
+            const x = squareSize * position.x + offsetX;
+            const y = squareSize * position.y + offsetY;
 
-            ctx.fillStyle = getCardFill(item, playerTeam);
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = '#171717';
+            ctx.strokeStyle = '#393939';
+            ctx.lineWidth = strokeSize;
             ctx.fillRect(x, y, squareSize, squareSize);
+            ctx.strokeRect(x + (strokeSize / 2), y + (strokeSize / 2), squareSize - strokeSize, squareSize - strokeSize);
         });
-    }
-}
 
-function getCardFill(square: CardSquareType, team: PlayerTeam): string {
-    if (placeable.value) {
-        switch (square) {
-            case CardSquareType.FILL:
-                return team === PlayerTeam.ALPHA ? 'rgba(236, 144, 9, 0.5)' : 'rgba(75, 80, 243, 0.2)';
-            case CardSquareType.SPECIAL:
-                return team === PlayerTeam.ALPHA ? 'rgba(236, 144, 9, 0.8)' : 'rgba(21, 227, 219, 0.5)';
-            default:
-                return 'transparent';
+        forEach2D(board, (item, position) => {
+            if (item === MapSquareType.DISABLED || item === MapSquareType.EMPTY) {
+                return;
+            }
+
+            const img = getSquareSprite(item);
+            if (img == null) {
+                return;
+            }
+
+            const x = squareSize * position.x + offsetX;
+            const y = squareSize * position.y + offsetY;
+
+            if (specialActive && (item === MapSquareType.FILL_ALPHA || item === MapSquareType.FILL_BRAVO)) {
+                ctx.globalAlpha = 0.2;
+            }
+
+            ctx.drawImage(img, x, y, squareSize, squareSize);
+        });
+
+        if (!passing && activeCard != null && playerTeam != null) {
+            forEach2D(activeCard, (item, position) => {
+                if (item === CardSquareType.EMPTY) {
+                    return;
+                }
+
+                const x = squareSize * (position.x + activeCardPosition.x) + offsetX;
+                const y = squareSize * (position.y + activeCardPosition.y) + offsetY;
+
+                ctx.fillStyle = getCardFill(item, playerTeam);
+                ctx.fillRect(x, y, squareSize, squareSize);
+            });
         }
-    } else {
-        switch (square) {
-            case CardSquareType.FILL:
-                return 'rgba(255, 255, 255, 0.2)';
-            case CardSquareType.SPECIAL:
-                return 'rgba(255, 255, 255, 0.5)';
-            default:
-                return 'transparent';
+    }
+
+    function getCardFill(square: CardSquareType, team: PlayerTeam): string {
+        if (placeable.value) {
+            switch (square) {
+                case CardSquareType.FILL:
+                    return team === PlayerTeam.ALPHA ? 'rgba(236, 144, 9, 0.5)' : 'rgba(75, 80, 243, 0.2)';
+                case CardSquareType.SPECIAL:
+                    return team === PlayerTeam.ALPHA ? 'rgba(236, 144, 9, 0.8)' : 'rgba(21, 227, 219, 0.5)';
+                default:
+                    return 'transparent';
+            }
+        } else {
+            switch (square) {
+                case CardSquareType.FILL:
+                    return 'rgba(255, 255, 255, 0.2)';
+                case CardSquareType.SPECIAL:
+                    return 'rgba(255, 255, 255, 0.5)';
+                default:
+                    return 'transparent';
+            }
         }
     }
-}
 
-function getSquareSprite(square: MapSquareType): HTMLImageElement | null {
-    switch (square) {
-        case MapSquareType.FILL_ALPHA:
-            return imgFillAlpha;
-        case MapSquareType.FILL_BRAVO:
-            return imgFillBravo;
-        case MapSquareType.ACTIVE_SPECIAL_ALPHA:
-        case MapSquareType.INACTIVE_SPECIAL_ALPHA:
-            return imgSpecialAlpha;
-        case MapSquareType.ACTIVE_SPECIAL_BRAVO:
-        case MapSquareType.INACTIVE_SPECIAL_BRAVO:
-            return imgSpecialBravo;
-        case MapSquareType.NEUTRAL:
-            return imgNeutral;
-        default:
-            return null;
+    function getSquareSprite(square: MapSquareType): HTMLImageElement | null {
+        switch (square) {
+            case MapSquareType.FILL_ALPHA:
+                return imgFillAlpha;
+            case MapSquareType.FILL_BRAVO:
+                return imgFillBravo;
+            case MapSquareType.ACTIVE_SPECIAL_ALPHA:
+            case MapSquareType.INACTIVE_SPECIAL_ALPHA:
+                return imgSpecialAlpha;
+            case MapSquareType.ACTIVE_SPECIAL_BRAVO:
+            case MapSquareType.INACTIVE_SPECIAL_BRAVO:
+                return imgSpecialBravo;
+            case MapSquareType.NEUTRAL:
+                return imgNeutral;
+            default:
+                return null;
+        }
     }
-}
 
-onMounted(() => {
     const canvas = gameBoardCanvas.value;
     if (canvas == null) {
         throw new Error('GameBoard is missing canvas');
