@@ -9,6 +9,7 @@
         </main>
         <footer>
             <i18n-t
+                scope="global"
                 keypath="footer.createdBy"
                 tag="div"
             >
@@ -18,7 +19,10 @@
                 class="version-info"
                 :class="{ 'is-prod': isProd }"
             >
-                <i18n-t keypath="footer.appInfo.template">
+                <i18n-t
+                    keypath="footer.appInfo.template"
+                    scope="global"
+                >
                     <template #name>
                         <NuxtLink :to="config.public.repositoryUrl">{{ $t('footer.appInfo.name') }}</NuxtLink>
                     </template>
@@ -26,6 +30,7 @@
                         <i18n-t
                             v-if="isProd"
                             keypath="footer.appInfo.buildInfo"
+                            scope="global"
                         >
                             <template #commit>
                                 <NuxtLink :to="`${config.public.repositoryUrl}/commit/${config.public.commitHash}`">{{ config.public.commitHash }}</NuxtLink>
