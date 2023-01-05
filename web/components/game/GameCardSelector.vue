@@ -18,7 +18,7 @@
             :team="roomStore.playerTeam"
             theme="miniature"
             class="card"
-            @click="selectCard(card)"
+            @short-press="selectCard(card)"
             @long-press-start="onCardLongPress(card)"
             @long-press-stop="longPressActive = false"
         />
