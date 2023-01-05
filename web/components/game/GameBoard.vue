@@ -38,12 +38,12 @@ const placeable = computed(() => {
     return gameBoardStore.isPlaceable(activeCardStore.position, activeCardStore.activeCard.squares);
 });
 
-onMounted(() => {
-    const imgFillAlpha = createImage('/img/squares/1x/fill-alpha.webp');
-    const imgFillBravo = createImage('/img/squares/1x/fill-bravo.webp');
-    const imgSpecialAlpha = createImage('/img/squares/1x/special-alpha.webp');
-    const imgSpecialBravo = createImage('/img/squares/1x/special-bravo.webp');
-    const imgNeutral = createImage('/img/squares/1x/neutral.webp');
+onMounted(async () => {
+    const imgFillAlpha = await createImage('/img/squares/1x/fill-alpha.webp');
+    const imgFillBravo = await createImage('/img/squares/1x/fill-bravo.webp');
+    const imgSpecialAlpha = await createImage('/img/squares/1x/special-alpha.webp');
+    const imgSpecialBravo = await createImage('/img/squares/1x/special-bravo.webp');
+    const imgNeutral = await createImage('/img/squares/1x/neutral.webp');
 
     function redraw(
         canvas: HTMLCanvasElement,
