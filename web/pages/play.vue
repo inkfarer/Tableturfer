@@ -14,6 +14,10 @@ definePageMeta({
 </script>
 
 <style lang="scss">
+body {
+    overscroll-behavior: contain;
+}
+
 .game-wrapper {
     color: white;
 }
