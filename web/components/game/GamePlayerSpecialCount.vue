@@ -40,6 +40,7 @@ const availableSpecial = computed(() => gameBoardStore.specialPointCount[props.t
 .special-count {
     display: flex;
     min-height: 20px;
+    flex-wrap: wrap;
 
     &.team_Bravo {
         flex-direction: row-reverse;
@@ -47,7 +48,7 @@ const availableSpecial = computed(() => gameBoardStore.specialPointCount[props.t
 
     .square {
         width: 20px;
-        margin: 0 2px;
+        margin: 2px;
     }
 
     .used-point {

@@ -33,7 +33,7 @@ const roomStore = useRoomStore();
     > * {
         flex-basis: 33%;
         flex-shrink: 0;
-        flex-grow: 0;
+        flex-grow: 1;
     }
 
     > *:last-child {
@@ -45,6 +45,7 @@ const roomStore = useRoomStore();
     }
 
     .turn-counter {
+        flex-basis: max-content;
         text-align: center;
 
         .label {
