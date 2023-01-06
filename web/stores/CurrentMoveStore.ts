@@ -135,6 +135,10 @@ export const useCurrentMoveStore = defineStore('currentMove', {
             if (this.activeCard == null) {
                 return;
             }
+            if (isNaN(positionDelta.x) || isNaN(positionDelta.y)) {
+                console.warn('Ignoring attempt to move position by NaN tiles');
+                return;
+            }
 
             const newPosition = {
                 x: this.position.x + positionDelta.x,
