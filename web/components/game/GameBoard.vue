@@ -42,7 +42,9 @@ onMounted(async () => {
     const imgFillAlpha = await createImage('/img/squares/1x/fill-alpha.webp');
     const imgFillBravo = await createImage('/img/squares/1x/fill-bravo.webp');
     const imgSpecialAlpha = await createImage('/img/squares/1x/special-alpha.webp');
+    const imgSpecialAlphaActive = await createImage('/img/squares/1x/special-alpha-active.webp');
     const imgSpecialBravo = await createImage('/img/squares/1x/special-bravo.webp');
+    const imgSpecialBravoActive = await createImage('/img/squares/1x/special-bravo-active.webp');
     const imgNeutral = await createImage('/img/squares/1x/neutral.webp');
 
     function redraw(
@@ -108,6 +110,7 @@ onMounted(async () => {
                 return;
             }
 
+            ctx.globalAlpha = 1;
             const x = squareSize * position.x + offsetX;
             const y = squareSize * position.y + offsetY;
 
@@ -162,9 +165,11 @@ onMounted(async () => {
             case MapSquareType.FILL_BRAVO:
                 return imgFillBravo;
             case MapSquareType.ACTIVE_SPECIAL_ALPHA:
+                return imgSpecialAlphaActive;
             case MapSquareType.INACTIVE_SPECIAL_ALPHA:
                 return imgSpecialAlpha;
             case MapSquareType.ACTIVE_SPECIAL_BRAVO:
+                return imgSpecialBravoActive;
             case MapSquareType.INACTIVE_SPECIAL_BRAVO:
                 return imgSpecialBravo;
             case MapSquareType.NEUTRAL:
