@@ -38,6 +38,12 @@
         >
             {{ $t('game.returnToRoom') }}
         </TtButton>
+        <div
+            v-else
+            class="mt-1x"
+        >
+            {{ $t('game.waitingToReturn') }}
+        </div>
     </div>
 </template>
 

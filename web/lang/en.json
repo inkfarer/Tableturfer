@@ -47,6 +47,7 @@
         "placeCard": "Place card",
         "turnsRemaining": "Turns left",
         "returnToRoom": "Back to room",
+        "waitingToReturn": "Waiting for room owner to return...",
         "error": {
             "communicationError": "A communication error has occurred.",
             "backHome": "Back to main page"
