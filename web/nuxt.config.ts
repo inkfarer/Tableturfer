@@ -24,7 +24,8 @@ export default defineNuxtConfig({
         '@pinia/nuxt',
         '~/modules/CardI18nModule.ts',
         '@nuxtjs/i18n',
-        'nuxt-icon'
+        'nuxt-icon',
+        '@vueuse/nuxt'
     ],
     typescript: {
         typeCheck: true

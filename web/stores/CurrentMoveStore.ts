@@ -132,7 +132,7 @@ export const useCurrentMoveStore = defineStore('currentMove', {
             };
         },
         applyDeltaIfPossible(positionDelta: Position) {
-            if (this.activeCard == null) {
+            if (this.activeCard == null || (positionDelta.x === 0 && positionDelta.y === 0)) {
                 return;
             }
             if (isNaN(positionDelta.x) || isNaN(positionDelta.y)) {

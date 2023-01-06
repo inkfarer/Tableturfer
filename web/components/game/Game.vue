@@ -8,7 +8,10 @@
         </div>
         <div class="main-section">
             <GamePlayerStatus class="player-status" />
-            <GameBoard class="game-board" />
+            <GameBoard
+                ref="gameBoard"
+                class="game-board"
+            />
             <div class="below-board">
                 <GameCardActionKeys
                     v-if="!roomStore.completed"
@@ -29,9 +32,15 @@ import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 import { useRoomStore } from '~/stores/RoomStore';
 import GameMovePreview from '~/components/game/GameMovePreview.vue';
 import { PlayerTeam } from '~/types/PlayerTeam';
+import { ref } from '#imports';
+import { GameBoard } from '#components';
+import useSwipeCardMovement from '~/composables/UseSwipeCardMovement';
 
 const activeCardStore = useCurrentMoveStore();
 const roomStore = useRoomStore();
+
+const gameBoard = ref<InstanceType<typeof GameBoard> | null>();
+useSwipeCardMovement(gameBoard);
 </script>
 
 <style lang="scss">
