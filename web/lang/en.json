@@ -94,5 +94,8 @@
             "buildInfo": "commit {commit} built on {date}",
             "devBuild": "development build!"
         }
+    },
+    "sandbox": {
+        "wipAlert": "You've reached the Sandbox! It's currently here as a quick and dirty way to develop the gameplay views, but will be turned into a fully fledged feature at a later date."
     }
 }
