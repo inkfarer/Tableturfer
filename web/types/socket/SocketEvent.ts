@@ -36,7 +36,7 @@ export type AnySocketError = AnyError<SocketErrorMap>;
 
 export interface SocketUserDeck {
     id: string
-    cards: string
+    cards: string[]
 }
 
 export interface SocketUser {
