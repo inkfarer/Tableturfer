@@ -48,7 +48,7 @@
 </template>
 
 <script lang="ts" setup>
-import { definePageMeta, onMounted, ref, useNuxtApp, useRoute, watch } from '#imports';
+import { definePageMeta, onMounted, preloadRouteComponents, ref, useNuxtApp, useRoute, watch } from '#imports';
 import { navigateTo } from '#app';
 import { useRoomStore } from '~/stores/RoomStore';
 import { useDeckListStore } from '~/stores/DeckListStore';
@@ -61,6 +61,8 @@ definePageMeta({
     key: 'room',
     layout: false
 });
+
+preloadRouteComponents('/play');
 
 const roomStore = useRoomStore();
 const deckListStore = useDeckListStore();
