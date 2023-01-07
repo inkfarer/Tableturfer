@@ -181,6 +181,8 @@ export class SocketService {
                 const roomStore = useRoomStore();
                 roomStore.completed = true;
                 roomStore.score = event.detail.score;
+                const currentMoveStore = useCurrentMoveStore();
+                currentMoveStore.locked = true;
                 break;
             }
         }
