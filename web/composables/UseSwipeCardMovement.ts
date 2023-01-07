@@ -19,7 +19,7 @@ export default function (target: Ref<VueInstance | null>) {
         }
     });
 
-    const gameBoardSwipe = useSwipe(target.value?.$el, {
+    const gameBoardSwipe = useSwipe(target as Ref<EventTarget | null>, {
         threshold: 10,
         onSwipe() {
             amountMoved.value = {
