@@ -9,6 +9,8 @@ import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { MapSquareType } from '~/types/MapSquareType';
 import { getRotationOffset, withinBoardBounds } from '~/helpers/ActiveCardHelper';
 import cloneDeep from 'lodash/cloneDeep';
+import { useNuxtApp } from '#imports';
+import { useRoomStore } from '~/stores/RoomStore';
 
 interface CurrentMoveStore {
     activeCard: ActiveCard | null
@@ -124,34 +126,33 @@ export const useCurrentMoveStore = defineStore('currentMove', {
             }
         },
 
-        setPositionFromCardOrigin(newValue: Position) {
+        getPositionFromCardOrigin(position: Position) {
             const origin = this.activeCard?.origin ?? { x: 0, y: 0 };
-            this.position = {
-                x: newValue.x - origin.x,
-                y: newValue.y - origin.y
+            return {
+                x: position.x - origin.x,
+                y: position.y - origin.y
             };
         },
-        applyDeltaIfPossible(positionDelta: Position) {
-            if (this.activeCard == null || (positionDelta.x === 0 && positionDelta.y === 0)) {
-                return;
-            }
-            if (isNaN(positionDelta.x) || isNaN(positionDelta.y)) {
-                console.warn('Ignoring attempt to move position by NaN tiles');
+        setPositionFromCardOrigin(newValue: Position) {
+            this.position = this.getPositionFromCardOrigin(newValue);
+        },
+        setPositionIfPossible(newPosition: Position, fromOrigin: boolean) {
+            if (this.activeCard == null || this.locked) {
                 return;
             }
 
-            const newPosition = {
-                x: this.position.x + positionDelta.x,
-                y: this.position.y + positionDelta.y
-            };
+            const normalizedPosition = fromOrigin ? this.getPositionFromCardOrigin(newPosition) : newPosition;
+            if (this.position.x === normalizedPosition.x && this.position.y === normalizedPosition.y) {
+                return;
+            }
 
             // Prevent any new tiles from moving out of bounds. Tiles already out of bounds moving around is ok.
             const gameBoardStore = useGameBoardStore();
             const activeCardSquares = this.activeCard.squares;
             const cardSize = { width: activeCardSquares[0].length, height: activeCardSquares.length };
-            if (gameBoardStore.cardIsOutOfBounds(newPosition, cardSize)) {
+            if (gameBoardStore.cardIsOutOfBounds(normalizedPosition, cardSize)) {
                 const squaresUnderCurrentPosition = gameBoardStore.boardSquaresUnderCard(this.position, cardSize);
-                const squaresUnderNewPosition = gameBoardStore.boardSquaresUnderCard(newPosition, cardSize);
+                const squaresUnderNewPosition = gameBoardStore.boardSquaresUnderCard(normalizedPosition, cardSize);
 
                 for (let y = 0; y < activeCardSquares.length; y++) {
                     for (let x = 0; x < activeCardSquares[0].length; x++) {
@@ -168,7 +169,23 @@ export const useCurrentMoveStore = defineStore('currentMove', {
                 }
             }
 
-            this.position = newPosition;
+            this.position = normalizedPosition;
+        },
+        applyDeltaIfPossible(positionDelta: Position) {
+            if (this.activeCard == null || (positionDelta.x === 0 && positionDelta.y === 0)) {
+                return;
+            }
+            if (isNaN(positionDelta.x) || isNaN(positionDelta.y)) {
+                console.warn('Ignoring attempt to move position by NaN tiles');
+                return;
+            }
+
+            const newPosition = {
+                x: this.position.x + positionDelta.x,
+                y: this.position.y + positionDelta.y
+            };
+
+            this.setPositionIfPossible(newPosition, false);
         },
         moveUp() {
             this.applyDeltaIfPossible({ x: 0, y: -1 });
@@ -206,6 +223,22 @@ export const useCurrentMoveStore = defineStore('currentMove', {
             this.pass = false;
             this.special = false;
             this.setActiveCard(null);
+        },
+        proposeMove() {
+            const roomStore = useRoomStore();
+            if (this.activeCard == null || roomStore.playerTeam == null || this.pass) {
+                return;
+            }
+
+            const { $socket } = useNuxtApp();
+            $socket.send('ProposeMove', {
+                type: 'PlaceCard',
+                cardName: this.activeCard.name,
+                position: this.position,
+                rotation: this.rotation,
+                special: this.special
+            });
+            this.locked = true;
         }
     }
 });

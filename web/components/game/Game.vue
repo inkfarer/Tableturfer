@@ -1,7 +1,7 @@
 <template>
     <div
         class="game-stage-layout"
-        :class="{ passing: activeCardStore.pass }"
+        :class="{ passing: currentMoveStore.pass }"
     >
         <div class="side-section card-selector-section">
             <GameCardSelector class="card-selector" />
@@ -11,6 +11,8 @@
             <GameBoard
                 ref="gameBoard"
                 class="game-board"
+                @click="onBoardClick"
+                @click.right="onBoardRightClick"
             />
             <div class="below-board">
                 <GameCardActionKeys
@@ -36,11 +38,20 @@ import { ref } from '#imports';
 import { GameBoard } from '#components';
 import useSwipeCardMovement from '~/composables/UseSwipeCardMovement';
 
-const activeCardStore = useCurrentMoveStore();
+const currentMoveStore = useCurrentMoveStore();
 const roomStore = useRoomStore();
 
-const gameBoard = ref<InstanceType<typeof GameBoard> | null>();
+const gameBoard = ref<InstanceType<typeof GameBoard> | null>(null);
 useSwipeCardMovement(gameBoard);
+
+function onBoardClick() {
+    currentMoveStore.proposeMove();
+}
+
+function onBoardRightClick(event: Event) {
+    currentMoveStore.nextRotationStep();
+    event.preventDefault();
+}
 </script>
 
 <style lang="scss">

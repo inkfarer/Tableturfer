@@ -4,6 +4,7 @@ export default {
     moduleFileExtensions: [ 'ts', 'js', 'json' ],
     moduleNameMapper: {
         '^~/(.*)': '<rootDir>/$1',
+        '^#imports$': '<rootDir>/.nuxt/types/imports.d.ts'
     },
     preset: 'ts-jest',
     transform: {

@@ -1,9 +1,10 @@
-import { MaybeComputedRef } from '@vueuse/shared';
-import { computed, ref, useElementSize, useSwipe, watch } from '#imports';
+import { computed, ref, useElementSize, useMouseInElement, useSwipe, watch } from '#imports';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
+import { VueInstance } from '@vueuse/core';
+import { Ref } from 'vue';
 
-export default function (target: MaybeComputedRef<(HTMLElement & EventTarget) | null>) {
+export default function (target: Ref<VueInstance | null>) {
     const gameBoardStore = useGameBoardStore();
     const activeCardStore = useCurrentMoveStore();
 
@@ -18,7 +19,7 @@ export default function (target: MaybeComputedRef<(HTMLElement & EventTarget) | 
         }
     });
 
-    const gameBoardSwipe = useSwipe(target, {
+    const gameBoardSwipe = useSwipe(target.value?.$el, {
         threshold: 10,
         onSwipe() {
             amountMoved.value = {
@@ -28,6 +29,24 @@ export default function (target: MaybeComputedRef<(HTMLElement & EventTarget) | 
         },
         onSwipeEnd() {
             amountMoved.value = { x: null, y: null };
+        }
+    });
+
+    const mouseInGameBoard = useMouseInElement(target);
+    const squareSizePx = computed(() => Math.min(
+        mouseInGameBoard.elementHeight.value / boardSize.value.height,
+        mouseInGameBoard.elementWidth.value / boardSize.value.width));
+    const boardMargin = computed(() => ({
+        x: (mouseInGameBoard.elementWidth.value - (squareSizePx.value * boardSize.value.width)) / 2,
+        y: (mouseInGameBoard.elementHeight.value - (squareSizePx.value * boardSize.value.height)) / 2
+    }));
+
+    watch(() => ({ x: mouseInGameBoard.elementX.value, y: mouseInGameBoard.elementY.value }), newValue => {
+        if (mouseInGameBoard.sourceType.value === 'mouse') {
+            activeCardStore.setPositionIfPossible({
+                x: Math.floor((newValue.x - boardMargin.value.x) / squareSizePx.value),
+                y: Math.floor((newValue.y - boardMargin.value.y) / squareSizePx.value)
+            }, true);
         }
     });
 }

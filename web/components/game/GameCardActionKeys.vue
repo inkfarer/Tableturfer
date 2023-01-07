@@ -3,27 +3,27 @@
         <div class="keypad">
             <GameCardActionKey
                 icon="fa6-solid:arrow-rotate-left"
-                @click="activeCardStore.previousRotationStep()"
+                @click="currentMoveStore.previousRotationStep()"
             />
             <GameCardActionKey
                 icon="fa6-solid:angle-up"
-                @click="activeCardStore.moveUp()"
+                @click="currentMoveStore.moveUp()"
             />
             <GameCardActionKey
                 icon="fa6-solid:arrow-rotate-right"
-                @click="activeCardStore.nextRotationStep()"
+                @click="currentMoveStore.nextRotationStep()"
             />
             <GameCardActionKey
                 icon="fa6-solid:angle-left"
-                @click="activeCardStore.moveLeft()"
+                @click="currentMoveStore.moveLeft()"
             />
             <GameCardActionKey
                 icon="fa6-solid:angle-down"
-                @click="activeCardStore.moveDown()"
+                @click="currentMoveStore.moveDown()"
             />
             <GameCardActionKey
                 icon="fa6-solid:angle-right"
-                @click="activeCardStore.moveRight()"
+                @click="currentMoveStore.moveRight()"
             />
         </div>
 
@@ -38,26 +38,11 @@
 
 <script lang="ts" setup>
 import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
-import { useNuxtApp } from '#imports';
-import { useRoomStore } from '~/stores/RoomStore';
 
-const activeCardStore = useCurrentMoveStore();
-const roomStore = useRoomStore();
-const { $socket } = useNuxtApp();
+const currentMoveStore = useCurrentMoveStore();
 
 function placeCard() {
-    if (activeCardStore.activeCard == null || roomStore.playerTeam == null || activeCardStore.pass) {
-        return;
-    }
-
-    $socket.send('ProposeMove', {
-        type: 'PlaceCard',
-        cardName: activeCardStore.activeCard.name,
-        position: activeCardStore.position,
-        rotation: activeCardStore.rotation,
-        special: activeCardStore.special
-    });
-    activeCardStore.locked = true;
+    currentMoveStore.proposeMove();
 }
 </script>
 
