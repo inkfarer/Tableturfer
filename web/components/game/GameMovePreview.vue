@@ -60,7 +60,6 @@ watch(() => move.value, newMove => {
         position: relative;
         margin: 4px;
         z-index: 3;
-        border-radius: 12px;
         transition: opacity 250ms;
     }
 
