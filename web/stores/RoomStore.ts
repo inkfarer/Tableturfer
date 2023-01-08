@@ -79,6 +79,7 @@ export const useRoomStore = defineStore('room', {
             this.completed = false;
             this.score = null;
             this.remainingTurns = TURN_COUNT;
+            this.redrawCompleted = false;
         },
         leaveRoom() {
             this.$reset();
