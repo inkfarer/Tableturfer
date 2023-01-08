@@ -1,20 +1,24 @@
 <template>
-    <div class="sandbox-layout">
+    <div class="sandbox-wrapper">
         <Alert
-            class="wip-alert"
+            class="wip-alert mb-2x"
             theme="info"
         >
             {{ $t('sandbox.wipAlert') }}
         </Alert>
-        <SandboxCardSelector
-            class="card-selector"
-        />
-        <GameBoard
-            ref="gameBoard"
-            class="game-board"
-            @click="onBoardClick"
-            @click.right="onBoardRightClick"
-        />
+        <div class="sandbox-layout">
+            <div class="card-selector-wrapper">
+                <SandboxCardSelector
+                    class="card-selector"
+                />
+            </div>
+            <GameBoard
+                ref="gameBoard"
+                class="game-board"
+                @click="onBoardClick"
+                @click.right="onBoardRightClick"
+            />
+        </div>
     </div>
 </template>
 
@@ -63,7 +67,7 @@ function onBoardRightClick(event: Event) {
 </script>
 
 <style lang="scss" scoped>
-.sandbox-layout {
+.sandbox-wrapper {
     position: fixed;
     margin: 0 auto;
     left: 0;
@@ -71,16 +75,30 @@ function onBoardRightClick(event: Event) {
     max-width: 1200px;
     padding: 20px;
     height: calc(100% - 40px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sandbox-layout {
     display: grid;
+    flex: 1 1 auto;
     grid-template-columns: 2fr 3fr;
     gap: 16px;
+    overflow-y: hidden;
 
-    > .wip-alert {
-        grid-column: span 2;
+    > .card-selector-wrapper {
+        overflow-y: auto;
+        max-height: 100%;
+        align-self: center;
+
+        > .card-selector {
+            height: min-content;
+        }
     }
 
-    > .card-selector {
-        overflow-y: auto;
+    > .game-board {
+        height: 100%;
     }
 }
 </style>
