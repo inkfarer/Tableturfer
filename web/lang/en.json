@@ -6,7 +6,7 @@
     "index": {
         "title": "Welcome to tblturf.ink!",
         "subtitle": "The Tableturf Battle simulator.",
-        "smallScreen": "Playing on a small screen may not work as expected. tblturf.ink is a work in progress."
+        "wipWarning": "A work in progress!"
     },
     "roomJoiner": {
         "newRoom": "Create a new room",

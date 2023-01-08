@@ -4,9 +4,12 @@
             <div class="width-cap header-extra">
                 <h1>{{ $t('index.title') }}</h1>
                 <h2>{{ $t('index.subtitle') }}</h2>
-                <Alert>
-                    {{ $t('index.smallScreen') }}
-                </Alert>
+                <Badge
+                    theme="warning"
+                    class="wip-badge"
+                >
+                    {{ $t('index.wipWarning') }}
+                </Badge>
                 <RoomJoiner />
             </div>
         </template>
@@ -29,6 +32,12 @@ definePageMeta({
     text-align: center;
     min-height: 50vh;
 
+    .wip-badge {
+        text-align: center;
+        align-self: center;
+        margin-bottom: 30px;
+    }
+
     h1 {
         font-weight: 800;
         font-size: 3em;
@@ -39,11 +48,7 @@ definePageMeta({
         font-weight: 500;
         font-size: 2em;
         margin-top: 10px;
-    }
-
-    .alert {
-        margin: 0 15px 25px;
-        display: none;
+        margin-bottom: 5px;
     }
 
     .room-joiner-wrapper {
@@ -53,10 +58,6 @@ definePageMeta({
 
 @include media-breakpoint-down(md) {
     .header-extra {
-        .alert {
-            display: initial;
-        }
-
         .room-joiner-wrapper {
             width: initial;
             margin: 0 auto 16px;
