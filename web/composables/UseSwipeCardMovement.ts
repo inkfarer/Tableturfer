@@ -42,9 +42,9 @@ export default function (target: Ref<VueInstance | null>) {
     }));
 
     watch(() => ({ x: mouseInGameBoard.x.value, y: mouseInGameBoard.y.value }), newValue => {
-        activeCardStore.setPositionIfPossible({
+        activeCardStore.setPositionInsideBoard({
             x: Math.floor((newValue.x - boardElementSize.left.value - boardMargin.value.x) / squareSizePx.value),
             y: Math.floor((newValue.y - boardElementSize.top.value - boardMargin.value.y) / squareSizePx.value)
-        }, true);
+        }, false);
     });
 }

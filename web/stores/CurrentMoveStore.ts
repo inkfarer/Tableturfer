@@ -3,7 +3,7 @@ import { Position } from '~/types/Position';
 import { ActiveCard } from '~/types/ActiveCard';
 import { CardSquareType } from '~/types/CardSquareType';
 import { CardRotation } from '~/types/CardRotation';
-import { rotateClockwise, rotateCounterclockwise } from '~/helpers/ArrayHelper';
+import { getSize, rotateClockwise, rotateCounterclockwise } from '~/helpers/ArrayHelper';
 import { defineStore } from 'pinia';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { MapSquareType } from '~/types/MapSquareType';
@@ -55,6 +55,36 @@ export const useCurrentMoveStore = defineStore('currentMove', {
                     ? state.activeCard.squares[0].length
                     : state.activeCard.squares.length
             });
+        },
+        positionIsValid: (state) => (position: Position): boolean => {
+            if (state.activeCard == null) {
+                return false;
+            }
+
+            // Prevent any new tiles from moving out of bounds. Tiles already out of bounds moving around is ok.
+            const gameBoardStore = useGameBoardStore();
+            const activeCardSquares = state.activeCard.squares;
+            const cardSize = { width: activeCardSquares[0].length, height: activeCardSquares.length };
+            if (gameBoardStore.cardIsOutOfBounds(position, cardSize)) {
+                const squaresUnderCurrentPosition = gameBoardStore.boardSquaresUnderCard(state.position, cardSize);
+                const squaresUnderNewPosition = gameBoardStore.boardSquaresUnderCard(position, cardSize);
+
+                for (let y = 0; y < activeCardSquares.length; y++) {
+                    for (let x = 0; x < activeCardSquares[0].length; x++) {
+                        const cardSquare = activeCardSquares[y][x];
+                        if (cardSquare === CardSquareType.EMPTY) continue;
+
+                        const oldBoardSquare = squaresUnderCurrentPosition[y][x];
+                        const newBoardSquare = squaresUnderNewPosition[y][x];
+
+                        if (oldBoardSquare !== MapSquareType.OUT_OF_BOUNDS && newBoardSquare === MapSquareType.OUT_OF_BOUNDS) {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            return true;
         }
     },
     actions: {
@@ -136,47 +166,58 @@ export const useCurrentMoveStore = defineStore('currentMove', {
         setPositionFromCardOrigin(newValue: Position) {
             this.position = this.getPositionFromCardOrigin(newValue);
         },
-        setPositionIfPossible(newPosition: Position, fromOrigin: boolean) {
+        normalizePositionIfMovementAllowed(position: Position, fromOrigin: boolean): Position | null {
             if (this.activeCard == null || this.locked) {
-                return;
+                return null;
             }
 
-            const normalizedPosition = fromOrigin ? this.getPositionFromCardOrigin(newPosition) : newPosition;
+            if (isNaN(position.x) || isNaN(position.y)) {
+                console.warn('Ignoring attempt to move position by NaN tiles');
+                return null;
+            }
+
+            const normalizedPosition = fromOrigin ? this.getPositionFromCardOrigin(position) : position;
             if (this.position.x === normalizedPosition.x && this.position.y === normalizedPosition.y) {
+                return null;
+            }
+
+            return normalizedPosition;
+        },
+        setPositionInsideBoard(newPosition: Position, fromOrigin: boolean) {
+            const normalizedPosition = this.normalizePositionIfMovementAllowed(newPosition, fromOrigin);
+            if (normalizedPosition == null) {
                 return;
             }
 
-            // Prevent any new tiles from moving out of bounds. Tiles already out of bounds moving around is ok.
+            // const updatedPosition = cloneDeep(this.position);
+            // if (this.positionIsValid({ x: updatedPosition.x, y: normalizedPosition.y })) {
+            //     updatedPosition.y = normalizedPosition.y;
+            // }
+            // if (this.positionIsValid({ x: normalizedPosition.x, y: updatedPosition.y })) {
+            //     updatedPosition.x = normalizedPosition.x;
+            // }
+
             const gameBoardStore = useGameBoardStore();
-            const activeCardSquares = this.activeCard.squares;
-            const cardSize = { width: activeCardSquares[0].length, height: activeCardSquares.length };
-            if (gameBoardStore.cardIsOutOfBounds(normalizedPosition, cardSize)) {
-                const squaresUnderCurrentPosition = gameBoardStore.boardSquaresUnderCard(this.position, cardSize);
-                const squaresUnderNewPosition = gameBoardStore.boardSquaresUnderCard(normalizedPosition, cardSize);
+            const cardSize = getSize(this.activeCard?.squares ?? []);
+            const boardSize = gameBoardStore.boardSize;
 
-                for (let y = 0; y < activeCardSquares.length; y++) {
-                    for (let x = 0; x < activeCardSquares[0].length; x++) {
-                        const cardSquare = activeCardSquares[y][x];
-                        if (cardSquare === CardSquareType.EMPTY) continue;
-
-                        const oldBoardSquare = squaresUnderCurrentPosition[y][x];
-                        const newBoardSquare = squaresUnderNewPosition[y][x];
-
-                        if (oldBoardSquare !== MapSquareType.OUT_OF_BOUNDS && newBoardSquare === MapSquareType.OUT_OF_BOUNDS) {
-                            return;
-                        }
-                    }
-                }
+            this.position = {
+                x: Math.max(Math.min(normalizedPosition.x, boardSize.width - cardSize.width), Math.min(this.position.x, 0)),
+                y: Math.max(Math.min(normalizedPosition.y, boardSize.height - cardSize.height), Math.min(this.position.y, 0))
+            };
+        },
+        setPositionIfPossible(newPosition: Position, fromOrigin: boolean) {
+            const normalizedPosition = this.normalizePositionIfMovementAllowed(newPosition, fromOrigin);
+            if (normalizedPosition == null) {
+                return;
             }
 
-            this.position = normalizedPosition;
+            if (this.positionIsValid(normalizedPosition)) {
+                this.position = normalizedPosition;
+            }
         },
         applyDeltaIfPossible(positionDelta: Position) {
-            if (this.activeCard == null || (positionDelta.x === 0 && positionDelta.y === 0)) {
-                return;
-            }
-            if (isNaN(positionDelta.x) || isNaN(positionDelta.y)) {
-                console.warn('Ignoring attempt to move position by NaN tiles');
+            if (positionDelta.x === 0 && positionDelta.y === 0) {
                 return;
             }
 
