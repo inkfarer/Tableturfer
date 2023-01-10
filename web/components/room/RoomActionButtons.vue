@@ -7,6 +7,9 @@
         v-if="roomStore.isRoomOwner"
         ref="mapSelector"
     />
+    <GameGuideOverlay
+        ref="guideOverlay"
+    />
 
     <div
         v-bind="$attrs"
@@ -42,6 +45,17 @@
         >
             {{ $t('room.startGame') }}
         </TtButton>
+        <div class="secondary-options">
+            <TtButton
+                theme="secondary"
+                @click="
+                    // @ts-ignore
+                    $refs.guideOverlay.open()
+                "
+            >
+                <Icon name="fa6-solid:question" /> {{ $t('room.howToPlay') }}
+            </TtButton>
+        </div>
     </div>
 </template>
 
@@ -50,6 +64,7 @@ import { useRoomStore } from '~/stores/RoomStore';
 import { useDeckStore } from '~/stores/DeckStore';
 import { navigateTo } from '#app';
 import { computed, useNuxtApp } from '#imports';
+import GameGuideOverlay from '~/components/game/GameGuideOverlay.vue';
 
 const { $socket } = useNuxtApp();
 const roomStore = useRoomStore();
@@ -75,9 +90,21 @@ function startGame() {
     gap: 8px;
 }
 
+.secondary-options {
+    border-top: 2px solid $accent;
+    margin-top: 8px;
+    padding-top: 8px;
+    display: flex;
+    justify-content: center;
+}
+
 @include media-breakpoint-only(sm) {
     .room-action-buttons {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .secondary-options {
+        grid-column: 2 span;
     }
 }
 </style>

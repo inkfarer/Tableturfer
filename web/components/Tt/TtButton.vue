@@ -37,6 +37,12 @@ function onClick(event: MouseEvent) {
 }
 </script>
 
+<style lang="scss">
+.button > .icon {
+    transform: translateY(-2px);
+}
+</style>
+
 <style lang="scss" scoped>
 .button {
     display: block;

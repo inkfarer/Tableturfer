@@ -24,6 +24,8 @@
         "setDeck": "Change deck",
         "startGame": "Start the game!",
         "leave": "Leave room",
+        "howToPlay": "How to play",
+        "userSettings": "User settings",
         "userListTitle": "Users",
         "userRole": {
             "owner": "Room Owner",
@@ -97,5 +99,16 @@
     },
     "sandbox": {
         "wipAlert": "You've reached the Sandbox! It's currently here as a quick and dirty way to develop the gameplay views, but will be turned into a fully fledged feature at a later date."
+    },
+    "howToPlay": {
+        "mainHeading": "How to Play",
+        "intro": "In brief, use your cards to cover more area than your opponent. More details are available on the {wiki}",
+        "wikiLinkText": "Splatoon wiki.",
+        "controls": {
+            "heading": "Controls",
+            "mouseDescription": "Using a mouse, move the selected card by moving your mouse around the game board. Rotate your card by right clicking and confirm your move by left clicking.",
+            "touchDescription": "On a touchscreen device, drag your finger across the game board to move the selected card. The card can be rotated and the move confirmed by the buttons below the board."
+        },
+        "dismiss": "Dismiss"
     }
 }

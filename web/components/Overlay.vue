@@ -65,6 +65,10 @@ function close() {
     background-color: rgba(0, 0, 0, 0.5);
     transition: opacity $default-transition-duration;
 
+    .overlay {
+        margin: 0 10px;
+    }
+
     &.hide-background {
         background-color: rgba(18, 18, 18, 0.99);
     }
