@@ -117,6 +117,7 @@
     "userSettings": {
         "title": "User Settings",
         "subtitle": "Change how your game behaves.",
-        "onScreenControls": "Enable on-screen card movement keys"
+        "onScreenMovementControls": "Enable on-screen card movement keys",
+        "onScreenRotationAndPlacementControls": "Enable on-screen keys for placing and rotating cards"
     }
 }

@@ -1,19 +1,23 @@
 <template>
     <div class="card-movement-keys">
-        <template v-if="userSettingsStore.useOnScreenControls">
+        <template v-if="userSettingsStore.useOnScreenMovementControls">
             <div class="keypad">
                 <GameCardActionKey
+                    v-if="userSettingsStore.useOnScreenRotationAndPlacementControls"
                     icon="fa6-solid:arrow-rotate-left"
                     @click="currentMoveStore.previousRotationStep()"
                 />
+                <br v-else>
                 <GameCardActionKey
                     icon="fa6-solid:angle-up"
                     @click="currentMoveStore.moveUp()"
                 />
                 <GameCardActionKey
+                    v-if="userSettingsStore.useOnScreenRotationAndPlacementControls"
                     icon="fa6-solid:arrow-rotate-right"
                     @click="currentMoveStore.nextRotationStep()"
                 />
+                <br v-else>
                 <GameCardActionKey
                     icon="fa6-solid:angle-left"
                     @click="currentMoveStore.moveLeft()"
@@ -28,7 +32,10 @@
                 />
             </div>
 
-            <div class="extra-buttons">
+            <div
+                v-if="userSettingsStore.useOnScreenRotationAndPlacementControls"
+                class="extra-buttons"
+            >
                 <GameCardActionKey
                     :text="$t('game.placeCard')"
                     @click="placeCard"
@@ -36,7 +43,7 @@
             </div>
         </template>
         <div
-            v-else
+            v-else-if="userSettingsStore.useOnScreenRotationAndPlacementControls"
             class="keypad without-movement-keys"
         >
             <GameCardActionKey

@@ -4,8 +4,13 @@
             <h2>{{ $t('userSettings.title') }}</h2>
             <p>{{ $t('userSettings.subtitle') }}</p>
             <TtToggle
-                v-model="userSettingsStore.useOnScreenControls"
-                :label="$t('userSettings.onScreenControls')"
+                v-model="userSettingsStore.useOnScreenMovementControls"
+                :label="$t('userSettings.onScreenMovementControls')"
+            />
+            <TtToggle
+                v-model="userSettingsStore.useOnScreenRotationAndPlacementControls"
+                :label="$t('userSettings.onScreenRotationAndPlacementControls')"
+                class="mt-1x"
             />
         </div>
     </Overlay>
@@ -31,7 +36,7 @@ userSettingsStore.$subscribe(() => {
 <style lang="scss" scoped>
 .settings-overlay {
     text-align: center;
-    width: 400px;
+    width: 450px;
     max-width: calc(85vw - 70px);
     margin: 0 35px 10px;
 }

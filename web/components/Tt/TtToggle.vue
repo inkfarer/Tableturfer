@@ -37,6 +37,7 @@ function toggleValue() {
     justify-content: space-between;
     user-select: none;
     overflow-wrap: anywhere;
+    text-align: left;
 
     &:not(.disabled) {
         cursor: pointer;
