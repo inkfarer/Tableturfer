@@ -7,9 +7,8 @@
         v-if="roomStore.isRoomOwner"
         ref="mapSelector"
     />
-    <GameGuideOverlay
-        ref="guideOverlay"
-    />
+    <GameGuideOverlay ref="guideOverlay" />
+    <UserSettingsOverlay ref="userSettingsOverlay" />
 
     <div
         v-bind="$attrs"
@@ -55,6 +54,15 @@
             >
                 <Icon name="fa6-solid:question" /> {{ $t('room.howToPlay') }}
             </TtButton>
+            <TtButton
+                theme="secondary"
+                @click="
+                    // @ts-ignore
+                    $refs.userSettingsOverlay.open()
+                "
+            >
+                <Icon name="fa6-solid:gear" /> {{ $t('room.userSettings') }}
+            </TtButton>
         </div>
     </div>
 </template>
@@ -65,6 +73,7 @@ import { useDeckStore } from '~/stores/DeckStore';
 import { navigateTo } from '#app';
 import { computed, useNuxtApp } from '#imports';
 import GameGuideOverlay from '~/components/game/GameGuideOverlay.vue';
+import UserSettingsOverlay from '~/components/UserSettingsOverlay.vue';
 
 const { $socket } = useNuxtApp();
 const roomStore = useRoomStore();

@@ -110,5 +110,10 @@
             "touchDescription": "On a touchscreen device, drag your finger across the game board to move the selected card. The card can be rotated and the move confirmed by the buttons below the board."
         },
         "dismiss": "Dismiss"
+    },
+    "userSettings": {
+        "title": "User Settings",
+        "subtitle": "Change how your game behaves.",
+        "onScreenControls": "Enable on-screen card movement keys"
     }
 }

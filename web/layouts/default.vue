@@ -70,6 +70,7 @@ const config = useRuntimeConfig();
 header {
     background-size: 40px 40px;
     background-position-x: center;
+    background-color: #171717;
     background-image:
         linear-gradient(to right, #262626 2px, transparent 2px),
         linear-gradient(to bottom, #262626 2px, transparent 2px);

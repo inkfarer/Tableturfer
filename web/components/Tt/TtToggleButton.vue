@@ -62,11 +62,11 @@ function toggle() {
 
         &.active {
             &:hover {
-                background-color: $accent-active;
+                background-color: $accent-hover;
             }
 
             &:active {
-                background-color: #3CBC99;
+                background-color: $accent-active;
             }
         }
     }
