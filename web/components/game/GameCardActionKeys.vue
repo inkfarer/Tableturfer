@@ -104,7 +104,7 @@ function placeCard() {
 
 @include media-breakpoint-down(sm) {
     .keypad > * {
-        font-size: 1em !important;
+        font-size: 1.3em !important;
         line-height: 1.1;
         padding: 8px 10px !important;
     }
