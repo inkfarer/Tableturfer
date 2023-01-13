@@ -59,6 +59,9 @@
             "mobileCardPreviewHint": "Hint: Tap and hold on a card to view more details.",
             "decline": "Keep",
             "confirm": "Redraw!"
+        },
+        "map": {
+            "unknown": "???"
         }
     },
     "deckList": {
