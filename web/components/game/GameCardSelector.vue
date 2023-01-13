@@ -1,6 +1,8 @@
 <template>
     <div class="game-card-selector">
         <GameRedrawMessage />
+        <GameGuideOverlay ref="guideOverlay" />
+        <UserSettingsOverlay ref="userSettingsOverlay" />
         <Card
             :name="longPressedCard"
             :team="roomStore.playerTeam"
@@ -8,36 +10,60 @@
             class="preview-card"
             :class="{ 'long-pressed': longPressActive }"
         />
-        <Card
-            v-for="card in deckStore.availableCards"
-            :key="`card_${card}`"
-            v-long-press
-            :name="card"
-            :active="activeCardStore.activeCard?.name === card"
-            :clickable="!activeCardStore.locked"
-            :team="roomStore.playerTeam"
-            theme="miniature"
-            class="card"
-            @short-press="selectCard(card)"
-            @long-press-start="onCardLongPress(card)"
-            @long-press-stop="longPressActive = false"
-        />
-        <TtToggleButton
-            :model-value="activeCardStore.pass"
-            :disabled="activeCardStore.locked || !roomStore.redrawCompleted"
-            class="action-button"
-            @update:model-value="activeCardStore.setPass($event)"
-        >
-            {{ $t('game.pass') }}
-        </TtToggleButton>
-        <TtToggleButton
-            :model-value="activeCardStore.special"
-            :disabled="activeCardStore.locked || !roomStore.redrawCompleted"
-            class="action-button"
-            @update:model-value="activeCardStore.setSpecial($event)"
-        >
-            {{ $t('game.special') }}
-        </TtToggleButton>
+        <div class="selectable-card-grid">
+            <Card
+                v-for="card in deckStore.availableCards"
+                :key="`card_${card}`"
+                v-long-press
+                :name="card"
+                :active="activeCardStore.activeCard?.name === card"
+                :clickable="!activeCardStore.locked"
+                :team="roomStore.playerTeam"
+                theme="miniature"
+                class="card"
+                @short-press="selectCard(card)"
+                @long-press-start="onCardLongPress(card)"
+                @long-press-stop="longPressActive = false"
+            />
+        </div>
+        <div class="move-option-toggles mt-1x">
+            <TtToggleButton
+                :model-value="activeCardStore.pass"
+                :disabled="activeCardStore.locked || !roomStore.redrawCompleted"
+                class="action-button"
+                @update:model-value="activeCardStore.setPass($event)"
+            >
+                {{ $t('game.pass') }}
+            </TtToggleButton>
+            <TtToggleButton
+                :model-value="activeCardStore.special"
+                :disabled="activeCardStore.locked || !roomStore.redrawCompleted"
+                class="action-button"
+                @update:model-value="activeCardStore.setSpecial($event)"
+            >
+                {{ $t('game.special') }}
+            </TtToggleButton>
+        </div>
+        <div class="secondary-action-buttons mt-1x">
+            <TtButton
+                theme="primary-small"
+                @click="
+                    // @ts-ignore
+                    $refs.guideOverlay.open()
+                "
+            >
+                <Icon name="fa6-solid:question" />
+            </TtButton>
+            <TtButton
+                theme="primary-small"
+                @click="
+                    // @ts-ignore
+                    $refs.userSettingsOverlay.open()
+                "
+            >
+                <Icon name="fa6-solid:gear" />
+            </TtButton>
+        </div>
     </div>
 </template>
 
@@ -81,9 +107,38 @@ function onCardLongPress(card: string) {
 <style lang="scss">
 .game-card-selector {
     position: relative;
+    width: 100%;
+}
+
+.selectable-card-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
+}
+
+.move-option-toggles {
+    display: flex;
+
+    > * {
+        width: 100%;
+
+        &:not(:first-child) {
+            margin-left: 8px;
+        }
+    }
+}
+
+.secondary-action-buttons {
+    display: flex;
+    justify-content: center;
+
+    > * {
+        font-size: 1.2em !important;
+
+        &:not(:first-child) {
+            margin-left: 8px;
+        }
+    }
 }
 
 .preview-card {
@@ -98,8 +153,9 @@ function onCardLongPress(card: string) {
 }
 
 @include media-breakpoint-down(lg) {
-    .game-card-selector {
-        grid-template-columns: repeat(4, 1fr);
+    .selectable-card-grid {
+        grid-template-columns: unset;
+        grid-auto-flow: column;
     }
 
     .action-button {

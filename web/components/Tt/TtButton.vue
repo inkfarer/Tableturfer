@@ -20,7 +20,7 @@ interface TtButtonProps {
     disabled?: boolean
     inline?: boolean
     href?: string
-    theme?: 'primary' | 'secondary'
+    theme?: 'primary' | 'primary-small' | 'secondary'
 }
 
 const props = withDefaults(defineProps<TtButtonProps>(), {
@@ -52,7 +52,7 @@ function onClick(event: MouseEvent) {
     cursor: pointer;
     user-select: none;
 
-    &.theme-primary {
+    &.theme-primary, &.theme-primary-small {
         font-size: 1.5em;
         font-weight: 600;
         background-color: rgba(0, 0, 0, 0.4);
@@ -70,6 +70,10 @@ function onClick(event: MouseEvent) {
                 color: #222;
             }
         }
+    }
+
+    &.theme-primary-small {
+        padding: 5px 10px;
     }
 
     &.theme-secondary {
