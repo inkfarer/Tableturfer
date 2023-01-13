@@ -4,6 +4,13 @@
         :class="`team_${props.team}`"
     >
         <CardSquare
+            v-for="point in visibleBlankSquares"
+            :key="`blank-point_${point}`"
+            :square="CardSquareType.EMPTY"
+            :team="props.team"
+            class="blank-square"
+        />
+        <CardSquare
             v-for="point in availableSpecial"
             :key="`available-point_${point}`"
             :square="CardSquareType.SPECIAL"
@@ -34,6 +41,7 @@ const props = defineProps({
 });
 const gameBoardStore = useGameBoardStore();
 const availableSpecial = computed(() => gameBoardStore.specialPointCount[props.team] - gameBoardStore.usedSpecialPoints[props.team]);
+const visibleBlankSquares = computed(() => Math.max(0, 3 - gameBoardStore.specialPointCount[props.team]));
 </script>
 
 <style lang="scss" scoped>
@@ -53,6 +61,19 @@ const availableSpecial = computed(() => gameBoardStore.specialPointCount[props.t
 
     .used-point {
         filter: brightness(0.5);
+    }
+
+    .blank-square {
+        background-color: #000;
+        opacity: 0.75;
+
+        &:nth-child(2) {
+            opacity: 0.5;
+        }
+
+        &:nth-child(3) {
+            opacity: 0.25;
+        }
     }
 }
 </style>
