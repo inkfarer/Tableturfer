@@ -65,6 +65,7 @@
         }
     },
     "deckList": {
+        "title": "Decks",
         "header": "Decks",
         "loading": "Loading...",
         "localStorageMessage": "For the time being, your decks will be stored inside your browser. Please note that because of this, clearing site data for tblturf.ink may erase your saved decks.",

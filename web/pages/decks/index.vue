@@ -93,15 +93,20 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, definePageMeta, onMounted, ref, useRouter } from '#imports';
+import { computed, definePageMeta, onMounted, ref, useHead, useI18n, useRouter } from '#imports';
 import { useDeckListStore } from '~/stores/DeckListStore';
 import { isBlank } from '~/helpers/StringHelper';
 import { DEFAULT_DECK_ID } from '~/data/DefaultDeck';
 import { ComponentPublicInstance } from 'vue';
 import TtInput from '~/components/Tt/TtInput.vue';
 
+const i18n = useI18n();
+
 definePageMeta({
     layout: false
+});
+useHead({
+    title: i18n.t('deckList.title')
 });
 
 const showOptions = ref(false);
