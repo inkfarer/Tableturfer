@@ -4,13 +4,6 @@
         :class="`team_${props.team}`"
     >
         <CardSquare
-            v-for="point in visibleBlankSquares"
-            :key="`blank-point_${point}`"
-            :square="CardSquareType.EMPTY"
-            :team="props.team"
-            class="blank-square"
-        />
-        <CardSquare
             v-for="point in availableSpecial"
             :key="`available-point_${point}`"
             :square="CardSquareType.SPECIAL"
@@ -22,6 +15,13 @@
             :square="CardSquareType.SPECIAL"
             :team="props.team"
             class="used-point"
+        />
+        <CardSquare
+            v-for="point in visibleBlankSquares"
+            :key="`blank-point_${point}`"
+            :square="CardSquareType.EMPTY"
+            :team="props.team"
+            class="blank-square"
         />
     </div>
 </template>
