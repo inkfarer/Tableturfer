@@ -48,7 +48,18 @@
 </template>
 
 <script lang="ts" setup>
-import { definePageMeta, onMounted, preloadRouteComponents, ref, useNuxtApp, useRoute, watch } from '#imports';
+import {
+    computed,
+    definePageMeta,
+    onMounted,
+    preloadRouteComponents,
+    ref,
+    useHead,
+    useI18n,
+    useNuxtApp,
+    useRoute,
+    watch
+} from '#imports';
 import { navigateTo } from '#app';
 import { useRoomStore } from '~/stores/RoomStore';
 import { useDeckListStore } from '~/stores/DeckListStore';
@@ -70,10 +81,23 @@ const deckListStore = useDeckListStore();
 const username = useUsername();
 const showUsernameOverlay = ref(isBlank(username.value));
 
+const i18n = useI18n();
 const route = useRoute();
 const { $socket } = useNuxtApp();
 const isLoading = ref(true);
 const isError = ref(false);
+
+useHead({
+    title: computed(() => {
+        if (isError.value) {
+            return null;
+        } else if (isLoading.value) {
+            return i18n.t('room.title.loading');
+        } else {
+            return i18n.t('room.title.joinedRoomCode', { code: roomStore.roomCode });
+        }
+    })
+});
 
 onMounted(() => {
     // todo: it might be easier to initiate the ws connection (therefore getting a room code) __before__ directing users to this page

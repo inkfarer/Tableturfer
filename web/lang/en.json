@@ -14,6 +14,10 @@
         "username": "Name"
     },
     "room": {
+        "title": {
+            "loading": "Loading...",
+            "joinedRoomCode": "Room {code}"
+        },
         "loading": "Loading...",
         "beforeRoomCode": "Joined room",
         "errorOccurred": "An error has occurred.",
