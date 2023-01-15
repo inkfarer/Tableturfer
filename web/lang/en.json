@@ -119,5 +119,9 @@
         "subtitle": "Change how your game behaves.",
         "onScreenMovementControls": "Enable on-screen card movement keys",
         "onScreenRotationAndPlacementControls": "Enable on-screen keys for placing and rotating cards"
+    },
+    "title": {
+        "default": "tblturf.ink",
+        "template": "{page} {'|'} tblturf.ink"
     }
 }
