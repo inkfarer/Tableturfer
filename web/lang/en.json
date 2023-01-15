@@ -86,6 +86,13 @@
         "copyName": "{name} (Copy)"
     },
     "deckEditor": {
+        "title": {
+            "new": "Create a deck",
+            "editing": {
+                "default": "Editing deck",
+                "withName": "Editing deck \"{name}\""
+            }
+        },
         "deckName": "Deck name",
         "squareCount": "Total card squares",
         "back": "Go back",
