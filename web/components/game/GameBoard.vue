@@ -15,7 +15,7 @@
 <script lang="ts" setup>
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
-import { computed, onMounted, onUnmounted, ref, watch } from '#imports';
+import { computed, onMounted, onUnmounted, ref, watchEffect } from '#imports';
 import { forEach2D, getSize } from '~/helpers/ArrayHelper';
 import { MapSquareType } from '~/types/MapSquareType';
 import { CardSquareType } from '~/types/CardSquareType';
@@ -46,6 +46,66 @@ onMounted(async () => {
     const imgSpecialBravo = await createImage('/img/squares/1x/special-bravo.webp');
     const imgSpecialBravoActive = await createImage('/img/squares/1x/special-bravo-active.webp');
     const imgNeutral = await createImage('/img/squares/1x/neutral.webp');
+
+    const fillGhostPatternCanvas = document.createElement('canvas');
+    const specialGhostPatternCanvas = document.createElement('canvas');
+
+    function drawFillGhostPattern(canvas: HTMLCanvasElement, playerTeam: PlayerTeam) {
+        const patternSize = 50;
+        canvas.width = patternSize;
+        canvas.height = patternSize;
+
+        const ctx = canvas.getContext('2d');
+        if (ctx == null) {
+            throw new Error('Failed to access canvas drawing context');
+        }
+
+        // Goes wild with uneven numbers, ok for now
+        const lineCount = 6;
+        const lineSize = (patternSize / lineCount);
+        const lineOffset = lineSize / 2;
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = getFillSquareColor(playerTeam);
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(lineSize / 2, 0);
+        ctx.lineTo(0, lineSize / 2);
+
+        for (let i = 1; i <= lineCount; i += 1) {
+            ctx.moveTo(0, lineSize * (i * 2) - lineOffset);
+            ctx.lineTo(0, lineSize * (i * 2 + 1) - lineOffset);
+            ctx.lineTo(lineSize * (i * 2 + 1) - lineOffset, 0);
+            ctx.lineTo(lineSize * (i * 2) - lineOffset, 0);
+        }
+
+        ctx.fill();
+    }
+
+    function drawSpecialGhostPattern(canvas: HTMLCanvasElement, playerTeam: PlayerTeam) {
+        const patternSize = 50;
+        canvas.width = patternSize;
+        canvas.height = patternSize;
+
+        const ctx = canvas.getContext('2d');
+        if (ctx == null) {
+            throw new Error('Failed to access canvas drawing context');
+        }
+
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = getSpecialSquareColor(playerTeam);
+        const gridSize = 4;
+        const dotSpacing = patternSize / gridSize;
+        const dotSize = 3;
+
+        for (let x = 0; x < gridSize + 1; x++) {
+            for (let y = 0; y < gridSize + 1; y++) {
+                ctx.beginPath();
+                ctx.arc(dotSpacing * x, dotSpacing * y, dotSize, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+    }
 
     function redraw(
         canvas: HTMLCanvasElement,
@@ -122,6 +182,9 @@ onMounted(async () => {
         });
 
         if (!passing && activeCard != null && playerTeam != null) {
+            ctx.globalAlpha = 1;
+            const fillPath = new Path2D();
+            const specialPath = new Path2D();
             forEach2D(activeCard, (item, position) => {
                 if (item === CardSquareType.EMPTY) {
                     return;
@@ -130,31 +193,54 @@ onMounted(async () => {
                 const x = squareSize * (position.x + activeCardPosition.x) + offsetX;
                 const y = squareSize * (position.y + activeCardPosition.y) + offsetY;
 
-                ctx.fillStyle = getCardFill(item, playerTeam);
-                ctx.fillRect(x, y, squareSize, squareSize);
+                if (item === CardSquareType.FILL) {
+                    fillPath.rect(x, y, squareSize, squareSize);
+                } else if (item === CardSquareType.SPECIAL) {
+                    specialPath.rect(x, y, squareSize, squareSize);
+                } else {
+                    console.warn(`I don't know how to create a ghost for square type ${item}.`);
+                }
             });
+
+            ctx.save();
+            ctx.clip(specialPath);
+            drawSpecialGhostPattern(specialGhostPatternCanvas, playerTeam);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const specialPattern = ctx.createPattern(specialGhostPatternCanvas, null)!;
+            specialPattern.setTransform(new DOMMatrixReadOnly().rotate(30));
+            ctx.fillStyle = specialPattern;
+            ctx.translate(offsetX, offsetY);
+            const specialPatternScale = squareSize / specialGhostPatternCanvas.width;
+            ctx.scale(specialPatternScale, specialPatternScale);
+            ctx.fillRect(0, 0, width / specialPatternScale, height / specialPatternScale);
+            ctx.restore();
+
+            ctx.save();
+            ctx.clip(fillPath);
+            drawFillGhostPattern(fillGhostPatternCanvas, playerTeam);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            ctx.fillStyle = ctx.createPattern(fillGhostPatternCanvas, null)!;
+            ctx.translate(offsetX, offsetY);
+            const patternScale = squareSize / fillGhostPatternCanvas.width;
+            ctx.scale(patternScale, patternScale);
+            ctx.fillRect(0, 0, width / patternScale, height / patternScale);
+            ctx.restore();
         }
     }
 
-    function getCardFill(square: CardSquareType, team: PlayerTeam): string {
+    function getFillSquareColor(team: PlayerTeam): string {
         if (placeable.value) {
-            switch (square) {
-                case CardSquareType.FILL:
-                    return team === PlayerTeam.ALPHA ? 'rgba(236, 144, 9, 0.5)' : 'rgba(75, 80, 243, 0.2)';
-                case CardSquareType.SPECIAL:
-                    return team === PlayerTeam.ALPHA ? 'rgba(236, 144, 9, 0.8)' : 'rgba(21, 227, 219, 0.5)';
-                default:
-                    return 'transparent';
-            }
+            return team === PlayerTeam.ALPHA ? '#EBF800' : '#495CFF';
         } else {
-            switch (square) {
-                case CardSquareType.FILL:
-                    return 'rgba(255, 255, 255, 0.2)';
-                case CardSquareType.SPECIAL:
-                    return 'rgba(255, 255, 255, 0.5)';
-                default:
-                    return 'transparent';
-            }
+            return '#AAA';
+        }
+    }
+
+    function getSpecialSquareColor(team: PlayerTeam): string {
+        if (placeable.value) {
+            return team === PlayerTeam.ALPHA ? '#FFA100' : '#08F0FF';
+        } else {
+            return '#AAA';
         }
     }
 
@@ -198,33 +284,13 @@ onMounted(async () => {
             activeCardStore.pass));
     resizeObserver.value.observe(canvas);
 
-    watch(() => [activeCardStore.activeCard?.squares, activeCardStore.position, activeCardStore.special, activeCardStore.pass] as [CardSquareType[][], Position, boolean, boolean],
-        ([newSquares, newPosition, special, pass]) => {
-            redraw(
-                canvas,
-                gameBoardStore.board,
-                newSquares,
-                newPosition,
-                roomStore.playerTeam,
-                special,
-                pass);
-        });
-    watch(() => gameBoardStore.board, newValue => {
-        redraw(
-            canvas,
-            newValue,
-            activeCardStore.activeCard?.squares ?? null,
-            activeCardStore.position,
-            roomStore.playerTeam,
-            activeCardStore.special,
-            activeCardStore.pass);
-    });
-    watch(() => roomStore.playerTeam, newValue => {
+    watchEffect(() => {
         redraw(
             canvas,
             gameBoardStore.board,
             activeCardStore.activeCard?.squares ?? null,
-            activeCardStore.position, newValue,
+            activeCardStore.position,
+            roomStore.playerTeam,
             activeCardStore.special,
             activeCardStore.pass);
     });
