@@ -152,8 +152,6 @@ pub struct ApplyMovesResult {
 pub struct GameState {
     pub board: Matrix<MapSquareType>,
     next_moves: HashMap<PlayerTeam, PlayerMove>,
-    // todo: for cleanup, maybe have a separate ScoreCounter struct that keeps track of these?
-    special_points: HashMap<PlayerTeam, usize>,
     used_special_points: HashMap<PlayerTeam, usize>,
     decks: HashMap<PlayerTeam, PlayerDeck>,
     pub remaining_turns: usize,
@@ -172,7 +170,6 @@ impl GameState {
         Self {
             board,
             next_moves: HashMap::new(),
-            special_points: Self::score_counter(),
             used_special_points: Self::score_counter(),
             decks: decks.into_iter().map(|(team, cards)| (team, PlayerDeck::new(cards))).collect(),
             remaining_turns: TURN_COUNT.to_owned(),
@@ -235,37 +232,35 @@ impl GameState {
     }
 
     fn available_special_points(&self, team: &PlayerTeam) -> usize {
-        self.special_points[team].saturating_sub(self.used_special_points[team])
+        self.count_active_special_points(team).saturating_sub(self.used_special_points[team])
     }
 
     pub fn all_players_have_moved(&self) -> bool {
         self.next_moves.len() == PlayerTeam::COUNT
     }
 
-    fn update_board(&mut self, board: Matrix<MapSquareType>) {
-        let mut new_special_points = Self::score_counter();
-        let board_size = board.size();
+    fn count_active_special_points(&self, team: &PlayerTeam) -> usize {
+        let mut result: usize = 0;
+        let board_size = self.board.size();
 
-        board.clone().into_iter()
-            .filter(|(square, _)| square.is_special())
-            .for_each(|(square, position)| {
+        self.board.clone().into_iter()
+            .filter(|(square, _)| match team {
+                PlayerTeam::Alpha => square == &MapSquareType::SpecialAlpha,
+                PlayerTeam::Bravo => square == &MapSquareType::SpecialBravo,
+            })
+            .for_each(|(_square, position)| {
                 let x_from = if position.0 == 0 { 0 } else { position.0 - 1 };
                 let y_from = if position.1 == 0 { 0 } else { position.1 - 1 };
                 let x_to = if position.0 >= board_size.w - 1 { position.0 } else { position.0 + 1 };
                 let y_to = if position.1 >= board_size.h - 1 { position.1 } else { position.1 + 1 };
 
-                let squares_around = board.slice((x_from, y_from)..=(x_to, y_to));
+                let squares_around = self.board.slice((x_from, y_from)..=(x_to, y_to));
                 if squares_around.into_iter().all(|(square, _)| square != MapSquareType::Empty) {
-                    if square == MapSquareType::SpecialAlpha {
-                        new_special_points.get_mut(&PlayerTeam::Alpha).unwrap().add_assign(1);
-                    } else if square == MapSquareType::SpecialBravo {
-                        new_special_points.get_mut(&PlayerTeam::Bravo).unwrap().add_assign(1);
-                    }
+                    result.add_assign(1);
                 }
             });
 
-        self.special_points = new_special_points;
-        self.board = board;
+        result
     }
 
     pub fn apply_moves(&mut self) -> ApplyMovesResult {
@@ -336,7 +331,7 @@ impl GameState {
         {
             new_board[position] = square;
         }
-        self.update_board(new_board);
+        self.board = new_board;
 
         self.remaining_turns.sub_assign(1);
 
@@ -622,11 +617,11 @@ mod tests {
         }
     }
 
-    mod update_board {
+    mod count_active_special_points {
         use super::*;
 
         #[test]
-        fn updates_special_counts() {
+        fn correct_for_both_teams() {
             let mut state = create();
             let mut new_board = Matrix::filled_with(MatrixSize::new(6, 6), MST::Empty);
             new_board[(0, 0)] = MST::FillAlpha;
@@ -638,11 +633,13 @@ mod tests {
             new_board[(2, 0)] = MST::FillAlpha;
             new_board[(2, 1)] = MST::FillAlpha;
             new_board[(2, 2)] = MST::FillAlpha;
+            state.board = new_board;
 
-            state.update_board(new_board.clone());
+            let result_alpha = state.count_active_special_points(&PlayerTeam::Alpha);
+            let result_bravo = state.count_active_special_points(&PlayerTeam::Bravo);
 
-            assert_eq!(state.board, new_board);
-            assert_eq!(state.special_points, HashMap::from([(PlayerTeam::Alpha, 1), (PlayerTeam::Bravo, 0)]));
+            assert_eq!(1, result_alpha);
+            assert_eq!(0, result_bravo);
         }
 
         #[test]
@@ -650,11 +647,13 @@ mod tests {
             let mut state = create();
             let mut new_board = Matrix::filled_with(MatrixSize::new(4, 4), MST::SpecialAlpha);
             new_board[(1, 2)] = MST::SpecialBravo;
+            state.board = new_board;
 
-            state.update_board(new_board.clone());
+            let result_alpha = state.count_active_special_points(&PlayerTeam::Alpha);
+            let result_bravo = state.count_active_special_points(&PlayerTeam::Bravo);
 
-            assert_eq!(state.board, new_board);
-            assert_eq!(state.special_points, HashMap::from([(PlayerTeam::Alpha, 15), (PlayerTeam::Bravo, 1)]));
+            assert_eq!(15, result_alpha);
+            assert_eq!(1, result_bravo);
         }
     }
 
