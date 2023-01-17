@@ -22,6 +22,7 @@ import { isFillSquare, isSpecialSquare, mapSquareFromCardSquare } from '~/helper
 import { activateSpecialSquares } from '~/helpers/BoardHelper';
 import { CardMap } from '~/helpers/Cards';
 import { GameMapMap } from '~/helpers/Maps';
+import { useMoveStore } from '~/stores/MoveStore';
 
 interface GameBoardStore {
     name: string
@@ -124,7 +125,11 @@ export const useGameBoardStore = defineStore('gameBoard', {
             };
         },
         specialPointCount(): { [key in PlayerTeam]: number } {
-            const result = { [PlayerTeam.ALPHA]: 0, [PlayerTeam.BRAVO]: 0 };
+            const moveStore = useMoveStore();
+            const result = {
+                [PlayerTeam.ALPHA]: moveStore.passesForTeam(PlayerTeam.ALPHA),
+                [PlayerTeam.BRAVO]: moveStore.passesForTeam(PlayerTeam.BRAVO)
+            };
 
             if (this.board == null) {
                 return result;

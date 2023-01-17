@@ -172,6 +172,7 @@ export class SocketService {
                 useCurrentMoveStore().resetGame();
                 useDeckStore().resetGame();
                 useGameBoardStore().resetBoard();
+                useMoveStore().resetMoves();
                 const roomStore = useRoomStore();
                 roomStore.resetGame();
                 await navigateTo(`/room/${roomStore.roomCode}`);

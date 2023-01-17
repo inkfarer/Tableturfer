@@ -28,7 +28,7 @@ const props = defineProps({
     }
 });
 
-const move = computed(() => moveStore.lastMoves[props.team]);
+const move = computed(() => moveStore.lastMove?.[props.team]);
 const moveVisible = ref(false);
 let moveClearTimeout: number | undefined;
 

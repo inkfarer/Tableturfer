@@ -7,33 +7,37 @@ import { useDeckStore } from '~/stores/DeckStore';
 import { useRoomStore } from '~/stores/RoomStore';
 
 interface MoveStore {
-    lastMoves: TeamMap<PlayerMove | null>
+    completedMoves: Array<TeamMap<PlayerMove>>
     nextMoveCompleted: TeamMap<boolean>
 }
 
 export const useMoveStore = defineStore('move', {
     state: (): MoveStore => ({
-        lastMoves: {
-            [PlayerTeam.ALPHA]: null,
-            [PlayerTeam.BRAVO]: null
-        },
+        completedMoves: [],
         nextMoveCompleted: {
             [PlayerTeam.ALPHA]: false,
             [PlayerTeam.BRAVO]: false
         }
     }),
+    getters: {
+        lastMove: state => state.completedMoves.length === 0 ? null : state.completedMoves[state.completedMoves.length - 1],
+        passesForTeam: state => (team: PlayerTeam) => state.completedMoves.filter(move => move[team].type === 'Pass').length
+    },
     actions: {
         applyMoves(moves: TeamMap<PlayerMove>) {
             this.nextMoveCompleted = {
                 [PlayerTeam.ALPHA]: false,
                 [PlayerTeam.BRAVO]: false
             };
-            this.lastMoves = moves;
+            this.completedMoves.push(moves);
 
             useCurrentMoveStore().onNewMove();
             useGameBoardStore().applyMoves(moves);
             useDeckStore().setUsedCards(moves);
             useRoomStore().remainingTurns--;
+        },
+        resetMoves() {
+            this.$reset();
         }
     }
 });
