@@ -39,13 +39,16 @@
 <script lang="ts" setup>
 import { useRoomStore } from '~/stores/RoomStore';
 import { useNuxtApp } from '#imports';
+import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 
+const currentMoveStore = useCurrentMoveStore();
 const roomStore = useRoomStore();
 const { $socket } = useNuxtApp();
 
 
 function confirm() {
     $socket.send('RequestRedraw');
+    currentMoveStore.setActiveCard(null);
     roomStore.redrawCompleted = true;
 }
 function decline() {
