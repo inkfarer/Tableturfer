@@ -1,6 +1,6 @@
 use std::borrow::Borrow;
 use std::collections::HashMap;
-use std::ops::{AddAssign, SubAssign};
+use std::ops::{Add, AddAssign, SubAssign};
 use std::sync::Arc;
 use indexmap::IndexSet;
 use serde::{Deserialize, Serialize};
@@ -152,6 +152,7 @@ pub struct ApplyMovesResult {
 pub struct GameState {
     pub board: Matrix<MapSquareType>,
     next_moves: HashMap<PlayerTeam, PlayerMove>,
+    completed_moves: Vec<HashMap<PlayerTeam, PlayerMove>>,
     used_special_points: HashMap<PlayerTeam, usize>,
     decks: HashMap<PlayerTeam, PlayerDeck>,
     pub remaining_turns: usize,
@@ -170,6 +171,7 @@ impl GameState {
         Self {
             board,
             next_moves: HashMap::new(),
+            completed_moves: Vec::new(),
             used_special_points: Self::score_counter(),
             decks: decks.into_iter().map(|(team, cards)| (team, PlayerDeck::new(cards))).collect(),
             remaining_turns: TURN_COUNT.to_owned(),
@@ -232,7 +234,9 @@ impl GameState {
     }
 
     fn available_special_points(&self, team: &PlayerTeam) -> usize {
-        self.count_active_special_points(team).saturating_sub(self.used_special_points[team])
+        self.count_active_special_points(team)
+            .add(self.count_passes(team))
+            .saturating_sub(self.used_special_points[team])
     }
 
     pub fn all_players_have_moved(&self) -> bool {
@@ -261,6 +265,15 @@ impl GameState {
             });
 
         result
+    }
+
+    fn count_passes(&self, team: &PlayerTeam) -> usize {
+        self.completed_moves.iter()
+            .filter(|moves| match moves[team] {
+                PlayerMove::PlaceCard { .. } => false,
+                PlayerMove::Pass { .. } => true,
+            })
+            .count()
     }
 
     pub fn apply_moves(&mut self) -> ApplyMovesResult {
@@ -335,8 +348,10 @@ impl GameState {
 
         self.remaining_turns.sub_assign(1);
 
+        let applied_moves: HashMap<PlayerTeam, PlayerMove> = augmented_moves.into_iter().map(|(team, aug_move)| (team, aug_move.player_move)).collect();
+        self.completed_moves.push(applied_moves.clone());
         ApplyMovesResult {
-            applied_moves: augmented_moves.into_iter().map(|(team, aug_move)| (team, aug_move.player_move)).collect(),
+            applied_moves,
             next_cards,
         }
     }
@@ -360,6 +375,21 @@ mod tests {
                 (PlayerTeam::Bravo, IndexSet::from(["card_3".to_string(), "card_4".to_string()])),
             ]),
         )
+    }
+
+    fn pass_move() -> PlayerMove {
+        PlayerMove::Pass {
+            card_name: "cool_card".to_string()
+        }
+    }
+
+    fn place_card_move() -> PlayerMove {
+        PlayerMove::PlaceCard {
+            card_name: "cool_card".to_string(),
+            position: (0, 1).into(),
+            rotation: CardRotation::Deg0,
+            special: false,
+        }
     }
 
     mod apply_moves {
@@ -614,6 +644,40 @@ mod tests {
             state.apply_moves();
 
             assert_eq!(state.used_special_points, HashMap::from([(PlayerTeam::Alpha, 3), (PlayerTeam::Bravo, 5)]));
+        }
+    }
+
+    mod count_passes {
+        use super::*;
+
+        #[test]
+        fn gets_correct_count() {
+            let mut state = create();
+            state.completed_moves = vec!(
+                HashMap::from([(PlayerTeam::Alpha, place_card_move()), (PlayerTeam::Bravo, pass_move())]),
+                HashMap::from([(PlayerTeam::Alpha, pass_move()), (PlayerTeam::Bravo, place_card_move())]),
+                HashMap::from([(PlayerTeam::Alpha, place_card_move()), (PlayerTeam::Bravo, place_card_move())]),
+                HashMap::from([(PlayerTeam::Alpha, pass_move()), (PlayerTeam::Bravo, pass_move())]),
+                HashMap::from([(PlayerTeam::Alpha, place_card_move()), (PlayerTeam::Bravo, pass_move())]),
+            );
+
+            let result_alpha = state.count_passes(&PlayerTeam::Alpha);
+            let result_bravo = state.count_passes(&PlayerTeam::Bravo);
+
+            assert_eq!(2, result_alpha);
+            assert_eq!(3, result_bravo);
+        }
+
+        #[test]
+        fn handles_empty_completed_moves() {
+            let mut state = create();
+            state.completed_moves = Vec::new();
+
+            let result_alpha = state.count_passes(&PlayerTeam::Alpha);
+            let result_bravo = state.count_passes(&PlayerTeam::Bravo);
+
+            assert_eq!(0, result_alpha);
+            assert_eq!(0, result_bravo);
         }
     }
 
