@@ -50,7 +50,7 @@
 <script lang="ts" setup>
 import {
     computed,
-    definePageMeta,
+    definePageMeta, initUsernameAfterLoad,
     onMounted,
     preloadRouteComponents,
     ref,
@@ -79,7 +79,7 @@ const roomStore = useRoomStore();
 const deckListStore = useDeckListStore();
 
 const username = useUsername();
-const showUsernameOverlay = ref(isBlank(username.value));
+const showUsernameOverlay = ref(false);
 
 const i18n = useI18n();
 const route = useRoute();
@@ -100,6 +100,8 @@ useHead({
 });
 
 onMounted(() => {
+    initUsernameAfterLoad();
+    showUsernameOverlay.value = isBlank(username.value);
     // todo: it might be easier to initiate the ws connection (therefore getting a room code) __before__ directing users to this page
     watch(() => route.params.code as string, async (newValue) => {
         if (isBlank(username.value) || (newValue.toUpperCase() === roomStore.roomCode && $socket.isOpen())) {
