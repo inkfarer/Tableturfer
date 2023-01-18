@@ -44,6 +44,7 @@ const roomStore = useRoomStore();
 const gameBoard = ref<InstanceType<typeof GameBoard> | null>(null);
 useSwipeCardMovement(gameBoard);
 
+// todo: tapping on the board on mobile executes this.. is this desirable?
 function onBoardClick() {
     currentMoveStore.proposeMove();
 }

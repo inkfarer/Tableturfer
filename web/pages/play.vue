@@ -9,15 +9,11 @@
 import { definePageMeta } from '#imports';
 
 definePageMeta({
-    layout: false
+    layout: 'no-pull-to-refresh'
 });
 </script>
 
 <style lang="scss">
-body {
-    overscroll-behavior: contain;
-}
-
 .game-wrapper {
     color: white;
 }
