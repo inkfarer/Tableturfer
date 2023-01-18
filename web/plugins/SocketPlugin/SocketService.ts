@@ -9,6 +9,7 @@ import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 import { useMoveStore } from '~/stores/MoveStore';
 
 export class SocketService {
+    private wsPingInterval: number | undefined;
     private ws: WebSocket | null;
     private readonly url: string;
 
@@ -87,6 +88,7 @@ export class SocketService {
         this.ws.addEventListener('close', e => {
             useRoomStore().leaveRoom();
             useDeckStore().$reset();
+            window.clearInterval(this.wsPingInterval);
 
             if (e.code >= 4000 && e.code < 5000) {
                 console.error('Websocket closed with message:', e.reason);
@@ -96,6 +98,12 @@ export class SocketService {
         this.ws.addEventListener('error', e => {
             console.error('ws error', e);
         });
+
+        // Ping the server to keep the websocket connection alive
+        window.clearInterval(this.wsPingInterval);
+        this.wsPingInterval = window.setInterval(() => {
+            this.send('Ping');
+        }, 45 * 1000);
     }
 
     private parseSocketMessage(msg: string): AnySocketMessage | null {
@@ -127,6 +135,9 @@ export class SocketService {
                     useCurrentMoveStore().locked = false;
                 }
 
+                break;
+            case 'Pong':
+                // Do nothing for now
                 break;
         }
     }

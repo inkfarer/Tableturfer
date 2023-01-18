@@ -7,4 +7,5 @@ export interface SocketActionMap {
     ProposeMove: PlayerMove
     SetDeck: { id: string, cards: string[] }
     ReturnToRoom: never
+    Ping: never
 }

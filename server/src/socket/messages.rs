@@ -29,6 +29,7 @@ pub enum SocketAction {
     ProposeMove(PlayerMove),
     SetDeck { id: String, cards: IndexSet<String> },
     ReturnToRoom,
+    Ping,
 }
 
 impl SocketAction {
@@ -66,6 +67,7 @@ pub enum SocketEvent {
     },
     Error(SocketError),
     RoomEvent(RoomEvent),
+    Pong,
 }
 
 #[derive(Clone, Debug, Serialize)]

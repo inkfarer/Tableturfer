@@ -57,6 +57,7 @@ export interface SocketMessageMap {
         started: boolean
     }
     RoomEvent: AnyRoomEvent
+    Pong: never
 }
 
 export type AnySocketMessage = AnyMessage<SocketMessageMap>;

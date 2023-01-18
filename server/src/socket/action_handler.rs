@@ -49,6 +49,10 @@ impl SocketActionHandler {
                             room.return_to_room();
                             Ok(())
                         },
+                        SocketAction::Ping => {
+                            self.socket_channel.send(SocketEvent::Pong).await.ok();
+                            Ok(())
+                        },
                     }
                 } else {
                     auth_result
