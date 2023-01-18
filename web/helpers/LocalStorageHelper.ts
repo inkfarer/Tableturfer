@@ -6,10 +6,19 @@ import {
 } from '~/types/LocalStorage';
 
 export function readStringFromLocalStorage(key: LocalStorageStrings): string | null {
+    if (typeof window === 'undefined') {
+        return null;
+    }
+
     return window.localStorage.getItem(key);
 }
 
 export function readObjectFromLocalStorage<T extends keyof LocalStorageObjectMap>(key: T): LocalStorageObjectMap[T] | null {
+    if (typeof window === 'undefined') {
+        // Must be SSR, nothing to return
+        return null;
+    }
+
     const rawData = window.localStorage.getItem(key);
     if (rawData == null) {
         return null;
@@ -27,6 +36,10 @@ export function readObjectFromLocalStorage<T extends keyof LocalStorageObjectMap
 }
 
 export function saveToLocalStorage<T extends LocalStorageKeys>(key: T, data: LocalStorageDataMap[T]) {
+    if (typeof window === 'undefined') {
+        throw new Error('Tried to save data to local storage during SSR?');
+    }
+
     const normalizedData = typeof data === 'string' ? data : JSON.stringify(data);
     window.localStorage.setItem(key, normalizedData);
 }
