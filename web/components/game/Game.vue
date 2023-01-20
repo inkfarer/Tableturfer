@@ -6,6 +6,10 @@
         <div class="side-section card-selector-section">
             <GameCardSelector class="card-selector" />
         </div>
+        <div class="side-section score-section">
+            <GameTeamScoreCounter team="Alpha" />
+            <GameTeamScoreCounter team="Bravo" />
+        </div>
         <div class="main-section">
             <GamePlayerStatus class="player-status" />
             <GameBoard
@@ -58,14 +62,14 @@ function onBoardRightClick(event: Event) {
 <style lang="scss">
 .game-stage-layout {
     display: grid;
-    grid-template-columns: 2fr 4fr 1.25fr;
+    grid-template-columns: 2.25fr 0.5fr 4fr 1.25fr;
     gap: 16px;
 
     position: fixed;
     margin: 0 auto;
     left: 0;
     right: 0;
-    max-width: 1200px;
+    max-width: 1250px;
     padding: 20px;
     height: calc(100% - 40px);
     overflow-y: auto;
@@ -105,9 +109,18 @@ function onBoardRightClick(event: Event) {
 .side-section {
     z-index: 2;
 
+    &.score-section {
+        align-self: center;
+        justify-self: center;
+        width: 100%;
+        display: grid;
+        gap: 32px;
+    }
+
     &.card-selector-section {
         display: flex;
         align-items: center;
+        z-index: 3;
     }
 
     &.move-previews {
@@ -124,13 +137,23 @@ function onBoardRightClick(event: Event) {
 @include media-breakpoint-down(lg) {
     .game-stage-layout {
         grid-template-columns: 1fr;
-        grid-template-rows: 1fr auto;
+        grid-template-rows: 1fr auto auto;
+        gap: 8px;
         padding-top: 10px;
+        padding-bottom: 10px;
+        height: calc(100% - 20px);
+    }
+
+    .score-section {
+        order: 1;
+        grid-auto-flow: column dense;
+        justify-content: center;
+        gap: 8px !important;
     }
 
     .card-selector-section {
         display: initial !important;
-        order: 1;
+        order: 2;
 
         > .card-selector {
             max-width: 600px;

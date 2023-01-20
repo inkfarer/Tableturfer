@@ -160,9 +160,12 @@ export class SocketService {
             case 'OpponentChange':
                 useRoomStore().opponent = event.detail;
                 break;
-            case 'StartGame':
-                useRoomStore().started = true;
+            case 'StartGame': {
+                const roomStore = useRoomStore();
+                roomStore.started = true;
+                roomStore.score = event.detail.score;
                 break;
+            }
             case 'MoveReceived':
                 // It is likely that the client may receive 'MoveReceived' and 'MovesApplied' out of order, so
                 // we send over which turn the move was for to prevent incorrect state
@@ -171,7 +174,8 @@ export class SocketService {
                 }
                 break;
             case 'MovesApplied':
-                useMoveStore().applyMoves(event.detail);
+                useMoveStore().applyMoves(event.detail.moves);
+                useRoomStore().score = event.detail.score;
                 break;
             case 'HandAssigned':
                 useDeckStore().availableCards = event.detail;

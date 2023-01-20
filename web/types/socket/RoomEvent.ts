@@ -10,9 +10,9 @@ export interface RoomEventMap {
     OwnerChange: string
     MapChange: string
     OpponentChange: string | null
-    StartGame: never
+    StartGame: { score: TeamMap<number> }
     MoveReceived: { team: PlayerTeam, remainingTurns: number }
-    MovesApplied: TeamMap<PlayerMove>
+    MovesApplied: { moves: TeamMap<PlayerMove>, score: TeamMap<number> }
     HandAssigned: string[]
     NextCardDrawn: { newCard: string, replacing: string }
     EndGame: { score: TeamMap<number> }

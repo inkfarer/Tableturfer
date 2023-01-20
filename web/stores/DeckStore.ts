@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia';
 import { useRoomStore } from '~/stores/RoomStore';
-import { PlayerTeam } from '~/types/PlayerTeam';
-import { RoomEventMap } from '~/types/socket/RoomEvent';
+import { PlayerTeam, TeamMap } from '~/types/PlayerTeam';
 import { useDeckListStore } from '~/stores/DeckListStore';
+import { PlayerMove } from '~/types/socket/SocketCommon';
 
 interface DeckStore {
     availableCards: string[]
@@ -51,7 +51,7 @@ export const useDeckStore = defineStore('deck', {
             const cardIndex = this.availableCards.findIndex(card => card === oldCard);
             this.availableCards.splice(cardIndex, 1, newCard);
         },
-        setUsedCards(event: RoomEventMap['MovesApplied']) {
+        setUsedCards(event: TeamMap<PlayerMove>) {
             Object.entries(event).forEach(([team, move]) => {
                 this.usedCards[team as PlayerTeam].add(move.cardName);
             });
