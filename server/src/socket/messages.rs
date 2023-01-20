@@ -79,10 +79,10 @@ pub enum RoomEvent {
     OwnerChange(Uuid),
     OpponentChange(Option<Uuid>),
     MapChange(String),
-    StartGame,
+    StartGame { score: HashMap<PlayerTeam, usize> },
     #[serde(rename_all = "camelCase")]
     MoveReceived { team: PlayerTeam, remaining_turns: usize },
-    MovesApplied(HashMap<PlayerTeam, PlayerMove>),
+    MovesApplied { moves: HashMap<PlayerTeam, PlayerMove>, score: HashMap<PlayerTeam, usize> },
     HandAssigned(IndexSet<String>),
     #[serde(rename_all = "camelCase")]
     NextCardDrawn { new_card: String, replacing: String },

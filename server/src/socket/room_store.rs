@@ -161,7 +161,7 @@ impl Room {
                     (team, player.deck.as_ref().unwrap().cards.clone())
                 }).collect()
             );
-            self.sender.send(RoomEvent::StartGame).ok();
+            self.sender.send(RoomEvent::StartGame { score: game_state.score() }).ok();
 
             let initial_hands = game_state.assign_initial_hands();
             for (team, hand) in initial_hands {
@@ -229,7 +229,7 @@ impl Room {
             if game.all_players_have_moved() {
                 let moves = game.apply_moves();
 
-                sender.send(RoomEvent::MovesApplied(moves.applied_moves.clone())).ok();
+                sender.send(RoomEvent::MovesApplied { moves: moves.applied_moves.clone(), score: game.score() }).ok();
 
                 if game.completed() {
                     sender.send(RoomEvent::EndGame { score: game.score() }).ok();
