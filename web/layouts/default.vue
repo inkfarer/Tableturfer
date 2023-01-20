@@ -53,10 +53,10 @@
 </template>
 
 <script lang="ts" setup>
-import { useRuntimeConfig } from '#imports';
+import { useRuntimeConfig, useProductionBuild } from '#imports';
 import { formatDate } from '#imports';
 
-const isProd = process.env.NODE_ENV === 'production';
+const isProd = useProductionBuild();
 const config = useRuntimeConfig();
 </script>
 

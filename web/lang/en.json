@@ -134,6 +134,7 @@
     },
     "title": {
         "default": "tblturf.ink",
-        "template": "{page} {'|'} tblturf.ink"
+        "template": "{page} {'|'} tblturf.ink",
+        "devBuildMarker": "[DEV]"
     }
 }
