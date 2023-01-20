@@ -7,8 +7,8 @@
             <GameCardSelector class="card-selector" />
         </div>
         <div class="side-section score-section">
-            <GameTeamScoreCounter team="Alpha" />
-            <GameTeamScoreCounter team="Bravo" />
+            <GameTeamScoreCounter :team="PlayerTeam.ALPHA" />
+            <GameTeamScoreCounter :team="PlayerTeam.BRAVO" />
         </div>
         <div class="main-section">
             <GamePlayerStatus class="player-status" />
