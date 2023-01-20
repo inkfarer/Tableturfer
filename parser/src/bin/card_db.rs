@@ -4,6 +4,7 @@ use std::fs::File;
 use std::borrow::Borrow;
 use std::collections::HashSet;
 use byml::Byml;
+use itertools::Itertools;
 use serde::Serialize;
 
 const CARD_FILE_NAME: &str = "cards.json";
@@ -102,7 +103,10 @@ fn find_card_info_file() -> Result<String, Box<dyn Error>> {
                 Err(_) => None
             }
         })
-        .find(|name| name.to_lowercase().starts_with("minigamecardinfo"))
+        .filter(|name| name.to_lowercase().starts_with("minigamecardinfo"))
+        .sorted_by_key(|name| name.split('.').find_map(|part| part.parse::<usize>().ok()))
+        .rev()
+        .next()
         .map_or_else(
             || Err("Could not find card info file".into()),
             |name| Ok(format!("{}/{}", RSDB_DIR, name)))

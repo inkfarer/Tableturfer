@@ -8,6 +8,9 @@ use msbt::Msbt;
 use sarc::{SarcEntry, SarcFile};
 use serde::Serialize;
 use strum::EnumCount;
+use itertools::Itertools;
+
+const MALS_DIR: &str = "input/Mals";
 
 #[derive(Eq, PartialEq, Hash, Debug, EnumCount, Serialize)]
 enum LangFileType {
@@ -29,8 +32,26 @@ impl LangFileType {
     }
 }
 
+fn find_string_file() -> Result<String, Box<dyn Error>> {
+    let mals_dir_contents = fs::read_dir(MALS_DIR)?;
+    mals_dir_contents
+        .filter_map(|entry| {
+            match entry {
+                Ok(entry) => entry.file_name().into_string().ok(),
+                Err(_) => None
+            }
+        })
+        .filter(|name| name.to_lowercase().starts_with("euen"))
+        .sorted_by_key(|name| name.split('.').find_map(|part| part.parse::<usize>().ok()))
+        .rev()
+        .next()
+        .map_or_else(
+            || Err("Could not find translation file".into()),
+            |name| Ok(format!("{}/{}", MALS_DIR, name)))
+}
+
 fn read_strings() -> Result<HashMap<LangFileType, SarcEntry>, Box<dyn Error>> {
-    let file_content = zstd::decode_all(File::open("input/Mals/EUen.Product.110.sarc.zs")?)?;
+    let file_content = zstd::decode_all(File::open(find_string_file()?)?)?;
     let parsed_sarc = SarcFile::read(&file_content).unwrap();
 
     let files = parsed_sarc.files.into_iter()
