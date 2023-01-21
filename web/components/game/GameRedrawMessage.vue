@@ -141,7 +141,9 @@ function decline() {
         transform: rotate(180deg);
         background: linear-gradient(rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.5) 100px, rgba(0, 0, 0, 0.75) 100%);
     }
+}
 
+@include media-breakpoint-down(md) {
     .redraw-message-body .mobile-card-preview-hint {
         display: block !important;
     }
