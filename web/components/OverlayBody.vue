@@ -17,3 +17,9 @@
     overflow-y: auto;
 }
 </style>
+
+<style lang="scss">
+.overlay h2 {
+    margin: 10px 0 0 0;
+}
+</style>

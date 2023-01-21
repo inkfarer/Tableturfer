@@ -37,12 +37,7 @@ userSettingsStore.$subscribe(() => {
 .settings-overlay {
     text-align: center;
     width: 450px;
-    max-width: calc(85vw - 70px);
     margin: 0 35px 10px;
-}
-
-h2 {
-    margin: 10px 0 0 0;
 }
 
 p {

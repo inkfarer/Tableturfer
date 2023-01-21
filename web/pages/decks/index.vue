@@ -22,6 +22,7 @@
                 {{ $t('deckList.renameOverlay.save') }}
             </TtButton>
         </Overlay>
+        <DeckImporterOverlay ref="deckImporterOverlay" />
         <div class="width-cap">
             <Alert
                 theme="info"
@@ -37,6 +38,16 @@
                 >
                     <Icon name="fa6-solid:plus" /> {{ $t('deckList.createNew') }}
                 </TtLinkButton>
+                <TtButton
+                    inline
+                    theme="secondary"
+                    @click="
+                        // @ts-ignore
+                        $refs.deckImporterOverlay.open()
+                    "
+                >
+                    <Icon name="fa6-solid:file-arrow-down" /> {{ $t('deckList.import') }}
+                </TtButton>
             </TtToolbar>
             <p
                 v-if="deckListStore.decks == null"
@@ -99,6 +110,7 @@ import { isBlank } from '~/helpers/StringHelper';
 import { DEFAULT_DECK_ID } from '~/data/DefaultDeck';
 import { ComponentPublicInstance } from 'vue';
 import TtInput from '~/components/Tt/TtInput.vue';
+import DeckImporterOverlay from '~/components/Deck/DeckImporterOverlay.vue';
 
 const i18n = useI18n();
 

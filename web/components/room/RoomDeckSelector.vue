@@ -1,6 +1,6 @@
 <template>
     <Overlay v-model="isOpen">
-        <h2 class="text-center mt-1x">{{ $t('room.deckSelect.title') }}</h2>
+        <h2 class="text-center">{{ $t('room.deckSelect.title') }}</h2>
         <DeckSelect
             :model-value="null"
             hide-unfinished-decks
@@ -40,7 +40,7 @@ defineExpose({
 
 <style lang="scss" scoped>
 .deck-selector {
-    width: 600px;
-    max-width: 90vw;
+    max-width: 600px;
+    margin-top: 12px;
 }
 </style>

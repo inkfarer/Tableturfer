@@ -9,7 +9,7 @@
 
 <script lang="ts" setup>
 const props = withDefaults(defineProps<{
-    theme?: 'error' | 'info'
+    theme?: 'error' | 'info' | 'success'
 }>(), {
     theme: 'error'
 });
@@ -30,6 +30,11 @@ const props = withDefaults(defineProps<{
     &.theme-info {
         border-color: $info-blue;
         background-color: $info-blue-a20;
+    }
+
+    &.theme-success {
+        border-color: $success-green;
+        background-color: $success-green-a20;
     }
 }
 </style>

@@ -1,4 +1,7 @@
 {
+    "common": {
+        "card": "Card | Cards"
+    },
     "nav": {
         "siteName": "tblturf.ink",
         "decks": "Decks"
@@ -74,6 +77,7 @@
         "loading": "Loading...",
         "localStorageMessage": "For the time being, your decks will be stored inside your browser. Please note that because of this, clearing site data for tblturf.ink may erase your saved decks.",
         "createNew": "Create a new deck",
+        "import": "Import a deck",
         "deckAction": {
             "remove": "Delete",
             "edit": "Edit",
@@ -102,6 +106,34 @@
         "squareCount": "Total card squares",
         "back": "Go back",
         "save": "Save changes"
+    },
+    "deckImporter": {
+        "title": "Import a deck",
+        "sourceList": {
+            "title": "Where can I import from?",
+            "tooltip": "Tableturf Tooltip",
+            "koishi": {
+                "name": "Koishi's Tableturf Replica",
+                "note": "(Select \"Copy Link\" when sharing a deck.)"
+            },
+            "andriocelos": "Andrio Celos' Tableturf Battle"
+        },
+        "dataInputLabel": "Deck details",
+        "submit": "Import",
+        "importSuccess": "Successfully imported deck with {n} @.lower:common.card",
+        "defaultDeckName": "Imported deck"
+    },
+    "deckParser": {
+        "error": {
+            "noInput": "Received nothing to import.",
+            "unknownInput": "Couldn't parse the given input.",
+            "unableToParse": {
+                "tooltip": "This looks like it came from Tooltip, but it couldn't be parsed.",
+                "koishi": "This looks like it came from Koishi's Replica, but it couldn't be parsed.",
+                "andriocelos": "This looks like it came from Andrio Celos' simulator, but it couldn't be parsed."
+            },
+            "unknown": "An error has occurred."
+        }
     },
     "footer": {
         "createdBy": "tblturf.ink is created by {0}.",
