@@ -1,6 +1,6 @@
 <template>
     <div class="game-card-selector">
-        <GameRedrawMessage />
+        <GameRedrawMessage v-if="roomStore.isPlayer" />
         <GameGuideOverlay ref="guideOverlay" />
         <UserSettingsOverlay ref="userSettingsOverlay" />
         <Card

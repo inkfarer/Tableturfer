@@ -30,11 +30,11 @@ export const useRoomStore = defineStore('room', {
         redrawCompleted: false
     }),
     getters: {
-        isRoomOwner: state => state.id === state.owner,
-        isOpponent: state => state.id === state.opponent,
-        isPlayer() {
+        isPlayer(): boolean {
             return this.isRoomOwner || this.isOpponent;
         },
+        isRoomOwner: state => state.id === state.owner,
+        isOpponent: state => state.id === state.opponent,
         playerTeam() {
             if (this.isRoomOwner) {
                 return PlayerTeam.ALPHA;
