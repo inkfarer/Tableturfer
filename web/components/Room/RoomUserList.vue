@@ -14,7 +14,7 @@
 
 <script lang="ts" setup>
 import { useRoomStore } from '~/stores/RoomStore';
-import RoomUserListItem from '~/components/room/RoomUserListItem.vue';
+import RoomUserListItem from '~/components/Room/RoomUserListItem.vue';
 
 const roomStore = useRoomStore();
 </script>

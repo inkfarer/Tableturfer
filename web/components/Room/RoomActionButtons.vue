@@ -72,7 +72,7 @@ import { useRoomStore } from '~/stores/RoomStore';
 import { useDeckStore } from '~/stores/DeckStore';
 import { navigateTo } from '#app';
 import { computed, useNuxtApp } from '#imports';
-import GameGuideOverlay from '~/components/game/GameGuideOverlay.vue';
+import GameGuideOverlay from '~/components/Game/GameGuideOverlay.vue';
 import UserSettingsOverlay from '~/components/UserSettingsOverlay.vue';
 
 const { $socket } = useNuxtApp();

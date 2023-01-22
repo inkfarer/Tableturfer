@@ -36,7 +36,7 @@
 <script lang="ts" setup>
 import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 import { useRoomStore } from '~/stores/RoomStore';
-import GameMovePreview from '~/components/game/GameMovePreview.vue';
+import GameMovePreview from '~/components/Game/GameMovePreview.vue';
 import { PlayerTeam } from '~/types/PlayerTeam';
 import { ref } from '#imports';
 import { GameBoard } from '#components';

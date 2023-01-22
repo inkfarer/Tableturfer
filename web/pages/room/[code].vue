@@ -64,7 +64,7 @@ import { navigateTo } from '#app';
 import { useRoomStore } from '~/stores/RoomStore';
 import { useDeckListStore } from '~/stores/DeckListStore';
 import { isBlank } from '~/helpers/StringHelper';
-import RoomMissingUsernameOverlay from '~/components/room/RoomMissingUsernameOverlay.vue';
+import RoomMissingUsernameOverlay from '~/components/Room/RoomMissingUsernameOverlay.vue';
 import { useUsername } from '~/utils/UseUsername';
 
 // Override the default page key so changing the room code in the URL (For example, /room/new -> /room/ASDF) doesn't make this component reload
