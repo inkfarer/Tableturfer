@@ -17,7 +17,8 @@
                 v-long-press
                 :name="card"
                 :active="activeCardStore.activeCard?.name === card"
-                :clickable="!activeCardStore.locked"
+                :clickable="!activeCardStore.locked && roomStore.redrawCompleted"
+                :disabled="activeCardStore.locked"
                 :team="roomStore.playerTeam"
                 theme="miniature"
                 class="card"
@@ -82,6 +83,10 @@ const longPressedCard = ref<string | null>(null);
 const longPressActive = ref<boolean>(false);
 
 const selectCard = (card: string) => {
+    if (!roomStore.redrawCompleted) {
+        return;
+    }
+
     if (activeCardStore.pass) {
         activeCardStore.setActiveCard(CardMap.get(card) ?? null);
         $socket.send('ProposeMove', {
