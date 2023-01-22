@@ -3,7 +3,7 @@
         <h2 class="text-center">{{ $t('room.deckSelect.title') }}</h2>
         <DeckSelect
             :model-value="null"
-            hide-unfinished-decks
+            disable-unfinished-decks
             class="deck-selector"
             @update:model-value="setDeck($event)"
         />

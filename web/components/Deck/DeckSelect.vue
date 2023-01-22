@@ -5,9 +5,10 @@
             :key="`deck_${deck.id}`"
             class="deck"
             :class="{
-                selected: props.modelValue === deck.id
+                selected: props.modelValue === deck.id,
+                disabled: props.disableUnfinishedDecks && deck.cards.some(card => card == null)
             }"
-            @click="emit('update:modelValue', deck.id)"
+            @click="onDeckClick(deck)"
         >
             {{ deck.name }}
         </div>
@@ -18,30 +19,33 @@
 import { useDeckListStore } from '~/stores/DeckListStore';
 import { computed, useI18n } from '#imports';
 import { createDefaultDeck, DEFAULT_DECK_ID } from '~/data/DefaultDeck';
+import { Deck } from '~/types/DeckList';
 
 const emit = defineEmits<{
     (e: 'update:modelValue', value: string): void
 }>();
 const props = withDefaults(defineProps<{
     modelValue: string | null
-    hideUnfinishedDecks?: boolean
+    disableUnfinishedDecks?: boolean
 }>(), {
-    hideUnfinishedDecks: false
+    disableUnfinishedDecks: false
 });
 
 const i18n = useI18n();
 
 const deckListStore = useDeckListStore();
 const decks = computed(() => {
-    const decks = props.hideUnfinishedDecks
-        ? Object.fromEntries(Object.entries(deckListStore.decks ?? {}).filter(([, value]) => value.cards.every(card => card != null)))
-        : deckListStore.decks;
-
     return ({
         [DEFAULT_DECK_ID]: createDefaultDeck(i18n),
-        ...decks
+        ...deckListStore.decks
     });
 });
+
+function onDeckClick(deck: Deck) {
+    if (!props.disableUnfinishedDecks || deck.cards.every(card => card != null)) {
+        emit('update:modelValue', deck.id);
+    }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -66,12 +70,19 @@ const decks = computed(() => {
             background-color: $accent-a35 !important;
         }
 
-        &:hover {
-            background-color: $accent-a20;
+        &.disabled {
+            opacity: 0.5;
+            cursor: initial;
         }
 
-        &:active {
-            background-color: $accent-a35;
+        &:not(.disabled) {
+            &:hover {
+                background-color: $accent-a20;
+            }
+
+            &:active {
+                background-color: $accent-a35;
+            }
         }
     }
 }
