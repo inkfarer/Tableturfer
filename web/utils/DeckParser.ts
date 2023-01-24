@@ -63,7 +63,7 @@ function parseTooltip(deck: string): NewDeck {
         return {
             id: null,
             name: '',
-            cards: cardNumbersToCardNames(parseNumberArray(deck))
+            cards: cardNumbersToCardNames(parseNumberArray(deck).map(number => number + 1))
         };
     } catch (e) {
         throw new TranslatableError('deckParser.error.unableToParse.tooltip', e);

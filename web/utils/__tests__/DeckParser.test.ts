@@ -156,7 +156,7 @@ describe('DeckParser', () => {
                     parseDeck('[6,13,22,28,40,999,45,52,55,56,159,137,141,103,92]');
                 } catch (e: any) {
                     expect(e.translationKey).toEqual(errorMessage);
-                    expect(e.cause.message).toEqual('Could not find card number 999');
+                    expect(e.cause.message).toEqual('Could not find card number 1000');
                 }
             });
 
@@ -166,21 +166,21 @@ describe('DeckParser', () => {
                     id: null,
                     name: '',
                     cards: [
-                        'ShooterNormal00',
-                        'BlasterMiddle00',
-                        'RollerNormal00',
-                        'ChargerNormal00',
-                        'SpinnerStandard00',
-                        'Utsuho',
-                        'ManeuverNormal00',
-                        'StringerNormal00',
-                        'SaberLight00',
+                        'ShooterGravity00',
+                        'BlasterLong00',
+                        'RollerHeavy00',
+                        'ChargerNormalScope00',
+                        'SpinnerHyper00',
+                        'Mantaro',
+                        'ManeuverGallon00',
+                        'StringerShort00',
                         'BombSplash',
-                        'Denchinamazu',
-                        'TakoDozer',
-                        'Shake',
-                        'Batoroika',
-                        'Mother'
+                        'BombSuction',
+                        'GachiYagura',
+                        'TakoStrike',
+                        'Dosukoi',
+                        'Ironic',
+                        'Kojake'
                     ]
                 });
             });
@@ -191,8 +191,8 @@ describe('DeckParser', () => {
                     id: null,
                     name: '',
                     cards: [
-                        'ShooterNormal00',
-                        'BlasterMiddle00',
+                        'ShooterGravity00',
+                        'BlasterLong00',
                         null,
                         null,
                         null,
@@ -216,21 +216,21 @@ describe('DeckParser', () => {
                     id: null,
                     name: '',
                     cards: [
-                        'ShooterNormal00',
-                        'BlasterMiddle00',
-                        'RollerNormal00',
-                        'ChargerNormal00',
-                        'SpinnerStandard00',
-                        'SlosherStrong00',
-                        'ManeuverNormal00',
-                        'StringerNormal00',
-                        'SaberLight00',
+                        'ShooterGravity00',
+                        'BlasterLong00',
+                        'RollerHeavy00',
+                        'ChargerNormalScope00',
+                        'SpinnerHyper00',
+                        'SlosherDiffusion00',
+                        'ManeuverGallon00',
+                        'StringerShort00',
                         'BombSplash',
-                        'Denchinamazu',
-                        'TakoDozer',
-                        'Shake',
-                        'Batoroika',
-                        'Mother'
+                        'BombSuction',
+                        'GachiYagura',
+                        'TakoStrike',
+                        'Dosukoi',
+                        'Ironic',
+                        'Kojake'
                     ]
                 });
             });
