@@ -2,7 +2,6 @@ import { NewDeck } from '~/types/DeckList';
 import { isBlank } from '~/helpers/StringHelper';
 import { TranslatableError } from '~/utils/TranslatableError';
 import { CardMap } from '~/helpers/Cards';
-import { parseInt } from 'lodash';
 import { DECK_SIZE } from '~/data/Constants';
 
 export function parseDeck(deck: string): NewDeck {
