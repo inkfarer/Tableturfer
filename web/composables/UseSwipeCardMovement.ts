@@ -40,11 +40,15 @@ export default function (target: Ref<VueInstance | null>) {
         x: (boardElementSize.width.value - (squareSizePx.value * boardSize.value.width)) / 2,
         y: (boardElementSize.height.value - (squareSizePx.value * boardSize.value.height)) / 2
     }));
+    const mouseBoardPosition = computed(() => ({
+        x: Math.floor((mouseInGameBoard.x.value - boardElementSize.left.value - boardMargin.value.x) / squareSizePx.value),
+        y: Math.floor((mouseInGameBoard.y.value - boardElementSize.top.value - boardMargin.value.y) / squareSizePx.value)
+    }));
 
-    watch(() => ({ x: mouseInGameBoard.x.value, y: mouseInGameBoard.y.value }), newValue => {
-        activeCardStore.setPositionInsideBoard({
-            x: Math.floor((newValue.x - boardElementSize.left.value - boardMargin.value.x) / squareSizePx.value),
-            y: Math.floor((newValue.y - boardElementSize.top.value - boardMargin.value.y) / squareSizePx.value)
-        }, false);
+    watch(mouseBoardPosition, (newValue, oldValue) => {
+        if (oldValue != null && newValue.x === oldValue.x && newValue.y === oldValue.y) {
+            return;
+        }
+        activeCardStore.setPositionInsideBoard(newValue);
     });
 }

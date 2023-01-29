@@ -151,9 +151,10 @@ export const useCurrentMoveStore = defineStore('currentMove', {
 
         getPositionFromCardOrigin(position: Position) {
             const origin = this.activeCard?.origin ?? { x: 0, y: 0 };
+            const rotationOffset = getRotationOffset(this.rotation, this.cardSizeWithoutRotation);
             return {
-                x: position.x - origin.x,
-                y: position.y - origin.y
+                x: position.x - origin.x + rotationOffset.x,
+                y: position.y - origin.y + rotationOffset.y
             };
         },
         setPositionFromCardOrigin(newValue: Position) {
@@ -176,19 +177,11 @@ export const useCurrentMoveStore = defineStore('currentMove', {
 
             return normalizedPosition;
         },
-        setPositionInsideBoard(newPosition: Position, fromOrigin: boolean) {
-            const normalizedPosition = this.normalizePositionIfMovementAllowed(newPosition, fromOrigin);
+        setPositionInsideBoard(newPosition: Position) {
+            const normalizedPosition = this.normalizePositionIfMovementAllowed(newPosition, true);
             if (normalizedPosition == null) {
                 return;
             }
-
-            // const updatedPosition = cloneDeep(this.position);
-            // if (this.positionIsValid({ x: updatedPosition.x, y: normalizedPosition.y })) {
-            //     updatedPosition.y = normalizedPosition.y;
-            // }
-            // if (this.positionIsValid({ x: normalizedPosition.x, y: updatedPosition.y })) {
-            //     updatedPosition.x = normalizedPosition.x;
-            // }
 
             const gameBoardStore = useGameBoardStore();
             const cardSize = getSize(this.activeCard?.squares ?? []);
@@ -199,8 +192,8 @@ export const useCurrentMoveStore = defineStore('currentMove', {
                 y: Math.max(Math.min(normalizedPosition.y, boardSize.height - cardSize.height), Math.min(this.position.y, 0))
             };
         },
-        setPositionIfPossible(newPosition: Position, fromOrigin: boolean) {
-            const normalizedPosition = this.normalizePositionIfMovementAllowed(newPosition, fromOrigin);
+        setPositionIfPossible(newPosition: Position) {
+            const normalizedPosition = this.normalizePositionIfMovementAllowed(newPosition, false);
             if (normalizedPosition == null) {
                 return;
             }
@@ -219,7 +212,7 @@ export const useCurrentMoveStore = defineStore('currentMove', {
                 y: this.position.y + positionDelta.y
             };
 
-            this.setPositionIfPossible(newPosition, false);
+            this.setPositionIfPossible(newPosition);
         },
         moveUp() {
             this.applyDeltaIfPossible({ x: 0, y: -1 });

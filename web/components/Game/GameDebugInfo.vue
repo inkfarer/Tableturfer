@@ -4,10 +4,10 @@
             active card: {{ activeCardStore.activeCard?.name ?? 'None' }}
         </div>
         <div>
-            squares: {{ activeCardStore.activeCard?.squares ?? 'None' }}
+            pos: {{ activeCardStore.position }}
         </div>
         <div>
-            pos: {{ activeCardStore.position }}
+            origin: {{ activeCardStore.activeCard?.origin ?? 'None' }}
         </div>
         <div>
             rot: {{ activeCardStore.rotation }}
@@ -49,7 +49,8 @@ const roomStore = useRoomStore();
     top: 0;
     left: 0;
     background-color: rgba(0, 0, 0, 0.5);
-    opacity: 0.5;
+    opacity: 0.9;
     pointer-events: none;
+    z-index: 999;
 }
 </style>

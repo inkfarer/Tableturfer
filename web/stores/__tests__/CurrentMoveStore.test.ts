@@ -289,7 +289,7 @@ describe('CurrentMoveStore', () => {
         });
 
         describe('setPositionFromCardOrigin', () => {
-            it('updates the card\'s position, accounting for its origin point', () => {
+            it('updates the card\'s position, accounting for its origin point and rotation', () => {
                 const store = useCurrentMoveStore();
                 // @ts-ignore
                 store.activeCard = {
@@ -302,6 +302,10 @@ describe('CurrentMoveStore', () => {
                     x: 0,
                     y: 0
                 };
+                // @ts-ignore
+                store.cardSizeWithoutRotation = { width: 2, height: 3 };
+                store.rotation = 90;
+                (getRotationOffset as Mock).mockReturnValue({ x: 1, y: 2 });
 
                 store.setPositionFromCardOrigin({
                     x: 5,
@@ -309,9 +313,10 @@ describe('CurrentMoveStore', () => {
                 });
 
                 expect(store.position).toEqual({
-                    x: 2,
-                    y: 1
+                    x: 3,
+                    y: 3
                 });
+                expect(getRotationOffset).toHaveBeenCalledWith(90, { width: 2, height: 3 });
             });
 
             it('updates the position when no card is selected', () => {
@@ -322,6 +327,10 @@ describe('CurrentMoveStore', () => {
                     x: 0,
                     y: 0
                 };
+                // @ts-ignore
+                store.cardSizeWithoutRotation = { width: 0, height: 0 };
+                store.rotation = 180;
+                (getRotationOffset as Mock).mockReturnValue({ x: 4, y: -1 });
 
                 store.setPositionFromCardOrigin({
                     x: 5,
@@ -329,9 +338,10 @@ describe('CurrentMoveStore', () => {
                 });
 
                 expect(store.position).toEqual({
-                    x: 5,
-                    y: 3
+                    x: 9,
+                    y: 2
                 });
+                expect(getRotationOffset).toHaveBeenCalledWith(180, { width: 0, height: 0 });
             });
         });
 
