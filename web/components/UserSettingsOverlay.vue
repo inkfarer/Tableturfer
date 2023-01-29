@@ -42,7 +42,7 @@ userSettingsStore.$subscribe(() => {
 <style lang="scss" scoped>
 .settings-overlay {
     text-align: center;
-    width: 450px;
+    max-width: 450px;
     margin: 0 35px 10px;
 }
 
@@ -50,5 +50,11 @@ p {
     border-bottom: 2px solid $accent;
     padding-bottom: 15px;
     margin: 10px 0 10px;
+}
+
+@include media-breakpoint-down(md) {
+    .settings-overlay {
+        margin: 0 10px 10px;
+    }
 }
 </style>
