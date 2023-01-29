@@ -43,4 +43,4 @@ impl MapProvider for MapProviderImpl {
     }
 }
 
-pub const DEFAULT_GAME_MAP: &str = "Square";
+pub const DEFAULT_GAME_MAP: &str = "Rectangle";
