@@ -3,6 +3,7 @@
         class="game-stage-layout"
         :class="{ passing: currentMoveStore.pass }"
     >
+        <GameLeavingOverlay ref="leavingOverlay" />
         <div class="side-section card-selector-section">
             <GameCardSelector class="card-selector" />
         </div>
@@ -38,10 +39,11 @@ import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 import { useRoomStore } from '~/stores/RoomStore';
 import GameMovePreview from '~/components/Game/GameMovePreview.vue';
 import { PlayerTeam } from '~/types/PlayerTeam';
-import { ref } from '#imports';
-import { GameBoard } from '#components';
+import { onBeforeRouteLeave, ref, useNuxtApp } from '#imports';
+import { GameBoard, GameLeavingOverlay } from '#components';
 import useSwipeCardMovement from '~/composables/UseSwipeCardMovement';
 
+const { $socket } = useNuxtApp();
 const currentMoveStore = useCurrentMoveStore();
 const roomStore = useRoomStore();
 
@@ -57,6 +59,14 @@ function onBoardRightClick(event: Event) {
     currentMoveStore.nextRotationStep();
     event.preventDefault();
 }
+
+const leavingOverlay = ref<InstanceType<typeof GameLeavingOverlay> | null>(null);
+onBeforeRouteLeave(() => {
+    if ($socket.isOpen() && leavingOverlay.value) {
+        leavingOverlay.value.open();
+        return false;
+    }
+});
 </script>
 
 <style lang="scss">

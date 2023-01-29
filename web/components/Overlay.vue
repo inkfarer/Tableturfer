@@ -68,6 +68,7 @@ function close() {
     .overlay {
         margin: 0 10px;
         max-width: 85vw;
+        min-width: 350px;
     }
 
     &.hide-background {
