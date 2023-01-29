@@ -16,6 +16,9 @@
         "joinRoom": "Join room",
         "username": "Name"
     },
+    "roomLinkCopier": {
+        "title": "Copy link to room"
+    },
     "room": {
         "title": {
             "loading": "Loading...",

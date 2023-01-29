@@ -10,7 +10,10 @@
                 </h1>
                 <template v-else>
                     <h4>{{ $t('room.beforeRoomCode') }}</h4>
-                    <h1>{{ roomStore.roomCode }}</h1>
+                    <h1>
+                        {{ roomStore.roomCode }}
+                        <RoomLinkCopier class="room-link-copier" />
+                    </h1>
                 </template>
             </div>
         </template>
@@ -170,6 +173,15 @@ async function leaveRoom() {
         margin-top: 0;
         margin-bottom: 20px;
         font-size: 4em;
+        position: relative;
+
+        .room-link-copier {
+            display: inline-block;
+            position: absolute;
+            bottom: 50%;
+            margin-left: 5px;
+            transform: translateY(50%);
+        }
     }
 }
 
