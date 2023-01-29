@@ -8,7 +8,7 @@
             >
                 {{ $t('game.leavingOverlay.confirm') }}
             </TtButton>
-            <TtButton @click="isOpen = false">
+            <TtButton @click="onCancel">
                 {{ $t('game.leavingOverlay.cancel') }}
             </TtButton>
         </div>
@@ -30,6 +30,10 @@ const { $socket } = useNuxtApp();
 async function onLeave() {
     $socket.disconnect();
     await navigateTo('/');
+}
+
+function onCancel() {
+    isOpen.value = false;
 }
 </script>
 
