@@ -137,13 +137,13 @@ export const useCurrentMoveStore = defineStore('currentMove', {
             }, this.activeCard?.squares);
         },
         nextRotationStep() {
-            if (this.activeCard != null) {
+            if (this.activeCard != null && !this.locked) {
                 this.activeCard.squares = rotateClockwise(this.activeCard.squares);
                 this.updateRotationValue(this.rotation === 270 ? 0 : this.rotation + 90 as CardRotation);
             }
         },
         previousRotationStep() {
-            if (this.activeCard != null) {
+            if (this.activeCard != null && !this.locked) {
                 this.activeCard.squares = rotateCounterclockwise(this.activeCard.squares);
                 this.updateRotationValue(this.rotation === 0 ? 270 : this.rotation - 90 as CardRotation);
             }
@@ -253,7 +253,7 @@ export const useCurrentMoveStore = defineStore('currentMove', {
         },
         proposeMove() {
             const roomStore = useRoomStore();
-            if (this.activeCard == null || roomStore.playerTeam == null || this.pass) {
+            if (this.locked || this.activeCard == null || roomStore.playerTeam == null || this.pass) {
                 return;
             }
 
