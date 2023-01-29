@@ -23,6 +23,7 @@ import { activateSpecialSquares } from '~/helpers/BoardHelper';
 import { CardMap } from '~/helpers/Cards';
 import { GameMapMap } from '~/helpers/Maps';
 import { useMoveStore } from '~/stores/MoveStore';
+import { useUserSettingsStore } from '~/stores/UserSettingsStore';
 
 interface GameBoardStore {
     name: string
@@ -42,6 +43,14 @@ export const useGameBoardStore = defineStore('gameBoard', {
         }
     }),
     getters: {
+        displayedBoard(): MST[][] | null {
+            const userSettingsStore = useUserSettingsStore();
+            if (userSettingsStore.boardFlipped) {
+                return rotateClockwiseBy(cloneDeep(this.board ?? []), 180);
+            } else {
+                return this.board;
+            }
+        },
         boardSize: state => {
             if (state.board == null) {
                 return { width: 0, height: 0 };
@@ -55,14 +64,15 @@ export const useGameBoardStore = defineStore('gameBoard', {
         isPlaceable() {
             return (position: Position, cardSquares: CardSquareType[][] | null) => {
                 const team = useRoomStore().playerTeam;
-                if (cardSquares == null || this.board == null || team == null) {
+                const board = this.displayedBoard;
+                if (cardSquares == null || board == null || team == null) {
                     return false;
                 }
 
                 const cardWidth = cardSquares[0].length;
                 const cardHeight = cardSquares.length;
                 const placementCheckSquares = slice2D(
-                    this.board,
+                    board,
                     position,
                     { x: position.x + cardWidth - 1, y: position.y + cardHeight - 1 });
 
@@ -100,7 +110,7 @@ export const useGameBoardStore = defineStore('gameBoard', {
                     }
 
                     const boardSquaresAroundCardSquare = slice2D<MST>(
-                        this.board as MST[][],
+                        board,
                         { x: position.x - 1 + x, y: position.y - 1 + y },
                         { x: position.x + 1 + x, y: position.y + 1 + y });
 

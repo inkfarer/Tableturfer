@@ -38,6 +38,8 @@ const placeable = computed(() => {
     return gameBoardStore.isPlaceable(activeCardStore.position, activeCardStore.activeCard.squares);
 });
 
+const boardSquares = computed(() => gameBoardStore.displayedBoard);
+
 onMounted(async () => {
     const imgFillAlpha = await createImage('/img/squares/1x/fill-alpha.webp');
     const imgFillBravo = await createImage('/img/squares/1x/fill-bravo.webp');
@@ -270,30 +272,24 @@ onMounted(async () => {
         throw new Error('GameBoard is missing canvas');
     }
 
-    if (resizeObserver.value) {
-        resizeObserver.value.disconnect();
-    }
-    resizeObserver.value = new ResizeObserver(() =>
+    const redrawCallback = () => {
         redraw(
             canvas,
-            gameBoardStore.board,
-            activeCardStore.activeCard?.squares ?? null,
-            activeCardStore.position,
-            roomStore.playerTeam,
-            activeCardStore.special,
-            activeCardStore.pass));
-    resizeObserver.value.observe(canvas);
-
-    watchEffect(() => {
-        redraw(
-            canvas,
-            gameBoardStore.board,
+            boardSquares.value,
             activeCardStore.activeCard?.squares ?? null,
             activeCardStore.position,
             roomStore.playerTeam,
             activeCardStore.special,
             activeCardStore.pass);
-    });
+    };
+
+    if (resizeObserver.value) {
+        resizeObserver.value.disconnect();
+    }
+    resizeObserver.value = new ResizeObserver(redrawCallback);
+    resizeObserver.value.observe(canvas);
+
+    watchEffect(redrawCallback);
 });
 
 onUnmounted(() => {

@@ -9,6 +9,7 @@ import { useRoomStore } from '~/stores/RoomStore';
 import { fill2D } from '~/helpers/ArrayHelper';
 import { activateSpecialSquares } from '~/helpers/BoardHelper';
 import cloneDeep from 'lodash/cloneDeep';
+import { useUserSettingsStore } from '~/stores/UserSettingsStore';
 
 jest.mock('~/helpers/BoardHelper');
 
@@ -142,41 +143,47 @@ describe('GameBoardStore', () => {
                     useRoomStore().playerTeam = PlayerTeam.ALPHA;
                 });
 
-                it.each([
-                    { x: 2, y: 3 },
-                    { x: 3, y: 3 }
-                ])('returns false if the card is next to the opposing side\'s tiles ($x, $y)', ({ x, y }) => {
-                    expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
-                });
+                describe.each([true, false])('board flipped for bravo: %s', boardFlipped => {
+                    beforeEach(() => {
+                        useUserSettingsStore().flipBoardOnBravoTeam = boardFlipped;
+                    });
 
-                it.each([
-                    { x: 1, y: 1 },
-                    { x: 3, y: 1 }
-                ])('returns true if the card is next to the player\'s tiles ($x, $y)', ({ x, y }) => {
-                    expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(true);
-                });
+                    it.each([
+                        { x: 2, y: 3 },
+                        { x: 3, y: 3 }
+                    ])('returns false if the card is next to the opposing side\'s tiles ($x, $y)', ({ x, y }) => {
+                        expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+                    });
 
-                it.each([
-                    { x: 2, y: 3 },
-                    { x: 3, y: 1 },
-                    { x: 3, y: 3 }
-                ])('returns false if doing a special attack next to tiles that aren\'t special squares ($x, $y)', ({ x, y }) => {
-                    useCurrentMoveStore().special = true;
+                    it.each([
+                        { x: 1, y: 1 },
+                        { x: 3, y: 1 }
+                    ])('returns true if the card is next to the player\'s tiles ($x, $y)', ({ x, y }) => {
+                        expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(true);
+                    });
 
-                    expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
-                });
+                    it.each([
+                        { x: 2, y: 3 },
+                        { x: 3, y: 1 },
+                        { x: 3, y: 3 }
+                    ])('returns false if doing a special attack next to tiles that aren\'t special squares ($x, $y)', ({ x, y }) => {
+                        useCurrentMoveStore().special = true;
 
-                it.each([
-                    MST.ACTIVE_SPECIAL_ALPHA,
-                    MST.INACTIVE_SPECIAL_ALPHA
-                ])('returns true if doing a special attack next to the player\'s special squares (%#)', specialSquare => {
-                    useCurrentMoveStore().special = true;
-                    const store = useGameBoardStore();
-                    store.board![1][1] = specialSquare;
-                    store.board![1][2] = MST.FILL_ALPHA;
-                    store.board![2][2] = MST.FILL_BRAVO;
+                        expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+                    });
 
-                    expect(store.isPlaceable({ x: 1, y: 1 }, card)).toBe(true);
+                    it.each([
+                        MST.ACTIVE_SPECIAL_ALPHA,
+                        MST.INACTIVE_SPECIAL_ALPHA
+                    ])('returns true if doing a special attack next to the player\'s special squares (%#)', specialSquare => {
+                        useCurrentMoveStore().special = true;
+                        const store = useGameBoardStore();
+                        store.board![1][1] = specialSquare;
+                        store.board![1][2] = MST.FILL_ALPHA;
+                        store.board![2][2] = MST.FILL_BRAVO;
+
+                        expect(store.isPlaceable({ x: 1, y: 1 }, card)).toBe(true);
+                    });
                 });
             });
 
@@ -186,41 +193,90 @@ describe('GameBoardStore', () => {
                     useRoomStore().playerTeam = PlayerTeam.BRAVO;
                 });
 
-                it.each([
-                    { x: 1, y: 1 },
-                    { x: 3, y: 1 }
-                ])('returns false if the card is next to the opposing side\'s tiles ($x, $y)', ({ x, y }) => {
-                    expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+                describe('board not flipped', () => {
+                    beforeEach(() => {
+                        useUserSettingsStore().flipBoardOnBravoTeam = false;
+                    });
+
+                    it.each([
+                        { x: 1, y: 1 },
+                        { x: 3, y: 1 }
+                    ])('returns false if the card is next to the opposing side\'s tiles ($x, $y)', ({ x, y }) => {
+                        expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+                    });
+
+                    it.each([
+                        { x: 2, y: 3 },
+                        { x: 3, y: 3 }
+                    ])('returns true if the card is next to the player\'s tiles ($x, $y)', ({ x, y }) => {
+                        expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(true);
+                    });
+
+                    it.each([
+                        { x: 1, y: 1 },
+                        { x: 3, y: 1 },
+                        { x: 3, y: 3 }
+                    ])('returns false if doing a special attack next to tiles that aren\'t special squares ($x, $y)', ({ x, y }) => {
+                        useCurrentMoveStore().special = true;
+
+                        expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+                    });
+
+                    it.each([
+                        MST.ACTIVE_SPECIAL_BRAVO,
+                        MST.INACTIVE_SPECIAL_BRAVO
+                    ])('returns true if doing a special attack next to the player\'s special squares (%#)', specialSquare => {
+                        useCurrentMoveStore().special = true;
+                        const store = useGameBoardStore();
+                        store.board![1][1] = specialSquare;
+                        store.board![1][2] = MST.FILL_ALPHA;
+                        store.board![2][2] = MST.FILL_BRAVO;
+
+                        expect(store.isPlaceable({ x: 1, y: 1 }, card)).toBe(true);
+                    });
                 });
 
-                it.each([
-                    { x: 2, y: 3 },
-                    { x: 3, y: 3 }
-                ])('returns true if the card is next to the player\'s tiles ($x, $y)', ({ x, y }) => {
-                    expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(true);
-                });
+                describe('board flipped', () => {
+                    beforeEach(() => {
+                        useUserSettingsStore().flipBoardOnBravoTeam = true;
+                    });
 
-                it.each([
-                    { x: 1, y: 1 },
-                    { x: 3, y: 1 },
-                    { x: 3, y: 3 }
-                ])('returns false if doing a special attack next to tiles that aren\'t special squares ($x, $y)', ({ x, y }) => {
-                    useCurrentMoveStore().special = true;
+                    it.each([
+                        { x: 2, y: 3 },
+                        { x: 3, y: 3 }
+                    ])('returns false if the card is next to the opposing side\'s tiles ($x, $y)', ({ x, y }) => {
+                        expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+                    });
 
-                    expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
-                });
+                    it.each([
+                        { x: 1, y: 1 },
+                        { x: 3, y: 1 }
+                    ])('returns true if the card is next to the player\'s tiles ($x, $y)', ({ x, y }) => {
+                        expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(true);
+                    });
 
-                it.each([
-                    MST.ACTIVE_SPECIAL_BRAVO,
-                    MST.INACTIVE_SPECIAL_BRAVO
-                ])('returns true if doing a special attack next to the player\'s special squares (%#)', specialSquare => {
-                    useCurrentMoveStore().special = true;
-                    const store = useGameBoardStore();
-                    store.board![1][1] = specialSquare;
-                    store.board![1][2] = MST.FILL_ALPHA;
-                    store.board![2][2] = MST.FILL_BRAVO;
+                    it.each([
+                        { x: 3, y: 3 },
+                        { x: 2, y: 3 },
+                        { x: 2, y: 1 }
+                    ])('returns false if doing a special attack next to tiles that aren\'t special squares ($x, $y)', ({ x, y }) => {
+                        useCurrentMoveStore().special = true;
 
-                    expect(store.isPlaceable({ x: 1, y: 1 }, card)).toBe(true);
+                        expect(useGameBoardStore().isPlaceable({ x, y }, card)).toBe(false);
+                    });
+
+                    it.each([
+                        MST.ACTIVE_SPECIAL_BRAVO,
+                        MST.INACTIVE_SPECIAL_BRAVO
+                    ])('returns true if doing a special attack next to the player\'s special squares (%#)', specialSquare => {
+                        useCurrentMoveStore().special = true;
+                        const store = useGameBoardStore();
+                        store.board![5][5] = specialSquare;
+                        store.board![5][4] = MST.FILL_ALPHA;
+                        store.board![4][4] = MST.FILL_BRAVO;
+
+                        expect(store.isPlaceable({ x: 1, y: 1 }, card)).toBe(true);
+                    });
                 });
             });
         });

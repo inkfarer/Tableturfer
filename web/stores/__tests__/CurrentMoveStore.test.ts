@@ -16,6 +16,8 @@ describe('CurrentMoveStore', () => {
         setActivePinia(createTestingPinia({
             stubActions: false
         }));
+
+        (getRotationOffset as Mock).mockRestore();
     });
 
     describe('getters', () => {
@@ -172,12 +174,7 @@ describe('CurrentMoveStore', () => {
 
                 store.setActiveCard(null);
 
-                expect(store.rotation).toBe(0);
                 expect(store.activeCard).toBeNull();
-                expect(store.position).toEqual({ x: 3, y: 2 });
-                expect(getRotationOffset).toHaveBeenCalledWith(180, { width: 3, height: 5 });
-                expect(getRotationOffset).toHaveBeenCalledWith(0, { width: 0, height: 0 });
-                expect(withinBoardBounds).toHaveBeenCalledWith({ x: 8, y: 2 }, []);
             });
         });
 

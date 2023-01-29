@@ -1,5 +1,6 @@
 export default {
     clearMocks: true,
+    restoreMocks: true,
     testEnvironment: 'jsdom',
     moduleFileExtensions: [ 'ts', 'js', 'json' ],
     moduleNameMapper: {

@@ -12,6 +12,12 @@
                 :label="$t('userSettings.onScreenRotationAndPlacementControls')"
                 class="mt-1x"
             />
+            <TtToggle
+                :model-value="userSettingsStore.flipBoardOnBravoTeam"
+                :label="$t('userSettings.flipBoardOnBravoTeam')"
+                class="mt-1x"
+                @update:model-value="userSettingsStore.setBoardFlip($event)"
+            />
         </div>
     </Overlay>
 </template>

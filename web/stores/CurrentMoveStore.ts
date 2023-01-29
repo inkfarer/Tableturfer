@@ -3,7 +3,7 @@ import { Position } from '~/types/Position';
 import { ActiveCard } from '~/types/ActiveCard';
 import { CardSquareType } from '~/types/CardSquareType';
 import { CardRotation } from '~/types/CardRotation';
-import { getSize, rotateClockwise, rotateCounterclockwise } from '~/helpers/ArrayHelper';
+import { getSize, rotateClockwise, rotateClockwiseBy, rotateCounterclockwise } from '~/helpers/ArrayHelper';
 import { defineStore } from 'pinia';
 import { useGameBoardStore } from '~/stores/GameBoardStore';
 import { MapSquareType } from '~/types/MapSquareType';
@@ -11,6 +11,7 @@ import { getRotationOffset, withinBoardBounds } from '~/helpers/ActiveCardHelper
 import cloneDeep from 'lodash/cloneDeep';
 import { useNuxtApp } from '#imports';
 import { useRoomStore } from '~/stores/RoomStore';
+import { useUserSettingsStore } from '~/stores/UserSettingsStore';
 
 interface CurrentMoveStore {
     activeCard: ActiveCard | null
@@ -93,18 +94,19 @@ export const useCurrentMoveStore = defineStore('currentMove', {
                 return;
             }
 
-            // Returns the new origin - Could be avoided later when cards are normalized before they are sent into this function
-            const updatePosition = (squares: CardSquareType[][]): Position => {
+            if (card == null) {
+                this.activeCard = null;
+            } else {
+                const cardSquares = cloneDeep(card.squares);
+
                 const oldOrigin = this.activeCard?.origin ?? { x: 0, y: 0 };
 
-                const cardWidth = squares[0]?.length ?? 0;
-                const cardHeight = squares.length;
-                const newOrigin = card == null
-                    ? { x: 0, y: 0 }
-                    : {
-                        x: Math.ceil(cardWidth / 2 - 1),
-                        y: Math.floor(cardHeight / 2)
-                    };
+                const cardWidth = cardSquares[0]?.length ?? 0;
+                const cardHeight = cardSquares.length;
+                const newOrigin = {
+                    x: Math.ceil(cardWidth / 2 - 1),
+                    y: Math.floor(cardHeight / 2)
+                };
 
                 const oldRotationOffset = getRotationOffset(this.rotation, this.cardSizeWithoutRotation);
                 const newRotationOffset = getRotationOffset(0, { width: cardWidth, height: cardHeight });
@@ -112,22 +114,13 @@ export const useCurrentMoveStore = defineStore('currentMove', {
                 this.position = withinBoardBounds({
                     x: this.position.x + oldOrigin.x - newOrigin.x - oldRotationOffset.x + newRotationOffset.x,
                     y: this.position.y + oldOrigin.y - newOrigin.y - oldRotationOffset.y + newRotationOffset.y
-                }, squares);
+                }, cardSquares);
                 this.rotation = 0;
-                return newOrigin;
-            };
-
-            if (card == null) {
-                updatePosition([]);
-                this.activeCard = card;
-            } else {
-                const normalizedSquares = cloneDeep(card.squares);
-                const origin = updatePosition(normalizedSquares);
 
                 this.activeCard = {
                     ...card,
-                    origin,
-                    squares: normalizedSquares
+                    origin: newOrigin,
+                    squares: cardSquares
                 };
             }
         },
@@ -272,14 +265,40 @@ export const useCurrentMoveStore = defineStore('currentMove', {
             }
 
             const { $socket } = useNuxtApp();
+            const userSettingsStore = useUserSettingsStore();
+            const boardFlipped = userSettingsStore.boardFlipped;
+            const rotation = boardFlipped ? (this.rotation + 180) % 360 : this.rotation;
+            const position = boardFlipped ? this.getFlippedPosition(this.position) : this.position;
+
             $socket.send('ProposeMove', {
                 type: 'PlaceCard',
                 cardName: this.activeCard.name,
-                position: this.position,
-                rotation: this.rotation,
+                position: position,
+                rotation: rotation,
                 special: this.special
             });
             this.locked = true;
+        },
+
+        getFlippedPosition(position: Position): Position {
+            const boardSize = useGameBoardStore().boardSize;
+            const cardSize = getSize(this.activeCard?.squares ?? []);
+
+            return {
+                x: boardSize.width - position.x - cardSize.width,
+                y: boardSize.height - position.y - cardSize.height
+            };
+        },
+        getFlippedRotation(rotation: CardRotation): CardRotation {
+            return (rotation + 180) % 360 as CardRotation;
+        },
+
+        flipPosition() {
+            if (this.activeCard) {
+                this.activeCard.squares = rotateClockwiseBy(this.activeCard.squares, 180);
+            }
+            this.rotation = this.getFlippedRotation(this.rotation);
+            this.position = this.getFlippedPosition(this.position);
         }
     }
 });
