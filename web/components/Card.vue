@@ -218,26 +218,26 @@ function handleClick() {
         margin-top: 4px;
         background-color: rgba(0, 0, 0, 0.5);
         border-radius: 8px;
-        padding: 4px;
+        padding: 0.2em;
         align-self: stretch;
 
         .square-count {
             background-color: $accent;
             color: #222;
-            padding: 5px;
+            padding: 0.15em 0.2em;
             font-size: 2em;
             font-weight: 700;
-            min-width: 40px;
+            min-width: 1em;
             text-align: center;
             border-radius: 8px;
         }
 
         .special-cost {
-            width: 100%;
             display: grid;
-            grid-template-columns: repeat(auto-fit, 20px);
-            gap: 4px;
-            margin-left: 4px;
+            grid-template-columns: repeat(auto-fill, minmax(0, min(calc(100% - 0.2em * 2) / 3, 1.3em)));
+            flex-grow: 1;
+            gap: 0.2em;
+            margin: 0.2em 0.2em 0.2em 0.3em;
         }
     }
 }

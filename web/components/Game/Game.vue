@@ -6,10 +6,27 @@
         <GameLeavingOverlay ref="leavingOverlay" />
         <div class="side-section card-selector-section">
             <GameCardSelector class="card-selector" />
+            <div class="full-deck-view-anchor">
+                <GameFullDeckView
+                    ref="fullDeckViewElem"
+                    v-model:is-open="fullDeckOpen"
+                    class="full-deck-view"
+                />
+            </div>
         </div>
-        <div class="side-section score-section">
-            <GameTeamScoreCounter :team="PlayerTeam.ALPHA" />
-            <GameTeamScoreCounter :team="PlayerTeam.BRAVO" />
+        <div class="side-section beside-card-selector">
+            <div class="score-counters">
+                <GameTeamScoreCounter :team="PlayerTeam.ALPHA" />
+                <GameTeamScoreCounter :team="PlayerTeam.BRAVO" />
+            </div>
+            <TtToggleButton
+                ref="fullDeckToggleButton"
+                v-model="fullDeckOpen"
+                theme="primary-small"
+                class="full-deck-toggle"
+            >
+                <Icon name="mdi:cards" />
+            </TtToggleButton>
         </div>
         <div class="main-section">
             <GamePlayerStatus class="player-status" />
@@ -39,9 +56,10 @@ import { useCurrentMoveStore } from '~/stores/CurrentMoveStore';
 import { useRoomStore } from '~/stores/RoomStore';
 import GameMovePreview from '~/components/Game/GameMovePreview.vue';
 import { PlayerTeam } from '~/types/PlayerTeam';
-import { onBeforeRouteLeave, ref, useNuxtApp } from '#imports';
-import { GameBoard, GameLeavingOverlay } from '#components';
+import { onBeforeRouteLeave, onClickOutside, ref, useNuxtApp } from '#imports';
+import { GameBoard, GameLeavingOverlay, TtToggleButton } from '#components';
 import useSwipeCardMovement from '~/composables/UseSwipeCardMovement';
+import GameFullDeckView from '~/components/Game/GameFullDeckView.vue';
 
 const { $socket } = useNuxtApp();
 const currentMoveStore = useCurrentMoveStore();
@@ -67,12 +85,18 @@ onBeforeRouteLeave(() => {
         return false;
     }
 });
+
+const fullDeckOpen = ref(false);
+const fullDeckViewElem = ref<InstanceType<typeof GameFullDeckView> | null>(null);
+const fullDeckToggleButton = ref<InstanceType<typeof TtToggleButton> | null>(null);
+onClickOutside(fullDeckViewElem, () => { fullDeckOpen.value = false; }, { ignore: [fullDeckToggleButton]});
+
 </script>
 
 <style lang="scss">
 .game-stage-layout {
     display: grid;
-    grid-template-columns: 2.25fr 0.5fr 4fr 1.25fr;
+    grid-template-columns: 2.25fr 5em 4fr 1.25fr;
     gap: 16px;
 
     position: fixed;
@@ -119,18 +143,38 @@ onBeforeRouteLeave(() => {
 .side-section {
     z-index: 2;
 
-    &.score-section {
+    &.beside-card-selector {
         align-self: center;
         justify-self: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         width: 100%;
-        display: grid;
-        gap: 32px;
+
+        > .score-counters {
+            display: grid;
+            gap: 32px;
+            width: 100%;
+        }
+
+        > .full-deck-toggle {
+            font-size: 2em;
+            margin-top: 16px;
+        }
     }
 
     &.card-selector-section {
         display: flex;
         align-items: center;
         z-index: 3;
+        position: relative;
+
+        .full-deck-view-anchor {
+            position: absolute;
+            width: 100%;
+            box-sizing: border-box;
+            max-height: 100%;
+        }
     }
 
     &.move-previews {
@@ -154,11 +198,27 @@ onBeforeRouteLeave(() => {
         height: calc(100% - 20px);
     }
 
-    .score-section {
+    .beside-card-selector {
         order: 1;
-        grid-auto-flow: column dense;
+        flex-direction: row !important;
         justify-content: center;
-        gap: 8px !important;
+        position: relative;
+        width: auto !important;
+
+        > .score-counters {
+            grid-auto-flow: column dense;
+            justify-content: center;
+            gap: 8px !important;
+            width: auto !important;
+        }
+
+        > .full-deck-toggle {
+            margin-top: 0 !important;
+            position: absolute;
+            right: 0;
+            transform: translateX(125%);
+            padding: 5px 10px;
+        }
     }
 
     .card-selector-section {
@@ -169,10 +229,28 @@ onBeforeRouteLeave(() => {
             max-width: 600px;
             margin: 0 auto;
         }
+
+        > .full-deck-view-anchor {
+            position: fixed !important;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            max-height: 90vh !important;
+            max-width: min(450px, 95%);
+            pointer-events: none;
+        }
     }
 
     .move-previews {
         display: none !important;
+    }
+}
+
+@include media-breakpoint-down(md) {
+    .beside-card-selector {
+        > .full-deck-toggle {
+            font-size: 1.5em !important;
+        }
     }
 }
 </style>

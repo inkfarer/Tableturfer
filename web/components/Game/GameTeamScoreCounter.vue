@@ -27,8 +27,9 @@ const score = computed(() => roomStore.score?.[props.team] ?? 0);
     font-weight: 800;
     border-style: solid;
     border-width: 2px;
-    padding: 0.25em;
+    padding: 0.25em 0;
     min-width: 1.2em;
+    font-feature-settings: 'tnum';
 
     &.team-Alpha {
         background-color: $accent-alpha-a10;
@@ -38,6 +39,12 @@ const score = computed(() => roomStore.score?.[props.team] ?? 0);
     &.team-Bravo {
         background-color: $accent-bravo-a10;
         border-color: $accent-bravo;
+    }
+}
+
+@include media-breakpoint-down(lg) {
+    .score-counter {
+        padding: 0.25em 0.25em;
     }
 }
 
