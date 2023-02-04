@@ -62,7 +62,7 @@ function onBoardRightClick(event: Event) {
 
 const leavingOverlay = ref<InstanceType<typeof GameLeavingOverlay> | null>(null);
 onBeforeRouteLeave(() => {
-    if ($socket.isOpen() && leavingOverlay.value) {
+    if ($socket.isOpen() && leavingOverlay.value && !roomStore.completed) {
         leavingOverlay.value.open();
         return false;
     }

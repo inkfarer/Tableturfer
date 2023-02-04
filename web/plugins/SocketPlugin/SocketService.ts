@@ -189,8 +189,8 @@ export class SocketService {
                 useGameBoardStore().resetBoard();
                 useMoveStore().resetMoves();
                 const roomStore = useRoomStore();
-                roomStore.resetGame();
                 await navigateTo(`/room/${roomStore.roomCode}`);
+                roomStore.resetGame();
                 break;
             }
             case 'EndGame': {
