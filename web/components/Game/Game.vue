@@ -57,9 +57,10 @@ import { useRoomStore } from '~/stores/RoomStore';
 import GameMovePreview from '~/components/Game/GameMovePreview.vue';
 import { PlayerTeam } from '~/types/PlayerTeam';
 import { onBeforeRouteLeave, onClickOutside, ref, useNuxtApp } from '#imports';
-import { GameBoard, GameLeavingOverlay, TtToggleButton } from '#components';
+import { GameBoard, GameLeavingOverlay } from '#components';
 import useSwipeCardMovement from '~/composables/UseSwipeCardMovement';
 import GameFullDeckView from '~/components/Game/GameFullDeckView.vue';
+import { VueElement } from 'vue';
 
 const { $socket } = useNuxtApp();
 const currentMoveStore = useCurrentMoveStore();
@@ -87,8 +88,8 @@ onBeforeRouteLeave(() => {
 });
 
 const fullDeckOpen = ref(false);
-const fullDeckViewElem = ref<InstanceType<typeof GameFullDeckView> | null>(null);
-const fullDeckToggleButton = ref<InstanceType<typeof TtToggleButton> | null>(null);
+const fullDeckViewElem = ref<VueElement | null>(null);
+const fullDeckToggleButton = ref<VueElement | null>(null);
 onClickOutside(fullDeckViewElem, () => { fullDeckOpen.value = false; }, { ignore: [fullDeckToggleButton]});
 
 </script>
