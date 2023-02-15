@@ -161,7 +161,8 @@ impl Room {
                     (team, player.deck.as_ref().unwrap().cards.clone())
                 }).collect()
             );
-            self.sender.send(RoomEvent::StartGame { score: game_state.score() }).ok();
+
+            self.sender.send(RoomEvent::StartGame { score: game_state.score(), map_name: map.name }).ok();
 
             let initial_hands = game_state.assign_initial_hands();
             for (team, hand) in initial_hands {

@@ -34,21 +34,11 @@ pub enum SocketAction {
 
 impl SocketAction {
     pub fn is_owner_action(&self) -> bool {
-        match self {
-            SocketAction::SetMap(_) => true,
-            SocketAction::StartGame => true,
-            SocketAction::ReturnToRoom => true,
-            _ => false,
-        }
+        matches!(self, SocketAction::SetMap(_) | SocketAction::StartGame | SocketAction::ReturnToRoom)
     }
 
     pub fn is_player_action(&self) -> bool {
-        match self {
-            SocketAction::SetDeck { id: _, cards: _ } => true,
-            SocketAction::ProposeMove(_) => true,
-            SocketAction::RequestRedraw => true,
-            _ => false,
-        }
+        matches!(self, SocketAction::SetDeck { id: _, cards: _ } | SocketAction::ProposeMove(_) | SocketAction::RequestRedraw)
     }
 }
 
@@ -79,7 +69,8 @@ pub enum RoomEvent {
     OwnerChange(Uuid),
     OpponentChange(Option<Uuid>),
     MapChange(String),
-    StartGame { score: HashMap<PlayerTeam, usize> },
+    #[serde(rename_all = "camelCase")]
+    StartGame { score: HashMap<PlayerTeam, usize>, map_name: String },
     #[serde(rename_all = "camelCase")]
     MoveReceived { team: PlayerTeam, remaining_turns: usize },
     MovesApplied { moves: HashMap<PlayerTeam, PlayerMove>, score: HashMap<PlayerTeam, usize> },

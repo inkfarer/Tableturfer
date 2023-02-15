@@ -21,11 +21,12 @@ import { PlaceCardMove, PlayerMove } from '~/types/socket/SocketCommon';
 import { isFillSquare, isSpecialSquare, mapSquareFromCardSquare } from '~/helpers/SquareHelper';
 import { activateSpecialSquares } from '~/helpers/BoardHelper';
 import { CardMap } from '~/helpers/Cards';
-import { GameMapMap } from '~/helpers/Maps';
+import { GameMapMap, RANDOM_MAP_NAME } from '~/helpers/Maps';
 import { useMoveStore } from '~/stores/MoveStore';
 import { useUserSettingsStore } from '~/stores/UserSettingsStore';
 
 interface GameBoardStore {
+    isRandomBoard: boolean
     name: string
     board: MST[][] | null
     baseBoard: MST[][] | null
@@ -34,6 +35,7 @@ interface GameBoardStore {
 
 export const useGameBoardStore = defineStore('gameBoard', {
     state: (): GameBoardStore => ({
+        isRandomBoard: false,
         name: 'unknown',
         board: null,
         baseBoard: null,
@@ -158,14 +160,33 @@ export const useGameBoardStore = defineStore('gameBoard', {
     },
     actions: {
         resetBoard() {
-            this.setBoardByName(this.name);
-        },
-        setBoardByName(boardName: string) {
-            const map = GameMapMap.get(boardName);
-            if (map != null) {
-                this.setBoard(map);
+            if (this.isRandomBoard) {
+                this.name = RANDOM_MAP_NAME;
+                this.clearBoardData();
             } else {
-                throw new Error(`Unknown map "${boardName}"`);
+                this.setBoardByName(this.name);
+            }
+        },
+        clearBoardData() {
+            this.board = null;
+            this.baseBoard = null;
+            this.usedSpecialPoints = { [PlayerTeam.ALPHA]: 0, [PlayerTeam.BRAVO]: 0 };
+        },
+        setBoardByName(boardName: string, resetRandomBoard = true) {
+            if (boardName === RANDOM_MAP_NAME) {
+                this.isRandomBoard = true;
+                this.name = boardName;
+                this.clearBoardData();
+            } else {
+                if (resetRandomBoard) {
+                    this.isRandomBoard = false;
+                }
+                const map = GameMapMap.get(boardName);
+                if (map != null) {
+                    this.setBoard(map);
+                } else {
+                    throw new Error(`Unknown map "${boardName}"`);
+                }
             }
         },
         setBoard(map: GameMap) {

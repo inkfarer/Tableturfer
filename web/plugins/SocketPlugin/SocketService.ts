@@ -161,6 +161,7 @@ export class SocketService {
                 useRoomStore().opponent = event.detail;
                 break;
             case 'StartGame': {
+                useGameBoardStore().setBoardByName(event.detail.mapName, false);
                 const roomStore = useRoomStore();
                 roomStore.started = true;
                 roomStore.score = event.detail.score;

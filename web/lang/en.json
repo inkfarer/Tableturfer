@@ -71,7 +71,8 @@
             "confirm": "Redraw!"
         },
         "map": {
-            "unknown": "???"
+            "unknown": "???",
+            "random": "Random Map"
         },
         "leavingOverlay": {
             "title": "Are you sure you'd like to leave?",
