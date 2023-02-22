@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::string::ToString;
 use std::sync::Arc;
 use chrono::{DateTime, Utc};
 use indexmap::IndexSet;
@@ -6,6 +7,7 @@ use tokio::sync::broadcast;
 use rand::distributions::{Alphanumeric, DistString};
 use uuid::Uuid;
 use itertools::Itertools;
+use rand::prelude::IteratorRandom;
 use serde::Serialize;
 use crate::game::card::{CardProvider, CardSquareProviderImpl};
 use crate::game::map::{DEFAULT_GAME_MAP, MapProvider, MapProviderImpl};
@@ -16,6 +18,7 @@ use crate::socket::messages::{RoomEvent, SocketError, SocketEvent};
 use crate::socket::SocketSender;
 
 const ROOM_CODE_SIZE: usize = 4;
+pub const RANDOM_MAP_NAME: &str = "random";
 
 #[derive(Clone, Debug, Serialize)]
 pub struct RoomUserDeck {
@@ -53,11 +56,14 @@ pub struct Room {
     pub map: String,
     pub game_state: Option<GameState>,
     pub card_provider: Arc<dyn CardProvider + Send + Sync>,
+    pub map_pool: Vec<String>,
     pub map_provider: Arc<dyn MapProvider + Send + Sync>,
 }
 
 impl Room {
     fn new(owner_id: Uuid, owner_channel: SocketSender, owner_username: &str) -> Self {
+        let map_provider = Arc::new(MapProviderImpl::new());
+
         Room {
             sender: broadcast::channel(100).0,
             owner_id,
@@ -67,8 +73,13 @@ impl Room {
             map: DEFAULT_GAME_MAP.to_string(),
             game_state: None,
             card_provider: Arc::new(CardSquareProviderImpl::new()),
-            map_provider: Arc::new(MapProviderImpl::new()),
+            map_pool: Self::get_default_map_pool(map_provider.clone()),
+            map_provider,
         }
+    }
+
+    fn get_default_map_pool(map_provider: Arc<dyn MapProvider + Send + Sync>) -> Vec<String> {
+        map_provider.get_names().into_iter().filter(|map| map != "SmallSquare").collect()
     }
 
     fn add_user(&mut self, id: Uuid, username: &str, channel: SocketSender) {
@@ -132,7 +143,7 @@ impl Room {
     }
 
     pub fn set_map(&mut self, map: String) -> Result<(), SocketError> {
-        if !self.map_provider.exists(&map) {
+        if !(map == RANDOM_MAP_NAME || self.map_provider.exists(&map)) {
             return Err(SocketError::GameError(GameError::MapNotFound));
         }
 
@@ -152,7 +163,9 @@ impl Room {
             Err(SocketError::DecksNotChosen)
         } else {
             let players = self.get_players();
-            let map = self.map_provider.get(&self.map).unwrap();
+
+            let map = self.map_provider.get(&self.get_map_name()).unwrap();
+
             let mut game_state = GameState::new(
                 map.squares,
                 self.card_provider.clone(),
@@ -171,6 +184,15 @@ impl Room {
 
             self.game_state = Some(game_state);
             Ok(())
+        }
+    }
+
+    fn get_map_name(&self) -> String {
+        if self.map.eq(RANDOM_MAP_NAME) {
+            let mut rng = rand::thread_rng();
+            self.map_pool.clone().into_iter().choose(&mut rng).unwrap_or(DEFAULT_GAME_MAP.to_string())
+        } else {
+            self.map.to_string()
         }
     }
 
@@ -333,4 +355,3 @@ impl SocketRoomStore {
         self.rooms.get_mut(room_code)
     }
 }
-
