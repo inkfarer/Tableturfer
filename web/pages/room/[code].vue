@@ -130,7 +130,7 @@ async function connect(roomCode: string) {
     isError.value = false;
 
     try {
-        roomStore.roomCode = await $socket.connect(roomCode.toLowerCase() === 'new' ? undefined : roomCode, username.value);
+        roomStore.roomCode = await $socket.connect(roomCode.toLowerCase() === 'new' ? undefined : roomCode, username.value ?? '');
         if (roomStore.roomCode !== roomCode.toUpperCase()) {
             await navigateTo(`/room/${roomStore.roomCode}`, { replace: true });
         }
