@@ -22,7 +22,6 @@ export default defineNuxtConfig({
     },
     modules: [
         '@pinia/nuxt',
-        '~/modules/CardI18nModule.ts',
         '@nuxtjs/i18n',
         'nuxt-icon',
         '@vueuse/nuxt'
@@ -34,7 +33,7 @@ export default defineNuxtConfig({
         locales: [
             {
                 code: 'en',
-                file: 'en.json'
+                file: 'en.ts'
             }
         ],
         lazy: true,
