@@ -1,6 +1,10 @@
 import { Position } from '~/types/Position';
 import { CardRotation } from '~/types/CardRotation';
 
+export interface RoomConfig {
+    turnTimerSeconds: number | null
+}
+
 export interface PlaceCardMove {
     type: 'PlaceCard'
     cardName: string

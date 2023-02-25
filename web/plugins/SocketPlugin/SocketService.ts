@@ -202,6 +202,9 @@ export class SocketService {
                 currentMoveStore.locked = true;
                 break;
             }
+            case 'ConfigUpdate':
+                useRoomStore().config = event.detail;
+                break;
         }
     }
 

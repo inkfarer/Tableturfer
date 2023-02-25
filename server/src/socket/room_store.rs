@@ -1,3 +1,4 @@
+use std::cmp::{min};
 use std::collections::HashMap;
 use std::string::ToString;
 use std::sync::Arc;
@@ -8,7 +9,7 @@ use rand::distributions::{Alphanumeric, DistString};
 use uuid::Uuid;
 use itertools::Itertools;
 use rand::prelude::IteratorRandom;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use crate::game::card::{CardProvider, CardSquareProviderImpl};
 use crate::game::map::{DEFAULT_GAME_MAP, MapProvider, MapProviderImpl};
 use crate::game::move_validator::MoveValidatorImpl;
@@ -19,6 +20,38 @@ use crate::socket::SocketSender;
 
 const ROOM_CODE_SIZE: usize = 4;
 pub const RANDOM_MAP_NAME: &str = "random";
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RoomConfig {
+    pub turn_timer_seconds: Option<usize>
+}
+
+impl Default for RoomConfig {
+    fn default() -> Self {
+        Self {
+            turn_timer_seconds: None
+        }
+    }
+}
+
+impl RoomConfig {
+    pub fn normalize(&self) -> Self {
+        let mut result = self.clone();
+        result.turn_timer_seconds = match result.turn_timer_seconds {
+            Some(timer) => {
+                if timer <= 0 {
+                    None
+                } else {
+                    Some(min(timer, 600))
+                }
+            },
+            None => None
+        };
+
+        result
+    }
+}
 
 #[derive(Clone, Debug, Serialize)]
 pub struct RoomUserDeck {
@@ -55,6 +88,7 @@ pub struct Room {
     pub user_channels: HashMap<Uuid, SocketSender>,
     pub map: String,
     pub game_state: Option<GameState>,
+    pub config: RoomConfig,
     pub card_provider: Arc<dyn CardProvider + Send + Sync>,
     pub map_pool: Vec<String>,
     pub map_provider: Arc<dyn MapProvider + Send + Sync>,
@@ -72,6 +106,7 @@ impl Room {
             user_channels: HashMap::from([(owner_id, owner_channel)]),
             map: DEFAULT_GAME_MAP.to_string(),
             game_state: None,
+            config: RoomConfig::default(),
             card_provider: Arc::new(CardSquareProviderImpl::new()),
             map_pool: Self::get_default_map_pool(map_provider.clone()),
             map_provider,
@@ -275,6 +310,11 @@ impl Room {
     pub fn return_to_room(&mut self) {
         self.game_state = None;
         self.sender.send(RoomEvent::ReturnToRoom).ok();
+    }
+
+    pub fn set_config(&mut self, config: RoomConfig) {
+        self.config = config.clone();
+        self.sender.send(RoomEvent::ConfigUpdate(config)).ok();
     }
 
     async fn send_to_player(&self, team: PlayerTeam, message: SocketEvent) {

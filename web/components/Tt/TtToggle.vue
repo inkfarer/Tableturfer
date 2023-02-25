@@ -4,7 +4,10 @@
         :class="{ disabled: disabled, active: modelValue }"
         @click="toggleValue"
     >
-        {{ label }}
+        <span class="label">
+            {{ label }}
+            <span class="details">{{ props.details }}</span>
+        </span>
         <div class="value-display">
             <div class="indicator" />
         </div>
@@ -16,9 +19,11 @@ const props = withDefaults(defineProps<{
     label: string
     modelValue?: boolean
     disabled?: boolean
+    details?: string
 }>(), {
     modelValue: false,
-    disabled: false
+    disabled: false,
+    details: ''
 });
 
 const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
@@ -70,6 +75,18 @@ function toggleValue() {
     &.active > .value-display > .indicator {
         transform: translateX(100%);
         background-color: #222;
+    }
+
+    > .label {
+        font-weight: 400;
+
+        > .details {
+            display: inline-block;
+            opacity: 75%;
+            font-size: 0.9em;
+            margin-top: 0.2em;
+            font-weight: 300;
+        }
     }
 
     > .value-display {

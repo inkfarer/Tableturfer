@@ -1,4 +1,4 @@
-import { PlayerMove } from '~/types/socket/SocketCommon';
+import { PlayerMove, RoomConfig } from '~/types/socket/SocketCommon';
 
 export interface SocketActionMap {
     SetMap: string
@@ -8,4 +8,5 @@ export interface SocketActionMap {
     SetDeck: { id: string, cards: string[] }
     ReturnToRoom: never
     Ping: never
+    SetConfig: RoomConfig
 }

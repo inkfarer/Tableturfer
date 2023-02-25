@@ -137,6 +137,7 @@ impl SocketHandler {
             owner: room.owner_id,
             opponent: room.opponent_id,
             map: room.map,
+            config: room.config,
         }
     }
 

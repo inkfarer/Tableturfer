@@ -2,7 +2,8 @@ import ENTranslations from '../lang/game/en.json';
 
 export default {
     common: {
-        card: 'Card | Cards'
+        card: 'Card | Cards',
+        second: 'Second | Seconds'
     },
     nav: {
         siteName: 'tblturf.ink',
@@ -32,6 +33,12 @@ export default {
         backHome: 'Back to main page',
         mapName: 'Map',
         deckName: 'Deck',
+        turnTimer: {
+            label: 'Turn timer',
+            disabled: 'Off',
+            enabled: '{n} @.lower:common.second'
+        },
+        configure: 'Configure room',
         setMap: 'Change map',
         setDeck: 'Change deck',
         startGame: 'Start the game!',
@@ -54,6 +61,15 @@ export default {
             title: 'Please choose an username.',
             continue: 'Join room'
         }
+    },
+    roomConfig: {
+        title: 'Room configuration',
+        subtitle: 'Change how the game behaves for all players in the room.',
+        enableTurnTimer: {
+            label: 'Enable turn timer',
+            details: 'If enabled and a player takes over 60 seconds to complete their turn, the game will end.'
+        },
+        save: 'Save changes'
     },
     game: {
         pass: 'Pass',

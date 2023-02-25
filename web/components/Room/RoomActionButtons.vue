@@ -9,11 +9,24 @@
     />
     <GameGuideOverlay ref="guideOverlay" />
     <UserSettingsOverlay ref="userSettingsOverlay" />
+    <RoomConfigOverlay
+        v-if="roomStore.isRoomOwner"
+        ref="roomConfigOverlay"
+    />
 
     <div
         v-bind="$attrs"
         class="room-action-buttons"
     >
+        <TtButton
+            v-if="roomStore.isRoomOwner"
+            @click="
+                // @ts-ignore
+                $refs.roomConfigOverlay.open()
+            "
+        >
+            {{ $t('room.configure') }}
+        </TtButton>
         <TtButton
             v-if="roomStore.isRoomOwner"
             @click="

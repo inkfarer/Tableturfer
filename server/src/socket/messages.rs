@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use crate::game::state::{GameError, PlayerMove};
 use crate::game::team::PlayerTeam;
-use crate::socket::room_store::RoomUser;
+use crate::socket::room_store::{RoomConfig, RoomUser};
 
 #[derive(Serialize, Debug)]
 #[serde(tag = "code", content = "detail")]
@@ -30,11 +30,12 @@ pub enum SocketAction {
     SetDeck { id: String, cards: IndexSet<String> },
     ReturnToRoom,
     Ping,
+    SetConfig(RoomConfig),
 }
 
 impl SocketAction {
     pub fn is_owner_action(&self) -> bool {
-        matches!(self, SocketAction::SetMap(_) | SocketAction::StartGame | SocketAction::ReturnToRoom)
+        matches!(self, SocketAction::SetMap(_) | SocketAction::StartGame | SocketAction::ReturnToRoom | SocketAction::SetConfig(_))
     }
 
     pub fn is_player_action(&self) -> bool {
@@ -54,6 +55,7 @@ pub enum SocketEvent {
         opponent: Option<Uuid>,
         map: String,
         started: bool,
+        config: RoomConfig,
     },
     Error(SocketError),
     RoomEvent(RoomEvent),
@@ -79,4 +81,5 @@ pub enum RoomEvent {
     NextCardDrawn { new_card: String, replacing: String },
     EndGame { score: HashMap<PlayerTeam, usize> },
     ReturnToRoom,
+    ConfigUpdate(RoomConfig),
 }

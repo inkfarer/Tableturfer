@@ -7,6 +7,9 @@
             {{ formatMissingValue(deckStore.deck?.name) }}
         </DataRow>
     </template>
+    <DataRow :label="$t('room.turnTimer.label')">
+        {{ roomStore.config?.turnTimerSeconds == null ? $t('room.turnTimer.disabled') : $t('room.turnTimer.enabled', roomStore.config.turnTimerSeconds) }}
+    </DataRow>
 </template>
 
 <script lang="ts" setup>

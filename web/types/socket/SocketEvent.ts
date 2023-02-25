@@ -1,5 +1,6 @@
 import { AnyRoomEvent } from '~/types/socket/RoomEvent';
 import { AnyError, AnyMessage } from '~/types/socket/EventHelper';
+import { RoomConfig } from '~/types/socket/SocketCommon';
 
 interface InvalidMoveErrorMap {
     CardNotFound: never
@@ -55,6 +56,7 @@ export interface SocketMessageMap {
         opponent: string | null
         map: string
         started: boolean
+        config: RoomConfig
     }
     RoomEvent: AnyRoomEvent
     Pong: never
