@@ -53,10 +53,7 @@ impl SocketActionHandler {
                             self.socket_channel.send(SocketEvent::Pong).await.ok();
                             Ok(())
                         },
-                        SocketAction::SetConfig(config) => {
-                            room.set_config(config.normalize());
-                            Ok(())
-                        }
+                        SocketAction::SetConfig(config) => room.set_config(config.normalize())
                     }
                 } else {
                     auth_result

@@ -312,9 +312,14 @@ impl Room {
         self.sender.send(RoomEvent::ReturnToRoom).ok();
     }
 
-    pub fn set_config(&mut self, config: RoomConfig) {
-        self.config = config.clone();
-        self.sender.send(RoomEvent::ConfigUpdate(config)).ok();
+    pub fn set_config(&mut self, config: RoomConfig) -> Result<(), SocketError> {
+        if self.game_started() {
+            self.config = config.clone();
+            self.sender.send(RoomEvent::ConfigUpdate(config)).ok();
+            Ok(())
+        } else {
+            Err(SocketError::RoomStarted)
+        }
     }
 
     async fn send_to_player(&self, team: PlayerTeam, message: SocketEvent) {
