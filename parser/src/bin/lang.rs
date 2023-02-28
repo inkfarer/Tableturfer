@@ -51,7 +51,9 @@ fn find_string_file() -> Result<String, Box<dyn Error>> {
 }
 
 fn read_strings() -> Result<HashMap<LangFileType, SarcEntry>, Box<dyn Error>> {
-    let file_content = zstd::decode_all(File::open(find_string_file()?)?)?;
+    let string_file_path = find_string_file()?;
+    println!("Using file {}", string_file_path);
+    let file_content = zstd::decode_all(File::open(string_file_path)?)?;
     let parsed_sarc = SarcFile::read(&file_content).unwrap();
 
     let files = parsed_sarc.files.into_iter()
@@ -112,4 +114,5 @@ fn main() {
     let serialized_contents = serde_json::to_string(&parsed_contents).expect("Failed to serialize translations");
 
     fs::write(format!("{}/{}", out_dir, "en.json"), serialized_contents).expect("Failed to write result");
+    println!("Done!");
 }

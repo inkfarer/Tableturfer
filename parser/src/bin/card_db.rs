@@ -114,6 +114,7 @@ fn find_card_info_file() -> Result<String, Box<dyn Error>> {
 
 fn parse_card_info() -> Result<Vec<TableturfCard>, Box<dyn Error>> {
     let card_info_file = find_card_info_file()?;
+    println!("Using file {}", card_info_file);
     let card_info = Byml::from_binary(&zstd::decode_all(File::open(card_info_file)?)?)?;
     let mut result: Vec<TableturfCard> = Vec::new();
 
