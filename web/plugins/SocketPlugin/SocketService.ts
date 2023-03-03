@@ -161,6 +161,14 @@ export class SocketService {
                 useRoomStore().opponent = event.detail;
                 break;
             case 'StartGame': {
+                useCurrentMoveStore().resetGame();
+                // The client can receive 'HandAssigned' before 'StartGame', so here we must be careful not to erase
+                // what cards were just given to them
+                useDeckStore().resetUsedCards();
+                useGameBoardStore().resetBoard();
+                useMoveStore().resetMoves();
+                useRoomStore().resetGame();
+
                 useGameBoardStore().setBoardByName(event.detail.mapName, false);
                 const roomStore = useRoomStore();
                 roomStore.started = true;
@@ -185,12 +193,12 @@ export class SocketService {
                 useDeckStore().replaceCard(event.detail.replacing, event.detail.newCard);
                 break;
             case 'ReturnToRoom': {
+                const roomStore = useRoomStore();
+                await navigateTo(`/room/${roomStore.roomCode}`);
                 useCurrentMoveStore().resetGame();
                 useDeckStore().resetGame();
                 useGameBoardStore().resetBoard();
                 useMoveStore().resetMoves();
-                const roomStore = useRoomStore();
-                await navigateTo(`/room/${roomStore.roomCode}`);
                 roomStore.resetGame();
                 break;
             }

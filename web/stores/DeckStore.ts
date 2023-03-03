@@ -59,6 +59,9 @@ export const useDeckStore = defineStore('deck', {
         resetGame() {
             // todo: deckName can go out of sync with what the player's current deck really is
             this.availableCards = [];
+            this.resetUsedCards();
+        },
+        resetUsedCards() {
             this.usedCards.Alpha.clear();
             this.usedCards.Bravo.clear();
         }
