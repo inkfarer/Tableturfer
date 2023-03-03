@@ -3,11 +3,11 @@
         class="room-link-copier"
         :class="{ 'success': copyComplete }"
         :title="$t('roomLinkCopier.title')"
+        @click="copyRoomCode"
     >
         <Icon
             v-if="clipboard.isSupported"
             :name="copyComplete ? 'fa6-solid:check' : 'fa6-solid:copy'"
-            @click="copyRoomCode"
         />
     </div>
 </template>
